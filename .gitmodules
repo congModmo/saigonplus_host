@@ -1,0 +1,21 @@
+[submodule "FW_libraries/coremqtt"]
+	path = FW_libraries/coremqtt
+	url = https://github.com/freertos/coremqtt.git
+[submodule "FW_libraries/cJSON"]
+	path = FW_libraries/cJSON
+	url = https://github.com/DaveGamble/cJSON.git
+[submodule "FW_libraries/crc"]
+	path = FW_libraries/crc
+	url = git@gitlab.com:thanhcong1431995/modmo_crc.git
+[submodule "FW_libraries/slip"]
+	path = FW_libraries/slip
+	url = git@gitlab.com:thanhcong1431995/modmo_slip.git
+[submodule "FW_libraries/ringbuf"]
+	path = FW_libraries/ringbuf
+	url = git@gitlab.com:thanhcong1431995/ringbuf.git
+[submodule "FW_libraries/kalman_filter"]
+	path = FW_libraries/kalman_filter
+	url = git@gitlab.com:thanhcong1431995/kalman_filter.git
+[submodule "HW_drivers/ext_flash"]
+	path = HW_drivers/ext_flash
+	url = git@gitlab.com:thanhcong1431995/ext_flash.git

@@ -1,8 +1,6 @@
 #ifndef APP_CONFIG_H_
 #define APP_CONFIG_H_
 
-
-
 #ifndef RELEASE
 //	#define GPS_ENABLE
 //	#define GPS_UNIT_TEST

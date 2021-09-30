@@ -4,7 +4,7 @@
 #include "main.h"
 #include "bsp.h"
 #include "lara_r2.h"
-#include "app_fota/fota_core.h"
+//#include "app_fota/fota_core.h"
 #include "lara_r2_http.h"
 typedef struct {
     size_t httpFileSize;

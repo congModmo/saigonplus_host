@@ -19,7 +19,6 @@ typedef struct
 } nina_b1_ask_t;
 
 static nina_b1_ask_t ask;
-static frame_handler transport_handler = NULL;
 static RINGBUF bleRingbuf;
 static uint8_t bleSlipBuff[512];
 static slip_t slip;
@@ -82,6 +81,11 @@ void nina_b1_send2(uint8_t type1, uint8_t type2, uint8_t *data, size_t len)
 		slip_send(&slip, &type1, 1, SLIP_FRAME_BEGIN);
 		slip_send(&slip, &type2, 1, SLIP_FRAME_END);
 	}
+}
+
+void nina_b1_send3(uint8_t *data, size_t len, slip_frame_type_t type)
+{
+	slip_send(&slip, data, len, type);
 }
 
 static void ask_cb(uint8_t *frame, size_t len)
@@ -161,60 +165,9 @@ bool nina_b1_ask_get_response(uint8_t *cmd, size_t cmd_len, uint8_t **resp, uint
 	return ask.completed;
 }
 
-static void ble_frame_cb(uint8_t *frame, size_t len)
+void nina_b1_reset()
 {
-	if (frame[0] == HOST_COMM_UI_MSG)
-	{
-		if (transport_handler != NULL)
-		{
-			transport_handler(frame + 1, len - 1);
-		}
-	}
+	nina_b1_bsp_set_reset_pin(0);
+	delay(100);
+	nina_b1_bsp_set_reset_pin(1);
 }
-
-static void transport_polling(frame_handler handler)
-{
-	transport_handler = handler;
-	nina_b1_polling(ble_frame_cb);
-}
-
-static void transport_send(uint8_t *data, size_t len, bool _continue)
-{
-	static bool start_frame = true;
-	static uint8_t cmd = HOST_COMM_UI_MSG;
-	if (!_continue)
-	{
-		if (start_frame)
-		{
-			slip_send(&slip, &cmd, 1, SLIP_FRAME_BEGIN);
-			slip_send(&slip, data, len, SLIP_FRAME_END);
-		}
-		else
-		{
-			start_frame = true;
-			slip_send(&slip, data, len, SLIP_FRAME_END);
-		}
-	}
-	else
-	{
-		if (start_frame)
-		{
-			start_frame = false;
-			slip_send(&slip, &cmd, 1, SLIP_FRAME_BEGIN);
-			slip_send(&slip, data, len, SLIP_FRAME_MIDDLE);
-		}
-		else
-		{
-			slip_send(&slip, data, len, SLIP_FRAME_MIDDLE);
-		}
-	}
-}
-
-static void transport_init()
-{
-	uint8_t cmd[2]={HOST_COMM_BLE_MSG, HOST_CMD_FAST_MODE};
-	nina_b1_send0(cmd, 2);
-	delay(200); //delay to let ble update connection params
-}
-
-const serial_interface_t ble_serial = {.mtu = 200, .init=transport_init, .polling = transport_polling, .send = transport_send};

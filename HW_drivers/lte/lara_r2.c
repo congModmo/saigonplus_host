@@ -4,14 +4,13 @@
 #include <lte/lara_r2.h>
 #include "bsp.h"
 #include "log_sys.h"
-#include "Define.h"
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <ctype.h>
 #include "ringbuf/ringbuf.h"
-#include <app_common/wcb_common.h>
-#include "app_main/app_info.h"
+//#include <app_common/wcb_common.h>
+//#include "app_main/app_info.h"
 
 static RINGBUF lte_rb;
 

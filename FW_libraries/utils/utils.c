@@ -5,6 +5,7 @@
     HieuNT
 */
 #include "utils.h"
+#include <string.h>
 
 int str_token(char *s, char *set, char **token, int maxSz)
 {

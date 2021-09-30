@@ -10,7 +10,7 @@
 #define __FLASH_FOTA_H_
 
 
-#include "fota_comm/fota_comm.h"
+#include "fota_comm.h"
 #include "flash_if.h"
 #include "bsp.h"
 

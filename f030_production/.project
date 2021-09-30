@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>Modmo_wcb_f030</name>
+	<name>SaigonPlus_f030_production</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -30,4 +30,31 @@
 		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>FW_libraries</name>
+			<type>2</type>
+			<locationURI>$%7BPARENT-1-PROJECT_LOC%7D/FW_libraries</locationURI>
+		</link>
+		<link>
+			<name>HW_drivers</name>
+			<type>2</type>
+			<locationURI>$%7BPARENT-1-PROJECT_LOC%7D/HW_drivers</locationURI>
+		</link>
+		<link>
+			<name>common</name>
+			<type>2</type>
+			<locationURI>$%7BPARENT-1-PROJECT_LOC%7D/common</locationURI>
+		</link>
+		<link>
+			<name>f030_bsp</name>
+			<type>2</type>
+			<locationURI>$%7BPARENT-1-PROJECT_LOC%7D/f030_bsp</locationURI>
+		</link>
+		<link>
+			<name>production</name>
+			<type>2</type>
+			<locationURI>$%7BPARENT-1-PROJECT_LOC%7D/production</locationURI>
+		</link>
+	</linkedResources>
 </projectDescription>

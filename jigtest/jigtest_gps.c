@@ -27,11 +27,11 @@ static bool gga_only_check(){
 
 bool GPS_EVA_process(){
 	static char *frame;
-	frame=GPS_EVA_ringbuf_polling();
+//	frame=GPS_EVA_ringbuf_polling();
 
 	if(frame==NULL)
 		return false;
-	debug("%s\n", frame);
+//	debug("%s\n", frame);
 //	char *msg=strstr(frame, "RMC");
 //	if(msg!=NULL){
 //		parse_rmc(msg-2);

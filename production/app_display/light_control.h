@@ -18,6 +18,7 @@ typedef struct{
 	uint8_t head;
 }light_config_t;
 
+void light_control_init();
 void light_control(bool on);
 void light_control_set_config(light_config_t *config);
 

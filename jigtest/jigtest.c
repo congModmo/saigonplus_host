@@ -233,7 +233,7 @@ void jigtest_gps_function_test()
 {
 #ifdef GPS_ENABLE
 	uint32_t tick=millis();
-	GPS_EVA_ringbuf_reset();
+//	GPS_EVA_ringbuf_reset();
 	checklist.gps_position.reported=0;
 	while(millis()-tick<30000){
 		GPS_EVA_process();

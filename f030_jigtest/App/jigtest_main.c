@@ -122,11 +122,11 @@ void main_mail_process()
 
 void app_main(void)
 {
-
 	uart_ui_comm_init();
-
+	app_gps_init();
 	while (1)
 	{
+		app_gps_process();
 		uart_ui_comm_polling();
 		if (fota_start)
 		{
@@ -136,7 +136,6 @@ void app_main(void)
 			fota_start_process(fota_source, fota_params);
 		}
 		main_mail_process();
-
 		fota_core_process();
 		delay(5);
 	}

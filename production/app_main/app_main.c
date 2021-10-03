@@ -150,7 +150,7 @@ void app_main(void)
 #endif
 
 #ifdef GPS_ENABLE
-	wcb_gps_init();
+	app_gps_init();
 #endif
 
 #ifdef DISPLAY_ENABLE
@@ -171,7 +171,7 @@ void app_main(void)
 		uart_ui_comm_polling();
 #endif
 #ifdef GPS_ENABLE
-		wcb_gps_process();
+		app_gps_process();
 #endif
 #ifdef PUBLISH_ENABLE
 		publish_scheduler_process();

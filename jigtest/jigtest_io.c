@@ -2,8 +2,7 @@
 #include "jigtest_esp.h"
 #include "jigtest_io.h"
 #include "esp_host_comm.h"
-
-static io_test_t io_tester={0};
+#include "app_display/light_control.h"
 
 static struct
 {
@@ -11,85 +10,109 @@ static struct
 	bool state;
 }lockpin;
 
+static struct{
+	light_config_t config;
+	bool done;
+	bool result;
+}light_test;
+
+#define ADC_TO_SIDELIGHT(adc) adc
+#define ADC_TO_HEADLIGHT(adc) adc
 
 void lockpin_check_polling()
 {
-	if(lockpin.state!=lock_pin_get_state()){
+	if(lockpin.state!=lock_pin_get_state())
+	{
 		delay(5);
-		if(lockpin.state!=lock_pin_get_state()){
+		if(lockpin.state!=lock_pin_get_state())
+		{
 			lockpin.count++;
 			lockpin.state=lock_pin_get_state();
 		}
 	}
 }
 
-void lockpin_check_init(){
+void lockpin_check_init()
+{
 	lockpin.count=0;
 	lockpin.state=lock_pin_get_state();
 }
 
-//void io_test_cb(uint8_t *data, uint16_t len){
-//	if(data[0]==ESP_BLE_HOST_IO_VALUE){
-//		host_io_value_t *value =(host_io_value_t *)(data+1);
-//		if(io_tester.light_on){
-//			if(value->led_blue==1) io_tester.led_blue_count++;
-//			if(value->led_red==1) io_tester.led_red_count++;
-//			if(value->led_green==1) io_tester.led_green_count++;
-//			if(value->front_light==1) io_tester.led_front_count++;
-//		}
-//		else{
-//			if(value->led_blue==0) io_tester.led_blue_count++;
-//			if(value->led_red==0) io_tester.led_red_count++;
-//			if(value->led_green==0) io_tester.led_green_count++;
-//			if(value->front_light==0) io_tester.led_front_count++;
-//		}
-//	}
-//	io_tester.completed=true;
-//}
-
-void check_io_match(){
-	uint32_t tick=millis();
-	io_tester.completed=false;
-//	uart_esp_send_cmd(ESP_BLE_HOST_IO_VALUE);
-//	while(millis()-tick<100 && !io_tester.completed){
-//		esp_uart_polling(io_test_cb);
-//		delay(5);
-//	}
+bool tolerance_check(int value, int setpoint, int percent )
+{
+	if(value*100 > setpoint*(100 +percent))
+		return false;
+	if(value*100 < setpoint*(100-percent))
+		return false;
+	return true;
 }
 
-void jigtest_test_io()
+void io_test_cb(uint8_t *data, uint16_t len)
 {
-	#define TEST_NUM 5
-	memset(&io_tester, 0, sizeof(io_test_t));
-//	uint8_t cmd=ESP_BLE_HOST_IO_VALUE;
-	for(uint8_t i=0; i<TEST_NUM; i++){
-//		light_on();
-		io_tester.light_on=true;
-		check_io_match();
-//		light_off();
-		io_tester.light_on=false;
-		check_io_match();
-	}
-	if(io_tester.led_blue_count==TEST_NUM*2)
-		jigtest_direct_report(UART_UI_RES_LED_BLUE, 1);
-	else 
-		jigtest_direct_report(UART_UI_RES_LED_BLUE, 0);
-	if(io_tester.led_red_count==TEST_NUM*2)
-		jigtest_direct_report(UART_UI_RES_LED_RED, 1);
-	else 
-		jigtest_direct_report(UART_UI_RES_LED_RED, 0);
-	if(io_tester.led_green_count==TEST_NUM*2)
-		jigtest_direct_report(UART_UI_RES_LED_GREEN, 1);
-	else 
-		jigtest_direct_report(UART_UI_RES_LED_GREEN, 0);
-	if(io_tester.led_front_count==TEST_NUM*2)
-		jigtest_direct_report(UART_UI_RES_FRONT_LIGHT, 1);
-	else 
-		jigtest_direct_report(UART_UI_RES_FRONT_LIGHT, 0);
+	host_adc_value_t *_adc=(host_adc_value_t *) data;
+	light_test.done=true;
+	light_test.result=false;
+	if(!tolerance_check(ADC_TO_SIDELIGHT(_adc->led_blue), light_test.config.blue, 5))
+		return;
+	if(!tolerance_check(ADC_TO_SIDELIGHT(_adc->led_red), light_test.config.red, 5))
+		return;
+	if(!tolerance_check(ADC_TO_SIDELIGHT(_adc->led_green), light_test.config.green, 5))
+		return;
+	if(!tolerance_check(ADC_TO_HEADLIGHT(_adc->front_light), light_test.config.head, 5))
+		return;
+	light_test.result=true;
+	return;
+}
+
+bool check_io_match()
+{
 	uint32_t tick=millis();
+	light_test.done=false;
+	uart_esp_send_cmd(ESP_BLE_HOST_ADC_VALUE);
+	while(millis()-tick<100 && !light_test.done){
+		esp_uart_polling(io_test_cb);
+		delay(5);
+	}
+	if(!light_test.done)
+		return false;
+	return light_test.result;
+}
+
+static void light_testing()
+{
+	light_control_init();
+	light_control(true);
+	int test_count=4;
+	light_test.config.blue=light_test.config.red=light_test.config.green=0;
+	light_test.config.head=0;
+	bool result=true;
+	while(test_count--){
+		light_control_set_config(&light_test.config);
+		delay(100);
+		if(!check_io_match()){
+			result=false;
+			break;
+		}
+		light_test.config.blue+=50;
+		light_test.config.red+=50;
+		light_test.config.green+=50;
+		light_test.config.head+=25;
+	}
+	if(result){
+		jigtest_direct_report(UART_UI_RES_FRONT_LIGHT, 1);
+		jigtest_direct_report(UART_UI_RES_LED_BLUE, 1);
+		jigtest_direct_report(UART_UI_RES_LED_GREEN, 1);
+		jigtest_direct_report(UART_UI_RES_LED_RED, 1);
+	}
+}
+
+void lockpin_testing()
+{
 	uart_esp_send_cmd(ESP_BLE_HOST_BLINK);
 	lockpin_check_init();
-	while(millis()-tick<1000){
+	uint32_t tick=millis();
+	while(millis()-tick<1000)
+	{
 		lockpin_check_polling();
 		delay(5);
 	}
@@ -99,4 +122,10 @@ void jigtest_test_io()
 	else{
 		jigtest_direct_report(UART_UI_RES_LOCKPIN, 0);
 	}
+}
+
+void jigtest_test_io()
+{
+	light_testing();
+	lockpin_testing();
 }

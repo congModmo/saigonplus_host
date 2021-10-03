@@ -211,20 +211,18 @@ static uint8_t gps_ringbuf_buffer[GPS_BUF_SIZE];
 static uint8_t gps_buff[UART_READ_BLOCK];
 static RINGBUF *gpsRingbuf;
 
-void bsp_gps_uart_init(RINGBUF *rb)
+void eva_m8_bsp_uart_init(RINGBUF *rb)
 {
 	gpsRingbuf = rb;
 	RINGBUF_Init(gpsRingbuf, (uint8_t *)gps_ringbuf_buffer, GPS_BUF_SIZE);
 	HAL_UART_Receive_DMA(&huart4, gps_buff, UART_READ_BLOCK);
 }
-void eva_m8_reset(void)
+void eva_m8_bsp_set_reset_pin(uint8_t value)
 {
-	HAL_GPIO_WritePin(GPS_RESET_GPIO_Port, GPS_RESET_Pin, GPIO_PIN_RESET);
-	delay(500);
-	HAL_GPIO_WritePin(GPS_RESET_GPIO_Port, GPS_RESET_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPS_RESET_GPIO_Port, GPS_RESET_Pin, value);
 }
 
-void eva_m8_send_data(uint8_t *data, uint8_t len)
+void eva_m8_bsp_send_data(uint8_t *data, uint8_t len)
 {
 	HAL_UART_Transmit(&UART_GPS, data, len, 100);
 }

@@ -103,6 +103,7 @@ void average_callback(char *latitude, char *lat_dir, char *longitude, char *long
 	gps.longitude=avg_queue_put(&long_avg, lat_long_string_to_double(longitude) * ((*long_dir=='W')?-1:1));
 //	eva_m8_data_pack(f_latidue, lat_dir, f_longitude, long_dir);
 //	debugx("%lf,%lf\n", lat, avg_queue_put(&lat_avg, lat));
+	debug("Long: %s, lat: %s, hdop: %s\n", longitude, latitude, hdop);
 }
 
 void gps_test_double()
@@ -117,19 +118,19 @@ void gps_test_double()
 	debug("time: %u\n", millis()-tick);
 }
 
-void wcb_gps_init(void)
+void app_gps_init(void)
 {
 	avg_queue_init(&lat_avg, lat_buff, 5);
 	avg_queue_init(&long_avg, long_buff, 5);
 	eva_m8_init(average_callback);
 }
 
-void wcb_gps_process(void)
+void app_gps_process(void)
 {
 	if(millis()-gps_tick > 6000000){
 		gps_tick=millis();
 		eva_m8_reset();
-		wcb_gps_init();
+		app_gps_init();
 	}
 	eva_m8_process();
 }

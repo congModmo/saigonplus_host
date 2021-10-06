@@ -8,6 +8,7 @@ extern "C" {
 
 void publish_scheduler_init();
 void publish_scheduler_process();
+void publish_scheduler_lockpin_update();
 
 #ifdef __cplusplus
 }

@@ -172,33 +172,33 @@ void console_task(void)
     		app_ble_console_handle(__param_pos("ble "));
     	}
 #ifdef LTE_ENABLE
-    	else if(__check_cmd("AT")){
-
-    		static char cmd[100];
-    		sprintf(cmd, "%s\r\n", result);
-    		debug("Send at: %s\n", cmd);
-    		gsm_send_string(cmd);
-    	}
-    	else if(__check_cmd("fota ")){
-    		uint32_t len, crc;
-    		static char link[128];
-    		if(sscanf(__param_pos("fota "), "%u %u %s", &len, &crc, link)==3){
-    			debug("Start fota device info len: %u, crc: %u, link: %s\n", len, crc, link);
-
-    			uint8_t *frame;
-    			uint8_t data_len= sizeof(fota_cmd_t)+ strlen(link);
-    			data_len=create_mqtt_frame0(MQTT_CMD_FOTA, data_len, &frame);
-    			if(data_len==0){
-    				error("create frame");
-    				return;
-    			}
-    			fota_cmd_t *cmd=frame+sizeof(mqtt_cmd_header_t);
-    			cmd->info_len=len;
-    			cmd->info_crc=crc;
-    			strcpy(&cmd->link, link);
-    			send_mqtt_frame(frame, data_len, mainMailHandle);
-    		}
-    	}
+//    	else if(__check_cmd("AT")){
+//
+//    		static char cmd[100];
+//    		sprintf(cmd, "%s\r\n", result);
+//    		debug("Send at: %s\n", cmd);
+//    		gsm_send_string(cmd);
+//    	}
+//    	else if(__check_cmd("fota ")){
+//    		uint32_t len, crc;
+//    		static char link[128];
+//    		if(sscanf(__param_pos("fota "), "%u %u %s", &len, &crc, link)==3){
+//    			debug("Start fota device info len: %u, crc: %u, link: %s\n", len, crc, link);
+//
+//    			uint8_t *frame;
+//    			uint8_t data_len= sizeof(fota_cmd_t)+ strlen(link);
+//    			data_len=create_mqtt_frame0(MQTT_CMD_FOTA, data_len, &frame);
+//    			if(data_len==0){
+//    				error("create frame");
+//    				return;
+//    			}
+//    			fota_cmd_t *cmd=frame+sizeof(mqtt_cmd_header_t);
+//    			cmd->info_len=len;
+//    			cmd->info_crc=crc;
+//    			strcpy(&cmd->link, link);
+//    			send_mqtt_frame(frame, data_len, mainMailHandle);
+//    		}
+//    	}
 #endif
     	else if(__check_cmd("led ")){
     		int state;

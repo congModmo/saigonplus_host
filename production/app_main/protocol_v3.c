@@ -116,8 +116,9 @@ static void send_keep_alive_msg(gps_data_t *gps)
 	msg.gps_signal=(uint8_t)((gps->hdop < 20.0)?(gps->hdop*10):0);
 	msg.longitude=gps->longitude;
 	msg.latitude=gps->latitude;
-	msg.bike_lock=bike_lock;
+	msg.bike_lock=(uint8_t)bike_lock;
 	msg.report_disabled=publish_setting->report_disabled;
+	msg.display_on=(uint8_t)display_state->display_on;
 	send_status_topic_message(STATUS_TOPIC_KEEP_ALIVE, (uint8_t *)&msg, sizeof(keep_alive_msg_t));
 }
 

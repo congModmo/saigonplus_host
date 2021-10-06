@@ -11,7 +11,7 @@
 ////
 //	#define LTE_ENABLE
 //
-//	#define DISPLAY_ENABLE
+	#define DISPLAY_ENABLE
 //	#define DISPLAY_UNIT_TEST
 
 //	#define IMU_ENABLE

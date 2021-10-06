@@ -25,15 +25,16 @@ static publish_scheduler_t scheduler = {0};
 
 static void ps_state_check_process()
 {
-    if (display_state->display_on && !publish_setting->report_disabled)
+    if (display_state->display_on)
     {
-        if (scheduler.state != SCHEDULER_PUBLISH_RIDING)
+        if (scheduler.state != SCHEDULER_PUBLISH_RIDING && !publish_setting->report_disabled)
         {
             debug("Start publish riding\n");
             scheduler.tick = millis();
             scheduler.distance_tick = millis();
             scheduler.distance=0;
             scheduler.state = SCHEDULER_PUBLISH_RIDING;
+            publish_riding_msg();
         }
     }
     else
@@ -43,6 +44,7 @@ static void ps_state_check_process()
 			debug("Start publish keep alive\n");
             scheduler.tick = millis();
             scheduler.state = SCHEDULER_PUBLISH_KEEP_ALIVE;
+            publish_battery_msg();
         }
     }
 }
@@ -95,6 +97,16 @@ static void ps_publish_keep_alive_process()
         publish_keep_alive_message();
     }
     ps_state_check_process();
+}
+
+void publish_scheduler_lockpin_update()
+{
+	if(display_state->display_on)
+	{
+		if(!publish_setting->report_disabled){
+
+		}
+	}
 }
 
 void publish_scheduler_init()

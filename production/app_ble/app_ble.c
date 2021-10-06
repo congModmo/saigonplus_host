@@ -119,6 +119,7 @@ static void app_ble_handle_ui_string_cmd(char * result)
 		if (sscanf(result, "%d", &headlight) == 1)
 		{
 			app_info_update_headlight(headlight);
+			light_control_restart();
 			sprintf(ble_resp, "%s OK", REQ_CONF_HL);
 		}
 		else
@@ -150,6 +151,7 @@ static void app_ble_handle_ui_string_cmd(char * result)
 		{
 			sprintf(ble_resp, "%s OK", REQ_CONF_SL);
 			app_info_update_sidelight(red, green, blue);
+			light_control_restart();
 		}
 		else
 		{

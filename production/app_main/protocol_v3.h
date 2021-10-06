@@ -64,6 +64,7 @@ typedef struct __packed{
     uint8_t lte_signal;
     uint8_t bike_lock;
     uint8_t report_disabled;
+    uint8_t display_on;
 }keep_alive_msg_t;
 
 typedef struct __packed{

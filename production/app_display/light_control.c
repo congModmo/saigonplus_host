@@ -11,7 +11,6 @@
 #include "app_main/app_info.h"
 #include <string.h>
 static __IO bool light_state=false;
-static light_config_t light_config={0};
 
 static void light_off(){
 	light_state=false;
@@ -23,10 +22,10 @@ static void light_off(){
 
 static void light_on(){
 	light_state=true;
-	__HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_4, (uint32_t)(light_config.red));
-	__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, (uint32_t)(light_config.head));
-	__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2, (uint32_t)(light_config.blue));
-	__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_3, (uint32_t)(light_config.green));
+	__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, user_config->head_light*255/100);
+	__HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_4, user_config->side_light.red);
+	__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_3, user_config->side_light.green);
+	__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2, user_config->side_light.blue);
 }
 
 void light_control_init(){
@@ -39,24 +38,16 @@ void light_control_init(){
 void light_control(bool on)
 {
 	if(on && light_state!=true){
-		light_state=true;
 		light_on();
 	}
 	else if(!on && light_state ){
-		light_state=false;
 		light_off();
 	}
 }
 
-static void light_control_restart()
+void light_control_restart()
 {
 	if(light_state){
 		light_on();
 	}
-}
-
-void light_control_set_config(light_config_t *config)
-{
-	memcpy(&light_config, config, sizeof(light_config_t));
-	light_control_restart();
 }

@@ -4,13 +4,14 @@
  *  Created on: Apr 21, 2021
  *      Author: thanhcong
  */
-#define __DEBUG__ 4
+#define __DEBUG__ 3
 #include "app_display.h"
 #include "display_parser/display_parser.h"
 #include "ringbuf/ringbuf.h"
 #include "bsp.h"
 #include "log_sys.h"
 #include "debounce/debounce3.h"
+#include "app_main/publish_scheduler.h"
 
 static RINGBUF displayRb;
 static display_data_t display = {0};
@@ -24,31 +25,31 @@ void display_parser_cb(int header, Display_Proto_Unified_Arg_t *value)
 	{
 	case DISP_PROTO_CMD_ODO:
 		display.odo=value->odo;
-		info("-ODO: %d\n", display.odo);
+		debug("-ODO: %d\n", display.odo);
 		break;
 	case DISP_PROTO_CMD_TRIP_SPD:
 		display.trip=value->tripSpeed.trip;
 		display.speed=value->tripSpeed.speed;
-		info("-Trip: %.1f km, speed: %.1f km/h\n",(float)display.trip / 10,  (float)display.speed / 10);
+		debug("-Trip: %.1f km, speed: %.1f km/h\n",(float)display.trip / 10,  (float)display.speed / 10);
 		break;
 	case DISP_PROTO_CMD_VOLT:
 		display.battery_voltage=value->voltage & 0xFFFF;
-		info("-Voltage: %umV\n", display.battery_voltage );
+		debug("-Voltage: %umV\n", display.battery_voltage );
 		break;
 	case DISP_PROTO_CMD_CHRG:
 		display.battery_charge_cycle=value->charge.cycles;
 		display.battery_uncharge_time=value->charge.unchargedTime;
-		info("-Batt. charge cycles: %u, uncharge time: %u\n", display.battery_charge_cycle, display.battery_uncharge_time);
+		debug("-Batt. charge cycles: %u, uncharge time: %u\n", display.battery_charge_cycle, display.battery_uncharge_time);
 		break;
 	case DISP_PROTO_CMD_BATT:
 		display.battery_state= value->battery.state;
 		display.battery_temperature = value->battery.temperature;
 		display.battery_remain = value->battery.remainCapacity;
-		info("-Batt state: %u, temp: %.1f, remain cap. %u%%\n", display.battery_state, (float)display.battery_temperature / 10, display.battery_remain);
+		debug("-Batt state: %u, temp: %.1f, remain cap. %u%%\n", display.battery_state, (float)display.battery_temperature / 10, display.battery_remain);
 		break;
 	case DISP_PROTO_CMD_CAP:
 		display.battery_capacity=value->battResidualCapacity;
-		info("-Batt. residual cap. %umAh\n", display.battery_capacity & 0xFFFF);
+		debug("-Batt. residual cap. %umAh\n", display.battery_capacity & 0xFFFF);
 		break;
 	case DISP_PROTO_CMD_LIGHT:
 		light_control(value->light_on);
@@ -70,12 +71,12 @@ static void lockPinUpdate()
 	{
 		if (display.display_on)
 		{
-			debug("Pull down uart bus\n");
+			info("Pull down uart bus\n");
 			HAL_GPIO_WritePin(DISPLAY_TX_GPIO_Port, DISPLAY_TX_Pin, GPIO_PIN_RESET);
 		}
 		else
 		{
-			debug("Release uart bus\n");
+			info("Release uart bus\n");
 			HAL_GPIO_WritePin(DISPLAY_TX_GPIO_Port, DISPLAY_TX_Pin, GPIO_PIN_SET);
 		}
 	}
@@ -83,7 +84,14 @@ static void lockPinUpdate()
 	{
 		debug("Turn light off\n");
 		light_control(false);
+		ioctl_beepbeep(1, 300);
 	}
+	else
+	{
+		app_display_reset_data();
+		ioctl_beepbeep(2, 100);
+	}
+	publish_scheduler_lockpin_update();
 }
 
 void app_display_set_mode(display_mode_t mode)
@@ -116,6 +124,7 @@ void app_display_init()
 	display_bsp_init(&displayRb);
 	Bounce3_Init(&lockPinDebounce, 100, lock_pin_get_state);
 	lockPinUpdate();
+	light_control_init();
 }
 
 void app_display_process()
@@ -153,4 +162,19 @@ void app_display_console_handle(char *result)
 		}
 	}
 	else debug("Unknown cmd\n");
+}
+
+void app_display_reset_data()
+{
+	display.trip=0xffff;
+	display.speed=0xffff;
+	display.odo=0xffffffff;
+	display.battery_voltage=0xffffffff;
+	display.battery_remain=0xff;
+	display.battery_temperature=0xffff;
+	display.battery_state=0xC0;
+	display.battery_charge_cycle=0xffff;
+	display.battery_uncharge_time=0xffff;
+	display.battery_capacity=0xffffffff;
+	display.battery_event=0;
 }

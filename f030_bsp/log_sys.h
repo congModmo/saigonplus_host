@@ -7,6 +7,7 @@ extern "C" {
 
 #include "bsp.h"
 #include <stdio.h>
+#include <string.h>
 	 
 #define error(fmt, ...)  do {} while (0)
 #define warning(fmt, ...)  do {} while (0)
@@ -31,7 +32,7 @@ extern "C" {
 			printf(__VA_ARGS__);\
 			DEBUG_UNLOCK();}while(0)
 
-#define _printf_format(header, fmt, ...) _printf("[%s] %s - Line: %d: " fmt, header, __FILE__, __LINE__,## __VA_ARGS__)
+#define _printf_format(header, fmt, ...) _printf("[%s] %s - Line: %d: " fmt, header, __FILENAME__, __LINE__,## __VA_ARGS__)
 #if __DEBUG__>0
 #undef error
 #define error(fmt, ...) _printf_format("ERROR", fmt, ## __VA_ARGS__)

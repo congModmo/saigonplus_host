@@ -89,9 +89,9 @@ int main(void)
 	MX_USART5_UART_Init();
 	RetargetInit(&huart5);
 #endif
-	debug("***************************\n");
-	debug("*  Hello 1st bootloader  *\n");
-	debug("***************************\n");
+//	debug("***************************\n");
+//	debug("*  Hello 1st bootloader  *\n");
+//	debug("***************************\n");
 
   	if (!flash_fota_check_valid_app_upgrade(&fotaInfo)){
   		goto __app_jump;

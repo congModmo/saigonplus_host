@@ -31,6 +31,13 @@ UART_HandleTypeDef huart5;
 void MX_USART5_UART_Init(void)
 {
 
+  /* USER CODE BEGIN USART5_Init 0 */
+
+  /* USER CODE END USART5_Init 0 */
+
+  /* USER CODE BEGIN USART5_Init 1 */
+
+  /* USER CODE END USART5_Init 1 */
   huart5.Instance = USART5;
   huart5.Init.BaudRate = 115200;
   huart5.Init.WordLength = UART_WORDLENGTH_8B;
@@ -45,6 +52,9 @@ void MX_USART5_UART_Init(void)
   {
     Error_Handler();
   }
+  /* USER CODE BEGIN USART5_Init 2 */
+
+  /* USER CODE END USART5_Init 2 */
 
 }
 

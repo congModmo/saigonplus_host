@@ -87,7 +87,7 @@ static void light_testing()
 	light_test.config.head=0;
 	bool result=true;
 	while(test_count--){
-		light_control_set_config(&light_test.config);
+//		light_control_set_config(&light_test.config);
 		delay(100);
 		if(!check_io_match()){
 			result=false;

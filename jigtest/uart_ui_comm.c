@@ -184,7 +184,12 @@ static void uart_ui_command_handle(uint8_t *frame, size_t size)
 			strcpy(info_file.file_name, "info.json");
 			info_file.crc = request->info_crc;
 			info_file.len = request->info_len;
-//			app_serial_fota_request_handle(request, FOTA_OVER_UART);
+			app_serial_fota_request_handle(request, FOTA_OVER_UART);
+		}
+		else if(frame[1]==FOTA_REQUEST_MTU)
+		{
+			uint8_t data[2]={DEVICE_SET_MTU, 128};
+			uart_ui_comm_send(UART_UI_FOTA_DATA, data, 2);
 		}
 		break;
 	// to import lte cert + key, both length < 2048 byte, first half fotaCoreBuff for cert, second half for key
@@ -242,39 +247,24 @@ static void serial_polling(frame_handler handler)
 	polling(uart_ui_fota_handler);
 }
 
-static void serial_send(uint8_t *data, size_t len, bool _continue)
+static void serial_send(uint8_t *data, size_t len, slip_frame_type_t type)
 {
-	static bool start_frame = true;
-	static uint8_t cmd = UART_UI_FOTA_DATA;
-	if (!_continue)
-	{
-		if (start_frame)
-		{
-			slip_send(&slip, &cmd, 1, SLIP_FRAME_BEGIN);
-			slip_send(&slip, data, len, SLIP_FRAME_END);
-		}
-		else
-		{
-			start_frame = true;
-			slip_send(&slip, data, len, SLIP_FRAME_END);
-		}
+	if(type==SLIP_FRAME_BEGIN){
+		uint8_t cmd=UART_UI_FOTA_DATA;
+		slip_send(&slip, &cmd, 1, SLIP_FRAME_BEGIN);
+		slip_send(&slip, data, len, SLIP_FRAME_MIDDLE);
 	}
-	else
-	{
-		if (start_frame)
-		{
-			start_frame = false;
-			slip_send(&slip, &cmd, 1, SLIP_FRAME_BEGIN);
-			slip_send(&slip, data, len, SLIP_FRAME_MIDDLE);
-		}
-		else
-		{
-			slip_send(&slip, data, len, SLIP_FRAME_MIDDLE);
-		}
+	else{
+		slip_send(&slip, data, len, type);
 	}
 }
 
-const serial_interface_t uart_transport = {.mtu = 128, .send = serial_send, .polling = serial_polling};
+static void uart_transport_init()
+{
+
+}
+
+const serial_interface_t uart_transport = {.init=uart_transport_init, .mtu = 128, .send = serial_send, .polling = serial_polling};
 
 /****************************************************************************************
  * Public APIs

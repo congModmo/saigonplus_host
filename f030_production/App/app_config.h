@@ -7,9 +7,9 @@
 
   	// #define PROTOCOL_V3_UNIT_TEST
 
-	#define BLE_ENABLE
+//	#define BLE_ENABLE
 ////
-//	#define LTE_ENABLE
+	#define LTE_ENABLE
 //
 	#define DISPLAY_ENABLE
 //	#define DISPLAY_UNIT_TEST
@@ -19,7 +19,7 @@
 //	#define PUBLISH_ENABLE
 //	#define PUBLISH_UNIT_TEST
 //
-//	#define MQTT_ENABLE
+	#define MQTT_ENABLE
 
 //	#define UART_UI_ENABLE
 #else

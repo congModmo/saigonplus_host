@@ -286,6 +286,7 @@ void fota_core_process()
 		//from here mcu just complete firmware file transfering process,
 		//I assume that firmware dfu process is 100% reliable,
 		//TODO call signal dfu source (app, server) after dfu process.
+		fota.result=true;
 		fota.transport->signal(fota.result);
 
 		fota.state = FOTA_CORE_IDLE;
@@ -309,7 +310,6 @@ void fota_core_process()
 				goto __exit;
 			}
 		}
-		fota.result=true;
 	__exit:
 		fota.state=FOTA_CORE_EXIT;
 	}

@@ -172,7 +172,7 @@ void lte_task(){
 	lara_r2_bsp_init();
 
 	if(lara_r2_socket_check()){
-		lara_r2_init_info();
+		lara_r2_init_info(_imei, 32, _ccid, 32);
 		goto __network_ready;
 	}
 	__network_start:
@@ -181,7 +181,7 @@ void lte_task(){
 		if(!lara_r2_hardware_init()){
 			goto __init_wait;
 		}
-		if(!lara_r2_init_info()){
+		if(!lara_r2_init_info(_imei, 32, _ccid, 32)){
 			goto __init_wait;
 		}
 		if(!lara_r2_software_init()){

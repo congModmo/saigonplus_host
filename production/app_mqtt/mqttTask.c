@@ -424,7 +424,7 @@ bool mqtt_start(){
 	if(pdPASS != prvCreateMQTTConnectionWithBroker( &mqtt.MQTTContext, &mqtt.NetworkContext )){
 		goto __exit;
 	}
-	if(pdPASS != prvMQTTSubscribe( status_topic )){
+	if(pdPASS != prvMQTTSubscribe( cmd_topic )){
 		goto __exit;
 	}
 

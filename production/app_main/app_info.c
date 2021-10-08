@@ -29,8 +29,9 @@ typedef struct
 
 static app_info_setting_t app_setting={0};
 static app_info_lock_t lock_state;
-
-const factory_config_t *const factory_config = (const factory_config_t *)FLASH_DEVICE_FACTORY_INFO;
+static factory_config_t factory;
+const factory_config_t *const factory_config = (const factory_config_t *)&factory;
+//const factory_config_t *const factory_config = (const factory_config_t *)FLASH_DEVICE_FACTORY_INFO;
 const user_config_t * const user_config=&app_setting.user_config;
 const firmware_version_t *const firmware_version=&app_setting.firmware_version;
 const char *const serial_number=app_setting.serial_number;
@@ -96,6 +97,10 @@ void app_info_init()
 {
 	app_lock_init();
 	app_config_init();
+	factory.hardwareVersion=1;
+	factory.broker.port=8883;
+	factory.broker.secure=1;
+	strcpy(factory.broker.endpoint, "a28c4si2pkzbml-ats.iot.ap-southeast-1.amazonaws.com");
 }
 
 void app_info_update_firmware_version(uint16_t hostApp, uint16_t bleApp)

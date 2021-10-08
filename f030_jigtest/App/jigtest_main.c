@@ -102,6 +102,22 @@ bool app_serial_fota_request(uint8_t transport, serial_fota_request_info_t *requ
 	return true;
 }
 
+bool app_serial_fota_request_handle(serial_fota_request_info_t *request, uint8_t source){
+	json_info.crc=request->info_crc;
+	json_info.len=request->info_len;
+	json_info.flash_addr= EX_FLASH_FOTA_FILES_START;
+	strcpy(json_info.file_name, "info.json");
+	debug("Ble fota request\n");
+	debug("Info len: %d\n", request->info_len);
+	debug("Info crc: %u\n", request->info_crc);
+	fota_start=true;
+	fota_finish=false;
+	fota_source= source;
+	fota_params=NULL;
+	return true;
+}
+
+
 void main_mail_process()
 {
 	static mail_t mail;
@@ -123,6 +139,7 @@ void main_mail_process()
 void app_main(void)
 {
 	uart_ui_comm_init();
+	nina_b1_init();
 	app_gps_init();
 	while (1)
 	{

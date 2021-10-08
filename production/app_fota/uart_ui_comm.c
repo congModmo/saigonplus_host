@@ -31,7 +31,7 @@ static uart_ui_callback_t _callback=NULL;
 static RINGBUF ui_comm_rb;
 static frame_handler serial_handler=NULL;
 
- void uart_ui_command_send(uint8_t type, uint8_t status)
+void uart_ui_command_send(uint8_t type, uint8_t status)
 {
 	 slip_send(&slip, &type, 1, SLIP_FRAME_BEGIN);
 	 slip_send(&slip, &status, 1, SLIP_FRAME_END);

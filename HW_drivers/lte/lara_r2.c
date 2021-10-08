@@ -267,12 +267,11 @@ bool lara_r2_process_imei(char *_imei_str, uint16_t maxLen, uint8_t _imei_bcd[])
 	return false;
 }
 
-bool lara_r2_init_info(){
-//	Bike_Main_Props_t *p = &bikeMainProps;
-//	ASSERT_RET(lara_r2_process_imei(p->imei, sizeof(p->imei) - 1, gsm_imei), false, "Process imei");
-//	ASSERT_RET(lara_r2_get_ccid(p->ccid, sizeof(p->ccid) - 1), false, "get ccid");
-//	info("ccid: %s\n", p->ccid);
-//	info("imei: %s\n", p->imei);
+bool lara_r2_init_info(char * imei, int imei_len, char* ccid, int ccid_len){
+	ASSERT_RET(lara_r2_get_imei(imei,imei_len), false, "Process imei");
+	ASSERT_RET(lara_r2_get_ccid(ccid, ccid_len), false, "get ccid");
+	info("ccid: %s\n", ccid);
+	info("imei: %s\n", imei);
 	return true;
 }
 

@@ -24,4 +24,6 @@ void testkit_gps_function_test();
 
 void testkit_test_io();
 
+void jigtest_direct_report(uint8_t type, uint8_t status);
+void jigtest_report(uint8_t type, uint8_t *data, uint8_t len);
 #endif /* TESTKIT_TESTKIT_H_ */

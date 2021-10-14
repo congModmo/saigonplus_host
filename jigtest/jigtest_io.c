@@ -44,7 +44,6 @@ void lockpin_check_init()
 	lockpin.state=lock_pin_get_state();
 }
 
-
 void io_test_cb(uint8_t *data, uint16_t len)
 {
 	if(data[0]==ESP_BLE_HOST_ADC_VALUE)

@@ -260,9 +260,9 @@ void jigtest_test_ble(){
 
 void jigtest_console_handle(char *result)
 {
-	if (__check_cmd("ble"))
+	if (__check_cmd("ble "))
 	{
-		jigtest_test_ble();
+		jigtest_ble_console_handle(__param_pos("ble "));
 	}
 	else if (__check_cmd("gps"))
 	{

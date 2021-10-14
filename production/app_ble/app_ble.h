@@ -10,6 +10,7 @@ extern "C" {
 #include "app_fota/serial_transport.h"
 
 extern const serial_interface_t ble_serial;
+extern const char *const ble_mac;
 
  typedef struct{
  	int red;
@@ -33,15 +34,14 @@ extern const serial_interface_t ble_serial;
 #define REQ_CONF_MSS 		"CFG_MSS"
 #define REQ_CONF_GET  		"GET_CFG"
 
-void wcb_ble_init(void);
-void wcb_ble_task(void);
-void wcb_ble_comm_req_set_string(uint8_t cmd, const uint8_t *s, uint8_t len);
-void wcb_ble_comm_req_set_hw_info(void);
-bool wcb_ble_update_time(char *s);
-void wcb_ble_send_notify(void);
-void wcb_ble_comm_reset(void);
+void app_ble_init(void);
+void app_ble_task(void);
+void app_ble_comm_req_set_string(uint8_t cmd, const uint8_t *s, uint8_t len);
+void app_ble_comm_req_set_hw_info(void);
+bool app_ble_update_time(char *s);
+void app_ble_send_notify(void);
+void app_ble_comm_reset(void);
 
-extern const char *const ble_mac;
 
 #ifdef __cplusplus
 }

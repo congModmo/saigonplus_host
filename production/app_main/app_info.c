@@ -144,7 +144,14 @@ void app_info_update_serial_number(char *sn)
 
 void app_info_update_publish_setting(publish_setting_cmd_t *setting)
 {
-	app_setting.publish_setting=*setting;
+	if(setting->keep_alive_interval==0 || setting->max_report_interval ==0 || setting->min_report_interval ==0){
+		info("update en/dis only\n");
+		app_setting.publish_setting.report_disabled=setting->report_disabled;
+	}
+	else{
+		info("update all publish setting\n");
+		app_setting.publish_setting=*setting;
+	}
 	app_info_update_setting();
 }
 

@@ -138,7 +138,10 @@ void main_mail_process()
 
 void app_main(void)
 {
+	retarget_init();
 	uart_ui_comm_init();
+	light_control_init();
+	jigtest_uart_esp_init();
 	nina_b1_init();
 	app_gps_init();
 	while (1)

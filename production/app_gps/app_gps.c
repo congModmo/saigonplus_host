@@ -1,5 +1,5 @@
 
-#define __DEBUG__ 4
+#define __DEBUG__ 3
 #include <string.h>
 #include <app_gps/app_gps.h>
 #include <app_common/common.h>
@@ -91,11 +91,16 @@ void long_string_convert(double _long, char *des){
 //	debugx("%lf,%lf\n", lat, updateEstimate(&lat_filter, lat));
 //}
 
+void gps_data_reset()
+{
+	gps.hdop=0;
+	gps.latitude=91.0;
+	gps.longitude=181.0;
+}
+
 void average_callback(char *latitude, char *lat_dir, char *longitude, char *long_dir, char *hdop){
 	if(hdop==NULL){
-		gps.hdop=0;
-		gps.latitude=0;
-		gps.longitude=0;
+		gps_data_reset();
 		return;
 	}
 	sscanf(hdop, "%f", &gps.hdop);
@@ -120,6 +125,7 @@ void gps_test_double()
 
 void app_gps_init(void)
 {
+	gps_data_reset();
 	avg_queue_init(&lat_avg, lat_buff, 5);
 	avg_queue_init(&long_avg, long_buff, 5);
 	eva_m8_init(average_callback);

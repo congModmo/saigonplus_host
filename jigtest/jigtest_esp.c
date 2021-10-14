@@ -1,9 +1,10 @@
+#define __DEBUG__ 4
 #include "jigtest.h"
 #include "uart_ui_comm.h"
 #include "jigtest_esp.h"
 #include "bsp.h"
 #include "esp_host_comm.h"
-
+#include "bsp.h"
 typedef struct
 {
 	RINGBUF rb;
@@ -54,8 +55,8 @@ bool uart_esp_block_test(){
 }
 
 void jigtest_uart_esp_init(){
-	bsp_uart_esp_init(&esp_tester.rb);
-//	slip_init(&esp_tester.slip, esp_tester.inBuffer, 128, bsp_uart_esp_send_byte);
+	bsp_uart5_init(&esp_tester.rb);
+	slip_init(&esp_tester.slip, esp_tester.inBuffer, 128, bsp_uart5_send_byte);
 }
 
 void jigtest_test_uart_esp()
@@ -84,4 +85,12 @@ void uart_esp_send_cmd(uint8_t cmd){
 void uart_esp_send(uint8_t cmd, uint8_t *data, uint8_t len){
 	slip_send(&esp_tester.slip, &cmd, 1, SLIP_FRAME_BEGIN);
 	slip_send(&esp_tester.slip, data, len, SLIP_FRAME_END);
+}
+
+void jigtest_esp_console_handle(char *result)
+{
+	if(__check_cmd("test esp"))
+	{
+		jigtest_test_uart_esp();
+	}
 }

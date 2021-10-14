@@ -1,8 +1,11 @@
+
+#define __DEBUG__ 4
 #include "jigtest.h"
 #include "jigtest_esp.h"
 #include "jigtest_io.h"
 #include "esp_host_comm.h"
 #include "app_display/light_control.h"
+#include "tim.h"
 
 static struct
 {
@@ -11,9 +14,12 @@ static struct
 }lockpin;
 
 static struct{
-	light_config_t config;
+	bool on;
+	int red;
+	int green;
+	int blue;
+	int head;
 	bool done;
-	bool result;
 }light_test;
 
 #define ADC_TO_SIDELIGHT(adc) adc
@@ -38,29 +44,44 @@ void lockpin_check_init()
 	lockpin.state=lock_pin_get_state();
 }
 
-bool tolerance_check(int value, int setpoint, int percent )
-{
-	if(value*100 > setpoint*(100 +percent))
-		return false;
-	if(value*100 < setpoint*(100-percent))
-		return false;
-	return true;
-}
 
 void io_test_cb(uint8_t *data, uint16_t len)
 {
-	host_adc_value_t *_adc=(host_adc_value_t *) data;
-	light_test.done=true;
-	light_test.result=false;
-	if(!tolerance_check(ADC_TO_SIDELIGHT(_adc->led_blue), light_test.config.blue, 5))
-		return;
-	if(!tolerance_check(ADC_TO_SIDELIGHT(_adc->led_red), light_test.config.red, 5))
-		return;
-	if(!tolerance_check(ADC_TO_SIDELIGHT(_adc->led_green), light_test.config.green, 5))
-		return;
-	if(!tolerance_check(ADC_TO_HEADLIGHT(_adc->front_light), light_test.config.head, 5))
-		return;
-	light_test.result=true;
+	if(data[0]==ESP_BLE_HOST_ADC_VALUE)
+	{
+		host_adc_value_t *_adc=(host_adc_value_t *) (data +1);
+		light_test.done=true;
+		if(light_test.on)
+		{
+			if(_adc->front_light <2500 && _adc->front_light >2400){
+				light_test.head++;
+			}
+			if(_adc->led_red <2500 && _adc->led_red >2400){
+				light_test.red++;
+			}
+			if(_adc->led_green <2500 && _adc->led_green >2400){
+				light_test.green++;
+			}
+			if(_adc->led_blue <2500 && _adc->led_blue >2400){
+				light_test.blue++;
+			}
+		}
+		else{
+			if(_adc->front_light <100){
+				light_test.head++;
+			}
+			if(_adc->led_red <100){
+				light_test.red++;
+			}
+			if(_adc->led_green <100){
+				light_test.green++;
+			}
+			if(_adc->led_blue <100){
+				light_test.blue++;
+			}
+		}
+	}
+
 	return;
 }
 
@@ -73,36 +94,55 @@ bool check_io_match()
 		esp_uart_polling(io_test_cb);
 		delay(5);
 	}
-	if(!light_test.done)
-		return false;
-	return light_test.result;
 }
 
 static void light_testing()
 {
 	light_control_init();
 	light_control(true);
-	int test_count=4;
-	light_test.config.blue=light_test.config.red=light_test.config.green=0;
-	light_test.config.head=0;
-	bool result=true;
-	while(test_count--){
-//		light_control_set_config(&light_test.config);
-		delay(100);
-		if(!check_io_match()){
-			result=false;
-			break;
-		}
-		light_test.config.blue+=50;
-		light_test.config.red+=50;
-		light_test.config.green+=50;
-		light_test.config.head+=25;
+	int test_num=10;
+	int test_count=0;
+	light_test.red=light_test.green=light_test.blue=light_test.head=0;
+	while(test_count <test_num){
+		light_test.on=true;
+		__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, 255);
+		__HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_4, 255);
+		__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_3, 255);
+		__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2, 255);
+		delay(10);
+		check_io_match();
+		light_test.on=false;
+		__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, 0);
+		__HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_4, 0);
+		__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_3, 0);
+		__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2, 0);
+		delay(10);
+		check_io_match();
+		test_count++;
 	}
-	if(result){
-		jigtest_direct_report(UART_UI_RES_FRONT_LIGHT, 1);
-		jigtest_direct_report(UART_UI_RES_LED_BLUE, 1);
-		jigtest_direct_report(UART_UI_RES_LED_GREEN, 1);
+	if(light_test.red==test_num*2){
 		jigtest_direct_report(UART_UI_RES_LED_RED, 1);
+	}
+	else{
+		jigtest_direct_report(UART_UI_RES_LED_RED, 0);
+	}
+	if(light_test.green==test_num*2){
+		jigtest_direct_report(UART_UI_RES_LED_GREEN, 1);
+	}
+	else{
+		jigtest_direct_report(UART_UI_RES_LED_GREEN, 0);
+	}
+	if(light_test.blue==test_num*2){
+		jigtest_direct_report(UART_UI_RES_LED_BLUE, 1);
+	}
+	else{
+		jigtest_direct_report(UART_UI_RES_LED_BLUE, 0);
+	}
+	if(light_test.head==test_num*2){
+		jigtest_direct_report(UART_UI_RES_FRONT_LIGHT, 1);
+	}
+	else{
+		jigtest_direct_report(UART_UI_RES_FRONT_LIGHT, 0);
 	}
 }
 
@@ -128,4 +168,30 @@ void jigtest_test_io()
 {
 	light_testing();
 	lockpin_testing();
+}
+
+void jigtest_io_console_handle(char *result)
+{
+	//red green blue head
+	if(__check_cmd("set pwm ")){
+		int red, green, blue, head;
+		if(sscanf(__param_pos("set pwm "), "%d %d %d %d", &red, &green, &blue, &head)!=4){
+			error("pwm params\n");
+			return;
+		}
+		debug("Set pwm to red: %d, green: %d, blue: %d, head: %d\n", red, green, blue, head);
+		__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, head*255/100);
+		__HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_4, red);
+		__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_3, green);
+		__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2, blue);
+	}
+	else if(__check_cmd("test led"))
+	{
+		light_testing();
+	}
+	else if(__check_cmd("test lock"))
+	{
+		lockpin_testing();
+	}
+	else debug("Unknown command\n");
 }

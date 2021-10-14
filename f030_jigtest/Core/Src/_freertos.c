@@ -54,7 +54,7 @@ typedef StaticSemaphore_t osStaticMutexDef_t;
 /* USER CODE END Variables */
 /* Definitions for mainTask */
 osThreadId_t mainTaskHandle;
-uint32_t mainTaskBuffer[ 512 ];
+uint32_t mainTaskBuffer[ 768 ];
 osStaticThreadDef_t mainTaskControlBlock;
 const osThreadAttr_t mainTask_attributes = {
   .name = "mainTask",
@@ -228,16 +228,12 @@ void MX_FREERTOS_Init(void) {
   /* creation of mainTask */
   mainTaskHandle = osThreadNew(StartMainTask, NULL, &mainTask_attributes);
 
-#ifdef LTE_ENABLE
   /* creation of lteTask */
   lteTaskHandle = osThreadNew(LteTaskStart, NULL, &lteTask_attributes);
-#endif
 
-#ifdef MQTT_ENABLE
   /* creation of mqttTask */
   mqttTaskHandle = osThreadNew(MqttTaskStart, NULL, &mqttTask_attributes);
 
-#endif
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */ /* USER CODE END RTOS_THREADS */
 

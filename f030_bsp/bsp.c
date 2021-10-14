@@ -139,19 +139,22 @@ void bsp_ui_comm_send_byte(uint8_t b)
 #endif
 
 /****************************************************************************
- * BSP DEBUG
+ *
  ***************************************************************************/
-#ifndef RELEASE
-RINGBUF debugRingbuf;
-char debug_buffer[128];
-static uint8_t debug_char[1];
+RINGBUF *uart5_rb=NULL;
+uint8_t uart5_buffer[128];
+static uint8_t uart5_char[1];
 
-void bsp_debug_uart_init()
+void bsp_uart5_init(RINGBUF *rb)
 {
-	RINGBUF_Init(&debugRingbuf, (uint8_t *)debug_buffer, 128);
-	HAL_UART_Receive_IT(&huart5, debug_char, 1);
+	uart5_rb=rb;
+	RINGBUF_Init(uart5_rb, uart5_buffer, 128);
+	HAL_UART_Receive_IT(&huart5, uart5_char, 1);
 }
-#endif
+void bsp_uart5_send_byte(uint8_t b)
+{
+	HAL_UART_Transmit(&huart5, &b, 1, 100);
+}
 /****************************************************************************
  * BSP BLE
  ***************************************************************************/
@@ -206,7 +209,6 @@ void flash_rw_bytes(uint8_t *txData, uint16_t txLen, uint8_t *rxData, uint16_t r
 /***************************************************************************
  * GPS_BSP
  ***************************************************************************/
-#ifdef GPS_ENABLE
 static uint8_t gps_ringbuf_buffer[GPS_BUF_SIZE];
 static uint8_t gps_buff[UART_READ_BLOCK];
 static RINGBUF *gpsRingbuf;
@@ -226,7 +228,6 @@ void eva_m8_bsp_send_data(uint8_t *data, uint8_t len)
 {
 	HAL_UART_Transmit(&UART_GPS, data, len, 100);
 }
-#endif
 /***********************************************************************
  * LTE bsp
  **********************************************************************/
@@ -297,10 +298,11 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	}
 	else if (huart == &huart5)
 	{
-#ifndef RELEASE
-		RINGBUF_Put(&debugRingbuf, debug_char[0]);
-		HAL_UART_Receive_IT(huart, debug_char, 1);
-#endif
+		if(uart5_rb!=NULL)
+		{
+			RINGBUF_Put(uart5_rb, uart5_char[0]);
+			HAL_UART_Receive_IT(huart, uart5_char, 1);
+		}
 	}
 }
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
@@ -339,9 +341,7 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 	}
 	else if (huart == &huart5)
 	{
-#ifndef RELEASE
-		HAL_UART_Receive_IT(huart, debug_char, 1);
-#endif
+		HAL_UART_Receive_IT(huart, uart5_char, 1);
 	}
 }
 

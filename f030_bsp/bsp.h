@@ -116,6 +116,7 @@ void bsp_display_uart_init(RINGBUF *rb);
 void display_bsp_send_byte(uint8_t b);
 void uart_ui_bsp_send_byte(uint8_t c);
 void bsp_ui_comm_send_byte(uint8_t b);
+void bsp_uart5_send_byte(uint8_t b);
 
 #define KXTJ3_ADDR 0x0E
 

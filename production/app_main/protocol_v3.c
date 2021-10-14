@@ -47,7 +47,7 @@ static void send_status_topic_message(uint8_t type, uint8_t *data, size_t len)
 	crc16_append(message, msg_len-2);
 #ifdef LTE_ENABLE
 	mail_t mail={.type=MAIL_MQTT_V2_PUBLISH, .data=message, .len=msg_len};
-	if(osMessageQueuePut(lteMailHandle, &mail, 0, 10)!=osOK){
+	if(osMessageQueuePut(mqttMailHandle, &mail, 0, 10)!=osOK){
 		error("Mail put failed");
 		free(message);
 	}
@@ -72,7 +72,7 @@ void send_ack_message(uint8_t type, uint8_t id, uint8_t ack)
 	crc16_append(message, msg_len-2);
 #ifdef LTE_ENABLE
 	mail_t mail={.type=MAIL_MQTT_V2_ACK, .data=message, .len=msg_len};
-	if(osMessageQueuePut(lteMailHandle, &mail, 0, 10)!=osOK){
+	if(osMessageQueuePut(mqttMailHandle, &mail, 0, 10)!=osOK){
 		error("Mail put failed");
 		free(message);
 	}
@@ -116,7 +116,7 @@ static void send_keep_alive_msg(gps_data_t *gps)
 	msg.gps_signal=(uint8_t)((gps->hdop < 20.0)?(gps->hdop*10):0);
 	msg.longitude=gps->longitude;
 	msg.latitude=gps->latitude;
-	msg.bike_lock=(uint8_t)bike_lock;
+	msg.bike_lock=(uint8_t) *bike_lock;
 	msg.report_disabled=publish_setting->report_disabled;
 	msg.display_on=(uint8_t)display_state->display_on;
 	send_status_topic_message(STATUS_TOPIC_KEEP_ALIVE, (uint8_t *)&msg, sizeof(keep_alive_msg_t));
@@ -132,27 +132,31 @@ void send_fall_msg(uint8_t fall)
 	send_status_topic_message(STATUS_TOPIC_FALL, &fall, 1);
 }
 
-void setting_cmd_handler(uint8_t *cmd)
+void setting_cmd_handler(uint8_t *cmd, uint8_t id)
 {
 	publish_setting_cmd_t *setting=(publish_setting_cmd_t *)cmd;
 	debug("min report interval: %lu\n", setting->min_report_interval);
 	debug("max report interval: %lu\n", setting->max_report_interval);
 	debug("keep alive interval: %lu\n", setting->keep_alive_interval);
 	debug("report disable: %u\n", setting->report_disabled);
+	app_info_update_publish_setting(setting);
+	send_ack_message(CMD_TOPIC_SETTING, id, 1);
 }
 
-void lock_cmd_handler(uint8_t *cmd)
+void lock_cmd_handler(uint8_t *cmd, uint8_t id)
 {
 	lock_cmd_t *lock =(lock_cmd_t *)cmd;
-	debug("Set device to %s state\n", lock->mode?"lock":"unlock");
+	debug("Set device to %d state\n", lock->mode);
 	app_info_update_lock_state(lock->mode);
 	app_display_set_mode(lock->mode?DISPLAY_ANTI_THEFT_MODE:DISPLAY_NORMAL_MODE);
+	send_ack_message(CMD_TOPIC_LOCK, id, 1);
 }
 
-void fota_cmd_handler(uint8_t *cmd)
+void fota_cmd_handler(uint8_t *cmd, uint8_t id)
 {
 	char *link =(char *)cmd;
 	debug("fota from link: %s\n", link);
+	send_ack_message(CMD_TOPIC_FOTA, id, 1);
 }
 
 void imu_cmd_handler(uint8_t *cmd)
@@ -173,16 +177,16 @@ void protocol_v3_handle_cmd(uint8_t *cmd, uint16_t len)
 	debug("timestamp: %lu\n", header->timestamp);
 	if(header->type==CMD_TOPIC_SETTING)
 	{
-		setting_cmd_handler(cmd+ sizeof(cmd_msg_header_t));
+		setting_cmd_handler(cmd+ sizeof(cmd_msg_header_t), header->id);
 	}
 	else if(header->type==CMD_TOPIC_LOCK)
 	{
-		lock_cmd_handler(cmd+sizeof(cmd_msg_header_t));
+		lock_cmd_handler(cmd+sizeof(cmd_msg_header_t), header->id);
 	}
 	else if(header->type==CMD_TOPIC_FOTA)
 	{
 		cmd[len-2]=0; //server string has no string delimiter, lets base on message len
-		fota_cmd_handler(cmd+sizeof(cmd_msg_header_t));
+		fota_cmd_handler(cmd+sizeof(cmd_msg_header_t), header->id);
 	}
 }
 

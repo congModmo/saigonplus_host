@@ -23,6 +23,13 @@ typedef struct
 
 static publish_scheduler_t scheduler = {0};
 
+static void ps_publish_riding()
+{
+    publish_riding_message();
+    scheduler.distance = 0;
+    scheduler.tick=millis();
+}
+
 static void ps_state_check_process()
 {
     if (display_state->display_on)
@@ -34,7 +41,13 @@ static void ps_state_check_process()
             scheduler.distance_tick = millis();
             scheduler.distance=0;
             scheduler.state = SCHEDULER_PUBLISH_RIDING;
-            publish_riding_msg();
+            ps_publish_riding();
+        }
+        else if(publish_setting->report_disabled && scheduler.state != SCHEDULER_PUBLISH_KEEP_ALIVE)
+        {
+			debug("Start publish keep alive\n");
+            scheduler.tick = millis();
+            scheduler.state = SCHEDULER_PUBLISH_KEEP_ALIVE;
         }
     }
     else
@@ -44,7 +57,7 @@ static void ps_state_check_process()
 			debug("Start publish keep alive\n");
             scheduler.tick = millis();
             scheduler.state = SCHEDULER_PUBLISH_KEEP_ALIVE;
-            publish_battery_msg();
+            publish_battery_message();
         }
     }
 }
@@ -59,13 +72,6 @@ static void ps_init_process()
     }
 }
 
-static void ps_publish_riding()
-{
-    publish_riding_message();
-    scheduler.distance = 0;
-    scheduler.tick=millis();
-}
-
 static void ps_publish_riding_process()
 {
     if (millis() - scheduler.distance_tick < 1000)
@@ -78,6 +84,10 @@ static void ps_publish_riding_process()
     	debug("Publish due to timeout\n");
         ps_publish_riding();
         goto __exit;
+    }
+    if(display_state->speed==0xffff){
+    	debug("Invalid speed\n");
+    	goto __exit;
     }
     scheduler.distance += 0.0277778 * display_state->speed;
     if (millis() - scheduler.tick > publish_setting->min_report_interval && scheduler.distance > MIN_PUBLISH_DISTANCE)

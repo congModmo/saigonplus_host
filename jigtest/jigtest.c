@@ -76,7 +76,7 @@ void jigtest_report(uint8_t type, uint8_t *data, uint8_t len)
 void jigtest_direct_report(uint8_t type, uint8_t status)
 {
 	JIGTEST_LOCK();
-//	debug("Test resport: %s %s\n", ui_cmd_type_to_string(type), status ? "OK" : "ERROR");
+	debug("Test resport: %s %s\n", ui_cmd_type_to_string(type), status ? "OK" : "ERROR");
 #if JIGTEST_DEBUG==0
 	uart_ui_comm_send(type, &status, 1);
 #endif
@@ -272,10 +272,12 @@ void jigtest_console_handle(char *result)
 	{
 		jigtest_test_lte();
 	}
-	else if (__check_cmd("io"))
+	else if (__check_cmd("io "))
 	{
-//		jigtest_test_io();
-		jigtest_test_imu();
+		jigtest_io_console_handle(__param_pos("io "));
+	}
+	else if(__check_cmd("esp ")){
+		jigtest_esp_console_handle(__param_pos("esp "));
 	}
 	else if(__check_cmd("other")){
 		//jigtest_test_ext_flash();

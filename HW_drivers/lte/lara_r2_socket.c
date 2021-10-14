@@ -64,7 +64,7 @@ bool socket_urc_read_handle(char *urc){
 
 static int network_write_block(uint8_t port, const void *data, uint8_t len){
 
-	info("send block len: %d\n", len);
+	debug("send block len: %d\n", len);
 	sprintf(at_buff, "AT+USOWR=%d,%d,\"", port, len);
 	binaryToHexString(data, len, at_buff+strlen(at_buff));
 	strcpy(at_buff+strlen(at_buff), "\"\r\n");

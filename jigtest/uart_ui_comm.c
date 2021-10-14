@@ -11,6 +11,8 @@
     26/12/2020
     HieuNT
 */
+#define __DEBUG__ 4
+
 #include "uart_ui_comm.h"
 #include "app_main/app_main.h"
 #include <string.h>
@@ -114,6 +116,10 @@ void uart_ui_comm_send(uint8_t type, uint8_t *data, uint16_t len)
 	slip_send(&slip, &type, 1, SLIP_FRAME_BEGIN);
 	slip_send(&slip, data, len, SLIP_FRAME_END);
 }
+void uart_ui_comm_send0(uint8_t *data, size_t len)
+{
+	slip_send(&slip, data, len,SLIP_FRAME_COMPLETE);
+}
 
 void lte_cert_handle(uint8_t type, uint8_t idx, uint8_t *data, uint8_t data_len){
 	uint8_t *des;
@@ -153,6 +159,11 @@ static void uart_ui_command_handle(uint8_t *frame, size_t size)
 	static serial_fota_request_info_t *request;
 	static fota_file_info_t info_file;
 	tick = millis();
+	if(frame[0]<128)
+	{
+		jigtest_console_handle(frame);
+		return;
+	}
 	switch (frame[0])
 	{
 	case UART_UI_CMD_TEST_ALL_HW:

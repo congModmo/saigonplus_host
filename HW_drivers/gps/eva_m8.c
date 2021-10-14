@@ -1,7 +1,7 @@
 
 #include <stdio.h>
 
-#define __DEBUG__ 4
+#define __DEBUG__ 3
 #include <string.h>
 #include <stdbool.h>
 

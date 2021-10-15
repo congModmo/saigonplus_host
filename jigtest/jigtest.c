@@ -128,18 +128,6 @@ bool mail_direct_command(uint8_t command, osMessageQueueId_t mailBox)
 	return true;
 }
 
-void jigtest_lte_hardware_test()
-{
-#ifdef LTE_ENABLE
-	mail_direct_command(MAIL_LTE_NETWORK_START, lteMailHandle);
-#else
-	jigtest_direct_report(UART_UI_RES_LTE_TXRX, 1);
-	jigtest_direct_report(UART_UI_RES_LTE_RESET, 1);
-//	jigtest_report(UART_UI_RES_LTE_IMEI, bikeMainProps.imei, strlen(bikeMainProps.imei));
-//	jigtest_report(UART_UI_RES_LTE_SIM_CCID, bikeMainProps.ccid, strlen(bikeMainProps.ccid));
-#endif
-}
-
 void jigtest_lte_function_test(){
 #ifdef LTE_ENABLE
 	checklist.mqtt.reported=0;
@@ -224,7 +212,7 @@ void jigtest_test_ext_flash(){
 
 void jigtest_test_lte()
 {
-	jigtest_lte_hardware_test();
+//	jigtest_lte_hardware_test();
 	//jigtest_lte_function_test();
 	jigtest_direct_report(UART_UI_RES_FINISH, UART_UI_CMD_TEST_LTE);
 }
@@ -264,13 +252,13 @@ void jigtest_console_handle(char *result)
 	{
 		jigtest_ble_console_handle(__param_pos("ble "));
 	}
-	else if (__check_cmd("gps"))
+	else if (__check_cmd("gps "))
 	{
-		jigtest_test_gps();
+		jigtest_gps_console_handle(__param_pos("gps "));
 	}
-	else if (__check_cmd("lte"))
+	else if (__check_cmd("lte "))
 	{
-		jigtest_test_lte();
+		jigtest_lte_console_handle(__param_pos("lte "));
 	}
 	else if (__check_cmd("io "))
 	{

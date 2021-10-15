@@ -275,9 +275,11 @@ bool lara_r2_init_info(char * imei, int imei_len, char* ccid, int ccid_len){
 	return true;
 }
 
-bool lara_r2_bsp_init(void){
+bool lara_r2_bsp_init(void)
+{
 	uart_lte_bsp_init(&lte_rb);
 }
+
 bool lara_r2_hardware_init(void)
 {
 	return lara_r2_setup_power();
@@ -289,7 +291,6 @@ bool lara_r2_software_init(void)
 	ASSERT_RET(gsm_send_at_command("ATE0\r\n",              "OK", 1000, 4, NULL), false, "ATE0");
 	ASSERT_RET(gsm_send_at_command("AT+CPIN?\r\n",          "+CPIN: READY", 1000, 4, NULL), false, "AT+CPIN?");
 	ASSERT_RET(gsm_send_at_command("AT&W\r\n",              "OK", 1000, 4, NULL), false, "AT&W");
-
 	return true;
 }
 
@@ -300,5 +301,14 @@ bool lara_r2_init(){
 	if(!lara_r2_software_init()){
 		return false;
 	}
+	return true;
+}
+
+bool lara_r2_import_key(char *key, char *name, int type ){
+	char cmd[64];
+	sprintf(cmd,"AT+USECMNG=0,%d,\"%s\",%d\r\n", type, name, strlen(key));
+	ASSERT_RET(gsm_send_at_command(cmd, ">", 500, 2, NULL), false,"AT+USECMNG" );
+	ASSERT_RET(gsm_send_at_command(key, "OK", 500, 2, NULL), false, "Cert string");
+	debug("Import cert ok\n");
 	return true;
 }

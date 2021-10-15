@@ -37,7 +37,7 @@ void eva_m8_disable_messages(void)
 	delay(500);
 	eva_m8_bsp_send_data(RMC_MSG, 11);
 	delay(500);
-	info("GPS disable NMEA keep GGA success\r\n");
+//	info("GPS disable NMEA keep GGA success\r\n");
 }
 
 char *eva_m8_ringbuf_polling()
@@ -105,17 +105,10 @@ void parse_gga(char *frame)
 	static char *token[15];
 	static size_t tokenNum;
 	tokenNum = str_token(frame, ",", token, 15);
-	//	if (tokenNum != 14){
-	//		return;
-	//	}
 	if (callback != NULL)
 	{
 		callback(token[2], token[3], token[4], token[5], token[8]);
 	}
-	//	float hdop=0;
-	//	if(sscanf(token[8], "%f", &hdop)!=1){
-	//		hdop=0;
-	//	}
 }
 
 void eva_m8_init(eva_m8_data_callback_t cb)

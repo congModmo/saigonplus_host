@@ -7,11 +7,14 @@
 #include "log_sys.h"
 
 #include "bsp.h"
+
 #define LARA_R2_BUFF_SIZE 512
 typedef struct {
 	char buf[LARA_R2_BUFF_SIZE];
 	size_t n;
 } GSM_AT_Resp_t;
+
+extern const char aws_trust_ca[];
 
 #define MAX_MODEM_SOCKET 6
 void gsm_clear_buffer(void);

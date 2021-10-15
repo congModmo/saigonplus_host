@@ -36,12 +36,6 @@ bool network_is_ready(){
 	return network_ready;
 }
 
-enum{
-	ROOT_CA=0,
-	DEVICE_CERT=1,
-	DEVICE_KEY=2
-}cert_type_t;
-
 bool lte_init_rtc(){
 	char *response;
 	ASSERT_RET(gsm_send_at_command("AT+CCLK?\r\n", "+CCLK: ", 500, 5, &response), false, "AT+CCLK?");

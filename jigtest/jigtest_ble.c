@@ -93,7 +93,7 @@ static bool ble_mac_test()
 static bool ble_connection_test()
 {
 	uint32_t tick;
-	uart_esp_send(ESP_BLE_HOST_MAC, ble_mac, strlen(ble_mac)+1);
+	uart_esp_send(ESP_BLE_HOST_MAC, ble_mac, strlen(ble_mac));
 	ble_connected=0;
 	int retry=5;
 	while(retry--&& ble_connected==0)

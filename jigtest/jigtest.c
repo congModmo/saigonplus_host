@@ -159,7 +159,6 @@ bool mail_direct_command(uint8_t command, osMessageQueueId_t mailBox)
 
 void jigtest_test_all_hardware()
 {
-	checklist.tick=millis();
 //	memset(&checklist, 0, sizeof(jigtest_checklist_t));
 //	jigtest_direct_report(UART_UI_RES_EXTERNAL_FLASH, GD25Q16_test(fotaCoreBuff, 4096));
 //	if(jigtest_test_uart_esp()){
@@ -174,6 +173,13 @@ void jigtest_test_all_hardware()
 //	else{
 //		jigtest_direct_report(UART_UI_RES_ESP_ADAPTOR, 0);
 //	}
+	{
+		checklist.tick=millis();
+		bool txrx, reset;
+		testkit_gps_test_hardware(&txrx, &reset);
+		jigtest_direct_report(UART_UI_RES_GPS_TXRX, txrx);
+		jigtest_direct_report(UART_UI_RES_GPS_RESET, reset);
+	}
 //	{
 //		jigtest_ble_hardware_test();
 //	}
@@ -187,22 +193,23 @@ void jigtest_test_all_hardware()
 //		jigtest_direct_report(UART_UI_RES_LTE_RESET, 1);
 //		jigtest_direct_report(UART_UI_RES_LTE_TXRX, 1);
 //		jigtest_direct_report(UART_UI_RES_LTE_KEY, jigtest_lte_check_key());
-		if(jigtest_lte_get_info())
-		{
-			jigtest_report(UART_UI_RES_LTE_IMEI, jigtest_lte_imei, strlen(jigtest_lte_imei));
-			jigtest_report(UART_UI_RES_LTE_SIM_CCID, jigtest_lte_ccid, strlen(jigtest_lte_ccid));
-		}
+//		if(jigtest_lte_get_info())
+//		{
+//			jigtest_report(UART_UI_RES_LTE_IMEI, jigtest_lte_imei, strlen(jigtest_lte_imei));
+//			jigtest_report(UART_UI_RES_LTE_SIM_CCID, jigtest_lte_ccid, strlen(jigtest_lte_ccid));
+//		}
 //	}
+
 	jigtest_direct_report(UART_UI_CMD_TEST_ALL_HW, UART_UI_RES_OK);
 }
 
 void jigtest_test_all_function()
 {
 //	jigtest_ble_function_test();
-	jigtest_lte_function_test();
-//	uint32_t timeout=120000-checklist.tick;
-//	if(timeout<10000) timeout=10000;
-//	jigtest_gps_function_test(timeout);
+//	jigtest_lte_function_test();
+	uint32_t timeout=120000-checklist.tick;
+	if(timeout<10000) timeout=10000;
+	jigtest_gps_function_test(timeout);
 }
 
 //void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)

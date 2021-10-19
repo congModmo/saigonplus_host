@@ -148,7 +148,6 @@ void app_main(void)
 	app_info_init();
 	while (1)
 	{
-		app_gps_process();
 		uart_ui_comm_polling();
 		if (fota_start)
 		{

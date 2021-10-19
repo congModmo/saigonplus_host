@@ -1,7 +1,7 @@
 
 #include <stdio.h>
 
-#define __DEBUG__ 3
+#define __DEBUG__ 4
 #include <string.h>
 #include <stdbool.h>
 
@@ -14,6 +14,8 @@
 #define NMEA_BUF_SIZE 128
 
 static RINGBUF gpsRingbuf;
+static char nmea_buf[NMEA_BUF_SIZE];
+static __IO uint16_t nmea_buf_idx = 0;
 static eva_m8_data_callback_t callback = NULL;
 
 uint8_t GLL_MSG[11] = {0xB5, 0x62, 0x06, 0x01, 0x03, 0x00, 0xF0, 0x01, 0x00, 0xFB, 0x11};
@@ -40,10 +42,15 @@ void eva_m8_disable_messages(void)
 //	info("GPS disable NMEA keep GGA success\r\n");
 }
 
+void eva_m8_buffer_reset()
+{
+	RINGBUF_Flush(&gpsRingbuf);
+	memset(nmea_buf, 0, sizeof(nmea_buf));
+	nmea_buf_idx=0;
+}
+
 char *eva_m8_ringbuf_polling()
 {
-	static char nmea_buf[NMEA_BUF_SIZE];
-	static __IO uint16_t nmea_buf_idx = 0;
 	static char c;
 	while (RINGBUF_Available(&gpsRingbuf))
 	{
@@ -105,7 +112,10 @@ void parse_gga(char *frame)
 	int tokenNum = str_token(frame, ",", token, 15);
 	if (callback != NULL)
 	{
-		callback(token[2], token[3], token[4], token[5], token[8]);
+		if(tokenNum<14)
+			callback(NULL, NULL, NULL, NULL, NULL);
+		else
+			callback(token[2], token[3], token[4], token[5], token[8]);
 	}
 }
 

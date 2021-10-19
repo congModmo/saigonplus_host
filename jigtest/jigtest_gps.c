@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include "bsp.h"
+#include "jigtest.h"
 
 static struct{
 	bool TXT;
@@ -16,7 +17,7 @@ static struct{
 	bool RMC;
 }msg_detected;
 
-bool gps_location_detected=false;
+__IO bool gps_location_detected=false;
 
 static void reset_message()
 {
@@ -37,8 +38,12 @@ void eva_m8_data_callback(char *latitude, char *lat_dir, char *longitude, char *
 {
 	if(hdop!=NULL && latitude!=NULL && longitude!=NULL)
 	{
-		debug("Gps location: long: %s, lat: %s, hdop: %s\n", longitude, latitude, hdop);
+//		debug("Gps location: long: %s, lat: %s, hdop: %s\n", longitude, latitude, hdop);
 		gps_location_detected=true;
+		jigtest_direct_report(UART_UI_RES_GPS_POSITION, 1);
+		float hdop_value;
+		sscanf(hdop, "%f", &hdop_value);
+		jigtest_report(UART_UI_RES_GPS_HDOP, (uint8_t *)&hdop_value, sizeof(float));
 	}
 }
 
@@ -60,30 +65,12 @@ bool GPS_EVA_process(){
 
 void testkit_gps_test_hardware(bool *tx_rx, bool *reset)
 {
-	eva_m8_init(eva_m8_data_callback);
-	eva_m8_reset();
 	reset_message();
-	uint32_t tick =millis();
-	while(millis()-tick<3000){
-		GPS_EVA_process();
-		delay(5);
-	}
-	//after reset, all nmea messages must present
-	if(!all_message_check()){
-		*tx_rx=false;
-		*reset=false;
-		return;
-	}
-	*reset=1;
-	eva_m8_disable_messages();
+	eva_m8_init(eva_m8_data_callback);
 	delay(2000);
 	//reset eva m8 buffer
-	while(eva_m8_ringbuf_polling()!=NULL)
-	{
-
-	}
-	reset_message();
-	tick=millis();
+	eva_m8_buffer_reset();
+	uint32_t tick =millis();
 	while(millis()-tick<3000){
 		GPS_EVA_process();
 		delay(5);
@@ -92,7 +79,19 @@ void testkit_gps_test_hardware(bool *tx_rx, bool *reset)
 		*tx_rx=0;
 		return;
 	}
-	*tx_rx=1;
+	*tx_rx=true;
+	eva_m8_reset();
+	//after reset, all nmea messages must present
+	tick=millis();
+	while(millis()-tick<3000){
+		GPS_EVA_process();
+		delay(5);
+	}
+	if(!all_message_check()){
+		*reset=false;
+		return;
+	}
+	*reset=true;
 }
 
 bool jigtest_gps_function_test(int timeout)

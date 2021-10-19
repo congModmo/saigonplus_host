@@ -59,7 +59,7 @@ void jigtest_uart_esp_init(){
 	slip_init(&esp_tester.slip, esp_tester.inBuffer, 128, bsp_uart5_send_byte);
 }
 
-void jigtest_test_uart_esp()
+bool jigtest_test_uart_esp()
 {
 	for (uint8_t i = 1; i < 32; i++)
 	{
@@ -71,11 +71,10 @@ void jigtest_test_uart_esp()
 	{
 		if (!uart_esp_block_test())
 		{
-			jigtest_direct_report(UART_UI_RES_ESP_ADAPTOR, 0);
-			return;
+			return false;
 		}
 	}
-	jigtest_direct_report(UART_UI_RES_ESP_ADAPTOR, 1);
+	return true;
 }
 
 void uart_esp_send_cmd(uint8_t cmd){

@@ -28,7 +28,8 @@ static bool all_message_check()
 	return msg_detected.TXT && msg_detected.GGA  && msg_detected.GLL && msg_detected.GSA && msg_detected.VTG && msg_detected.GSV && msg_detected.RMC;
 }
 
-static bool gga_only_check(){
+static bool gga_only_check()
+{
 	return !msg_detected.TXT && msg_detected.GGA && !msg_detected.GLL && !msg_detected.GSA && !msg_detected.VTG && !msg_detected.GSV && !msg_detected.RMC;
 }
 
@@ -94,7 +95,7 @@ void testkit_gps_test_hardware(bool *tx_rx, bool *reset)
 	*tx_rx=1;
 }
 
-bool jigtest_gps_test_function(int timeout)
+bool jigtest_gps_function_test(int timeout)
 {
 	uint32_t tick=millis();
 	while(millis()-tick<timeout && ! gps_location_detected)
@@ -118,7 +119,7 @@ void jigtest_gps_console_handle(char *result)
 		int timeout;
 		if(sscanf(__param_pos("test function "), "%d", &timeout)==1)
 		{
-			if(jigtest_gps_test_function(timeout))
+			if(jigtest_gps_function_test(timeout))
 			{
 				debug("Test function ok\n");
 			}

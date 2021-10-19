@@ -18,7 +18,9 @@
 #include "crc/crc32.h"
 #include "app_config.h"
 #include "app_main/app_info.h"
-
+#ifdef JIGTEST
+#include "jigtest.h"
+#endif
 enum
 {
 	FOTA_CORE_IDLE,
@@ -296,8 +298,18 @@ void fota_core_process()
 			if (!fota_core_flash_ble())
 			{
 				error("Ble app dfu fail, lam sao gio choi\n");
+#ifdef JIGTEST
+				jigtest_direct_report(UART_UI_RES_BLE_DFU, 0);
+#endif
 				goto __exit;
 			}
+			else
+			{
+#ifdef JIGTEST
+				jigtest_direct_report(UART_UI_RES_BLE_DFU, 1);
+#endif
+			}
+
 #else
 			goto __exit;
 #endif

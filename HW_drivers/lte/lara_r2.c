@@ -1,5 +1,5 @@
 
-#define __DEBUG__ 3
+#define __DEBUG__ 4
 
 #include <lte/lara_r2.h>
 #include "bsp.h"
@@ -30,7 +30,6 @@ void lara_r2_power_control(uint8_t state)
 
 bool lara_r2_setup_power(void)
 {
-
 //	lara_r2_reset_control(1);
 	info("Force GSM POWER ON\n");
 	lara_r2_reset_control(1);
@@ -112,7 +111,7 @@ bool gsm_send_at_command(char *atCommand, const char *resOk, int timeout, int re
 		gsm_clear_buffer();
 		gsm_at_init_resp();
 		gsm_send_string(atCommand);
-		debug("AT send: %s\n", atCommand);
+//		debug("AT send: %s\n", atCommand);
 		if(wait_return(resOk, timeout)){
 			if(resp!=NULL){
 				*resp=atResp.buf;

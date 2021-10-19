@@ -25,6 +25,7 @@
 #include "app_display/app_display.h"
 #include "key_transfer.h"
 #include "app_lte/lteTask.h"
+#include "jigtest_lte.h"
 
 static slip_t slip;
 static uint8_t slip_buff[512];
@@ -71,8 +72,8 @@ char *ui_cmd_type_to_string(uint8_t type)
 		return "UART_UI_RES_GPS_TXRX";
 	case UART_UI_RES_GPS_HDOP:
 		return "UART_UI_RES_GPS_HDOP";
-	case UART_UI_RES_FRONT_LIGHT:
-		return "UART_UI_RES_FRONT_LIGHT";
+	case UART_UI_RES_LED_HEAD:
+		return "UART_UI_RES_LED_HEAD";
 	case UART_UI_RES_LED_BLUE:
 		return "UART_UI_RES_LED_BLUE";
 	case UART_UI_RES_LED_GREEN:
@@ -139,17 +140,30 @@ void cmd_import_key_handle(){
 	uint8_t *des=fotaCoreBuff;
 	if(!crc32_verify(des+4, strlen(des+4), *((uint32_t *)des))){
 		jigtest_direct_report(UART_UI_CMD_IMPORT_KEY, 0);
+		debug("Key crc failed\n");
 		return;
 	}
 	des=fotaCoreBuff+2048;
 	if(!crc32_verify(des+4, strlen(des+4), *((uint32_t *)des))){
 		jigtest_direct_report(UART_UI_CMD_IMPORT_KEY, 0);
+		debug("Key crc failed\n");
 		return;
 	}
 //	jigtest_direct_report(UART_UI_CMD_IMPORT_KEY, 1);
 //	lte_import_key_request_t* request=malloc(sizeof(lte_import_key_request_t));
 //	request->cert=fotaCoreBuff+4;
 //	request->key=fotaCoreBuff+4+2048;
+	if(!jigtest_lte_import_keys(fotaCoreBuff+4, fotaCoreBuff+4+2048)){
+		jigtest_direct_report(UART_UI_CMD_IMPORT_KEY, 0);
+		debug("import failed\n");
+		return;
+	}
+	if(!jigtest_lte_check_key()){
+		jigtest_direct_report(UART_UI_CMD_IMPORT_KEY, 0);
+		debug("Verify failed\n");
+		return;
+	}
+	jigtest_direct_report(UART_UI_CMD_IMPORT_KEY, 1);
 //	mail_t mail= {.type=MAIL_LTE_IMPORT_KEY, .data=request, .len=sizeof(lte_import_key_request_t)};
 //	osMessageQueuePut(lteMailHandle, &mail, 0, 10);
 }
@@ -169,17 +183,19 @@ static void uart_ui_command_handle(uint8_t *frame, size_t size)
 	case UART_UI_CMD_TEST_ALL_HW:
 		jigtest_test_all_hardware();
 		break;
+	case UART_UI_CMD_TEST_FUNCTION:
+		jigtest_test_all_function();
 	case UART_UI_CMD_TEST_LTE:
-		jigtest_test_lte();
+//		jigtest_test_lte();
 		break;
 	case UART_UI_CMD_TEST_BLE:
-		jigtest_ble_function_test();
+//		jigtest_ble_function_test();
 		break;
 	case UART_UI_CMD_TEST_GPS:
-		jigtest_test_gps();
+//		jigtest_test_gps();
 		break;
 	case UART_UI_CMD_TEST_IO:
-		jigtest_test_io();
+//		jigtest_test_io();
 		break;
 	case UART_UI_CMD_FACTORY_RESET:
 		uart_ui_comm_command_send(UART_UI_CMD_FACTORY_RESET, UART_UI_RES_OK);

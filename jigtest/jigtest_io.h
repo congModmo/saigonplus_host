@@ -14,13 +14,15 @@ typedef struct{
 	int led_blue_count;
 }io_test_t;
 
-typedef struct __packed
-{
-	uint8_t front_light;
-	uint8_t led_red;
-	uint8_t led_green;
-	uint8_t led_blue;
-} host_io_value_t;
+typedef struct{
+	bool red;
+	bool green;
+	bool blue;
+	bool head;
+	bool lock;
+}jigtest_io_result_t;
+
+jigtest_io_result_t *jigtest_test_io();
 
 #ifdef __cplusplus
 }

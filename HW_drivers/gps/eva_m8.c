@@ -78,7 +78,6 @@ bool gps_frame_checksum(char *frame)
 	{
 		return false;
 	}
-
 	for (uint32_t i = (uint32_t)frame; i < (uint32_t)asterisk; i++)
 	{
 		checksum = checksum ^ *((uint8_t *)i);
@@ -103,8 +102,7 @@ void parse_gga(char *frame)
 		return;
 	}
 	static char *token[15];
-	static size_t tokenNum;
-	tokenNum = str_token(frame, ",", token, 15);
+	int tokenNum = str_token(frame, ",", token, 15);
 	if (callback != NULL)
 	{
 		callback(token[2], token[3], token[4], token[5], token[8]);

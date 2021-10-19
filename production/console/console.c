@@ -19,7 +19,7 @@
 #include "app_fota/fota_core.h"
 #include "app_main/app_main.h"
 // Utils
-
+static RINGBUF debugRingbuf;
 
 int console_read(char **result)
 {
@@ -87,6 +87,11 @@ extern osThreadId_t mqttTaskHandle;
 extern osThreadId_t mainTaskHandle;
 extern osThreadId_t lteTaskHandle;
 extern osMessageQueueId_t mainMailHandle;
+
+void console_init()
+{
+	bsp_uart_console_init(&debugRingbuf);
+}
 
 void console_task(void)
 {
@@ -334,68 +339,3 @@ void console_task(void)
 		}
     }
 }
-
-void console_232_task(void)
-{
-//    char *result = (char *)&huart1PacketBuffer.pAppRxBuffer[3]; // "at "
-//    Bike_Main_Props_t *p = &bikeMainProps;
-//    if (console232RxLen > 0){
-//        if (__check_cmd("get bikeid")){
-//            memset(p->bikeId, 0, sizeof(p->bikeId));
-//            flash_ext_read_bikeid(p->bikeId, sizeof(p->bikeId));
-//            STM32_UartSendString(&huart1, "get bikeid ok ");
-//            STM32_UartSendString(&huart1, p->bikeId);
-//            STM32_UartSendString(&huart1, "\n");
-//        }
-//        else if (__check_cmd("set bikeid ")){
-//            result += strlen("set bikeid ");
-//            strcpy(p->bikeId, result);
-//            flash_ext_write_bikeid(p->bikeId);
-//            _delay_ms(100);
-//            flash_ext_read_bikeid(p->bikeId, sizeof(p->bikeId));
-//            STM32_UartSendString(&huart1, "set bikeid ok ");
-//            STM32_UartSendString(&huart1, p->bikeId);
-//            STM32_UartSendString(&huart1, "\n");
-//            BLE_NINA_B111_reset();
-//        }
-//        else if (__check_cmd("get sn")){
-//            memset(p->serialNumber, 0, sizeof(p->serialNumber));
-//            flash_ext_read_serialid(p->serialNumber, sizeof(p->serialNumber));
-//            STM32_UartSendString(&huart1, "get sn ok ");
-//            STM32_UartSendString(&huart1, p->serialNumber);
-//            STM32_UartSendString(&huart1, "\n");
-//        }
-//        else if (__check_cmd("set sn ")){
-//            result += strlen("set sn ");
-//            strcpy(p->serialNumber, result);
-//            flash_ext_write_serialid(p->serialNumber);
-//            _delay_ms(100);
-//            flash_ext_read_serialid(p->serialNumber, sizeof(p->serialNumber));
-//            STM32_UartSendString(&huart1, "set sn ok ");
-//            STM32_UartSendString(&huart1, p->serialNumber);
-//            STM32_UartSendString(&huart1, "\n");
-//            BLE_NINA_B111_reset();
-//        }
-//        else if (__check_cmd("get imei")){
-//            STM32_UartSendString(&huart1, "get imei ok ");
-//            STM32_UartSendString(&huart1, p->imei);
-//            STM32_UartSendString(&huart1, "\n");
-//        }
-//        else if (__check_cmd("factory reset")){
-//            strcpy(p->bikeId, DEFAULT_BIKEID);
-//            flash_ext_write_bikeid(p->bikeId);
-//            strcpy(p->serialNumber, DEFAULT_SERIALNUMBER);
-//            flash_ext_write_serialid(p->serialNumber);
-//            STM32_UartSendString(&huart1, "factory reset ok\n");
-//            ioctl_beep(500);
-//            NVIC_SystemReset();
-//        }
-//        else if (__check_cmd("reset")){
-//            STM32_UartSendString(&huart1, "reset ok\n");
-//            ioctl_beep(500);
-//            NVIC_SystemReset();
-//        }
-//        console232RxLen = 0;
-//    }
-}
-

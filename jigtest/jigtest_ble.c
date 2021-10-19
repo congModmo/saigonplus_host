@@ -75,7 +75,7 @@ void jigtest_ble_hardware_test()
 	nina_b1_bsp_set_reset_pin(1);
 }
 
-static bool ble_mac_test()
+bool ble_mac_test()
 {
 	uint32_t tick=millis();
 	app_ble_init();
@@ -90,7 +90,7 @@ static bool ble_mac_test()
 	}
 }
 
-static bool ble_connection_test()
+bool ble_connection_test()
 {
 	uint32_t tick;
 	uart_esp_send(ESP_BLE_HOST_MAC, ble_mac, strlen(ble_mac));
@@ -109,8 +109,7 @@ static bool ble_connection_test()
 	return ble_connected;
 }
 
-
-static bool ble_transceiver_test()
+bool ble_transceiver_test()
 {
 	uint32_t tick;
 	for(uint8_t i=0; i<sizeof(ble_data_buffer); i++){
@@ -145,7 +144,18 @@ static bool ble_transceiver_test()
 
 void jigtest_ble_function_test()
 {
-	jigtest_direct_report(UART_UI_RES_FINISH, UART_UI_CMD_TEST_BLE );
+	if(ble_mac_test())
+	{
+		jigtest_report(UART_UI_RES_BLE_MAC, ble_mac, strlen(ble_mac));
+	}
+	if(ble_connection_test())
+	{
+		jigtest_direct_report(UART_UI_RES_BLE_CONNECT, 1);
+	}
+	if(ble_transceiver_test())
+	{
+		jigtest_direct_report(UART_UI_RES_BLE_TRANSCEIVER, 1);
+	}
 }
 
 void jigtest_ble_console_handle(char *result)

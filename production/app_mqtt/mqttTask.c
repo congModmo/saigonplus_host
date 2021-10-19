@@ -17,6 +17,7 @@
 #define STATUS_TOPIC_PREFIX								"/status/v3/"
 #define CMD_TOPIC_PREFIX 								"/cmd/v3/"
 #define ACK_TOPIC_PREFIX 								"/ack/v3/"
+#define TEST_TOPIC_PREFIX								"/test/v3/"
 #define CLIENT_IDENTIFIER_PREFIX                        "modmo_iot_"
 
 static bool mqtt_ready=false;
@@ -63,6 +64,17 @@ static char status_topic[64];
 static char cmd_topic[64];
 static char ack_topic[64];
 static char client_id[64];
+
+#ifdef JIGTEST
+static char test_topic[64];
+static char test_message[]="hello from Modmo, wishing you have a nice day";
+static int test_count;
+static int test_success;
+const int test_num=5;
+static uint32_t test_tick;
+__IO bool mqtt_test_done=false;
+__IO bool mqtt_test_result=false;
+#endif
 
 typedef struct topicFilterContext
 {
@@ -362,7 +374,38 @@ static MQTTStatus_t prvWaitForPacket( MQTTContext_t * pxMQTTContext,
     return xMQTTStatus;
 }
 
+
 /*-----------------------------------------------------------*/
+#ifdef JIGTEST
+static void jigtest_mqtt_start_test()
+{
+	test_tick=millis();
+	test_count++;
+	prvMQTTPublishToTopic(test_topic, (uint8_t *)test_message, strlen(test_message), MQTTQoS0);
+}
+
+static void jigtest_mqtt_test_result()
+{
+	debug("Mqtt test done result: %d/%d\n", test_success, test_num);
+	if(test_success > test_num/2)
+	{
+		mqtt_test_result=true;
+	}
+	mqtt_test_done=true;
+}
+
+static void jigtest_mqtt_event_handle()
+{
+	if(test_count<test_num)
+	{
+		jigtest_mqtt_start_test();
+	}
+	else
+	{
+		jigtest_mqtt_test_result();
+	}
+}
+#endif
 
 static void prvMQTTProcessIncomingPublish( MQTTPublishInfo_t * pxPublishInfo )
 {
@@ -387,6 +430,18 @@ static void prvMQTTProcessIncomingPublish( MQTTPublishInfo_t * pxPublishInfo )
 			free(frame);
 		}
 	}
+#ifdef JIGTEST
+	else if(__check_cmd(test_topic))
+	{
+		if(pxPublishInfo->payloadLength==strlen(test_message) &&\
+				memcmp(pxPublishInfo->pPayload, test_message, strlen(test_message))==0)
+		{
+			test_success++;
+			debug("test success num: %d\n", test_success);
+		}
+		jigtest_mqtt_event_handle();
+	}
+#endif
 }
 
 //bool mqtt_regist_message_callback(mqtt_msg_callback_t callback){
@@ -412,6 +467,9 @@ bool mqtt_init( ){
 	sprintf(status_topic, "%s%s", STATUS_TOPIC_PREFIX, lteImei);
 	sprintf(cmd_topic, "%s%s", CMD_TOPIC_PREFIX, lteImei);
 	sprintf(ack_topic, "%s%s", ACK_TOPIC_PREFIX, lteImei);
+#ifdef JIGTEST
+	sprintf(test_topic, "%s%s", TEST_TOPIC_PREFIX, lteImei);
+#endif
 }
 
 bool mqtt_start(){
@@ -427,7 +485,17 @@ bool mqtt_start(){
 	if(pdPASS != prvMQTTSubscribe( cmd_topic )){
 		goto __exit;
 	}
-
+#ifdef JIGTEST
+	if(pdPASS!=prvMQTTSubscribe(test_topic))
+	{
+		goto __exit;
+	}
+	mqtt_test_done=false;
+	mqtt_test_result=false;
+	test_count=0;
+	test_success=0;
+	jigtest_mqtt_start_test();
+#endif
 	return true;
 	__exit:
 	lara_r2_socket_close(&mqtt.socket);
@@ -472,7 +540,19 @@ static void mqttMailProcess(){
 	}
 }
 
-void app_mqtt(){
+#ifdef JIGTEST
+void jigtest_mqtt_polling()
+{
+	if(millis()-test_tick>5000 && !mqtt_test_done)
+	{
+		debug("mqtt test timeout\n");
+		jigtest_mqtt_event_handle();
+	}
+}
+#endif
+
+void app_mqtt()
+{
 #ifdef MQTT_ENABLE
 	while(!network_is_ready()){
 		delay(5);
@@ -510,6 +590,9 @@ void app_mqtt(){
 			mqtt_ready=false;
 			goto __mqtt_start;
 		}
+#ifdef JIGTEST
+		jigtest_mqtt_polling();
+#endif
 		mqtt_task_process();
 		mqttMailProcess();
 		delay(5);

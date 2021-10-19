@@ -49,7 +49,6 @@ bool timeout_check(uint32_t *from, uint32_t interval);
 void delay(uint32_t t);
 
 void system_vector_remap();
-void bsp_debug_uart_init();
 extern osMutexId appResourceHandle;
 #define RESOURCE_LOCK() osMutexWait(appResourceHandle, osWaitForever)
 
@@ -92,8 +91,8 @@ void bsp_gps_uart_init();
  * Debug bsp
  */
 #define DEBUG_BUF_SIZE 128
-extern RINGBUF debugRingbuf;
 
+#define bsp_uart_console_init(x) bsp_uart5_init(x)
 /*
  * BLE bsp
  */

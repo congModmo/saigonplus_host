@@ -21,16 +21,17 @@
 #include "app_main/app_main.h"
 #include "time.h"
 #include "app_main/app_rtc.h"
+#include "lteTask.h"
 
 static char _imei[32];
 static char _ccid[32];
 static int rssi=0;
-
+static network_type_t type=NETWORK_TYPE_NONE;
 const int *const lteRssi= &rssi;
 const char *const lteImei= &_imei;
 const char *const lteCcid= &_ccid;
-
-static bool network_ready=false;
+const network_type_t * const network_type =&type;
+static __IO bool network_ready=false;
 
 bool network_is_ready(){
 	return network_ready;
@@ -73,11 +74,13 @@ bool network_connect_init(void)
 		if(gsm_send_at_command("AT+CEREG?\r\n", "+CEREG: 2,5", 500, 1, NULL)){
 			debug("Registed to 4G network\n");
 			connected=true;
+			type=NETWORK_TYPE_4G;
 			break;
 		}
 		if(gsm_send_at_command("AT+CGREG?\r\n", "+CGREG: 2,5", 500, 1, NULL)){
 			debug("Registed to GPRS network\n");
 			connected=true;
+			type=NETWORK_TYPE_2G;
 			break;
 		}
 		delay(1000);
@@ -181,7 +184,6 @@ void lte_task(){
 		if(!lara_r2_software_init()){
 			goto __init_wait;
 		}
-
 		if(network_connect_init()){
 			break;
 		}
@@ -194,6 +196,8 @@ void lte_task(){
 	lte_init_rtc();
 	lara_r2_socket_close_all();
 	network_security_init();
+	if(type==NETWORK_TYPE_NONE)
+		type=NETWORK_TYPE_2G;
 	network_ready=true;
 	while(true){
 		lte_async_response_handle();

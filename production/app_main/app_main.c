@@ -39,7 +39,7 @@ static fota_file_info_t json_info;
 static __IO bool fota_start = false;
 static uint8_t fota_source;
 static void *fota_params;
-static bool system_ready = false;
+bool system_ready = false;
 
 bool system_is_ready()
 {
@@ -122,7 +122,7 @@ void app_main(void)
 {
 
 #ifndef RELEASE
-	bsp_debug_uart_init();
+	console_init();
 	RetargetInit(&huart5);
 	info("Hello modmo\n");
 

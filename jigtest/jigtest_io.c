@@ -22,6 +22,8 @@ static struct{
 	bool done;
 }light_test;
 
+static jigtest_io_result_t test_io_result;
+
 #define ADC_TO_SIDELIGHT(adc) adc
 #define ADC_TO_HEADLIGHT(adc) adc
 
@@ -120,28 +122,16 @@ static void light_testing()
 		test_count++;
 	}
 	if(light_test.red==test_num*2){
-		jigtest_direct_report(UART_UI_RES_LED_RED, 1);
-	}
-	else{
-		jigtest_direct_report(UART_UI_RES_LED_RED, 0);
+		test_io_result.red=true;
 	}
 	if(light_test.green==test_num*2){
-		jigtest_direct_report(UART_UI_RES_LED_GREEN, 1);
-	}
-	else{
-		jigtest_direct_report(UART_UI_RES_LED_GREEN, 0);
+		test_io_result.green=true;
 	}
 	if(light_test.blue==test_num*2){
-		jigtest_direct_report(UART_UI_RES_LED_BLUE, 1);
-	}
-	else{
-		jigtest_direct_report(UART_UI_RES_LED_BLUE, 0);
+		test_io_result.blue=true;
 	}
 	if(light_test.head==test_num*2){
-		jigtest_direct_report(UART_UI_RES_FRONT_LIGHT, 1);
-	}
-	else{
-		jigtest_direct_report(UART_UI_RES_FRONT_LIGHT, 0);
+		test_io_result.head=true;
 	}
 }
 
@@ -156,17 +146,16 @@ void lockpin_testing()
 		delay(5);
 	}
 	if(lockpin.count>5){
-		jigtest_direct_report(UART_UI_RES_LOCKPIN, 1);
-	}
-	else{
-		jigtest_direct_report(UART_UI_RES_LOCKPIN, 0);
+		test_io_result.lock=true;
 	}
 }
 
-void jigtest_test_io()
+jigtest_io_result_t *jigtest_test_io()
 {
+	memset(&test_io_result, 0, sizeof(jigtest_io_result_t));
 	light_testing();
 	lockpin_testing();
+	return &test_io_result;
 }
 
 void jigtest_io_console_handle(char *result)

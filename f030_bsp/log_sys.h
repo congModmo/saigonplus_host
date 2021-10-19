@@ -27,12 +27,14 @@ extern "C" {
 	#define DEBUG_UNLOCK() osMutexRelease(debugMutexHandle)
 #endif
 
-#define _printf(...)\
+#define __FILENAME_ONLY__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
+
+	#define _printf(...)\
 		do{DEBUG_LOCK();\
 			printf(__VA_ARGS__);\
 			DEBUG_UNLOCK();}while(0)
 
-#define _printf_format(header, fmt, ...) _printf("[%s] %s - Line: %d: " fmt, header, __FILENAME__, __LINE__,## __VA_ARGS__)
+#define _printf_format(header, fmt, ...) _printf("[%s] %s - Line: %d: " fmt, header, __FILENAME_ONLY__, __LINE__,## __VA_ARGS__)
 #if __DEBUG__>0
 #undef error
 #define error(fmt, ...) _printf_format("ERROR", fmt, ## __VA_ARGS__)

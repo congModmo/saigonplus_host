@@ -10,4 +10,9 @@
 
 bool mqtt_is_ready();
 
+#ifdef JIGTEST
+extern __IO bool mqtt_test_done;
+extern __IO bool mqtt_test_result;
+#endif
+
 #endif /* APP_LTE_MQTTTASK_H_ */

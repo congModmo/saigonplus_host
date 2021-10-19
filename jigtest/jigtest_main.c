@@ -41,7 +41,7 @@ static fota_file_info_t json_info;
 static __IO bool fota_start = false;
 static uint8_t fota_source;
 static void *fota_params;
-static bool system_ready = false;
+bool system_ready = false;
 
 bool system_is_ready()
 {
@@ -144,6 +144,8 @@ void app_main(void)
 	jigtest_uart_esp_init();
 	nina_b1_init();
 	app_gps_init();
+	lara_r2_bsp_init();
+	app_info_init();
 	while (1)
 	{
 		app_gps_process();

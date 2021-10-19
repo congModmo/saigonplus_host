@@ -23,8 +23,7 @@
 #include "task.h"
 #include "main.h"
 #include "cmsis_os.h"
-#include "app_main/app_main.h"
-#include "app_config.h"
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -228,18 +227,14 @@ void MX_FREERTOS_Init(void) {
   /* creation of mainTask */
   mainTaskHandle = osThreadNew(StartMainTask, NULL, &mainTask_attributes);
 
-#ifdef LTE_ENABLE
   /* creation of lteTask */
   lteTaskHandle = osThreadNew(LteTaskStart, NULL, &lteTask_attributes);
-#endif
 
-#ifdef MQTT_ENABLE
   /* creation of mqttTask */
   mqttTaskHandle = osThreadNew(MqttTaskStart, NULL, &mqttTask_attributes);
 
-#endif
   /* USER CODE BEGIN RTOS_THREADS */
-  /* add threads, ... */ /* USER CODE END RTOS_THREADS */
+  /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */
   /* add events, ... */

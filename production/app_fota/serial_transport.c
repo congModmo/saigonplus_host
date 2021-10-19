@@ -5,7 +5,7 @@
  *      Author: thanhcong
  */
 
-#define __DEBUG__ 4
+#define __DEBUG__ 3
 #include <string.h>
 #include "fota_core.h"
 #include <app_fota/serial_transport.h>
@@ -351,7 +351,7 @@ static void transport_command_handle(uint8_t *cmd, size_t len)
 static void transport_process(void){
 	if(transport.state!=TRANSPORT_IDLE)
 	{
-		if(millis()-transport.tick>500)
+		if(millis()-transport.tick>1000)
 		{
 			debug("transport timeout\n");
 			transport.tick=millis();

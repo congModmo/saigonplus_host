@@ -16,7 +16,7 @@
 //	#define PUBLISH_ENABLE
 //	#define PUBLISH_UNIT_TEST
 //
-//	#define MQTT_ENABLE
+	#define MQTT_ENABLE
 
 //	#define UART_UI_ENABLE
 

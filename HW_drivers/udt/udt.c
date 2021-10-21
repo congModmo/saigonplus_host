@@ -16,7 +16,7 @@ void uart_timeout_init(uart_timeout_t *udt,uart_timeout_mode_t mode, UART_Handle
 	udt->huart=huart;
 	udt->rbBuff=buff;
 	udt->buff_len=buff_len;
-	HAL_UART_ReceiverTimeout_Config(huart, 80);
+	HAL_UART_ReceiverTimeout_Config(huart, 60);
 	HAL_UART_EnableReceiverTimeout(huart);
 	__HAL_UART_ENABLE_IT(huart, UART_IT_RTO);
 }

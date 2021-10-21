@@ -21,7 +21,7 @@ typedef struct{
 	RINGBUF *rb;
 	uint8_t *rbBuff;
 	size_t buff_len;
-	uint8_t blockBuff[UART_READ_BLOCK];
+	uint8_t blockBuff[UART_READ_BLOCK*2];
 }uart_timeout_t;
 void uart_timeout_init(uart_timeout_t *udt, uart_timeout_mode_t mode, UART_HandleTypeDef *huart, uint8_t *buff, size_t buff_len);
 void uart_timeout_start(uart_timeout_t *udt, RINGBUF *rb);

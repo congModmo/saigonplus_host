@@ -34,7 +34,7 @@ typedef struct
 #define DEFAULT_SIDE_LIGHT_RED 255
 #define DEFAULT_SIDE_LIGHT_GREEN 0
 #define DEFAULT_SIDE_LIGHT_BLUE 0
-#define DEFAULT_IMU_SENSITIVITY 5 //(0 -> 9)
+#define DEFAULT_IMU_SENSITIVITY 2 //(1 2 3)
 #define DEFAULT_LOCK_STATE 0
 
 extern const factory_config_t * const factory_config;

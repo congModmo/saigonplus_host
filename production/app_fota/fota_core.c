@@ -319,8 +319,14 @@ void fota_core_process()
 			if (!host_app_dfu_start())
 			{
 				error("Host app dfu fail\n");
+#ifdef JIGTEST
+				jigtest_direct_report(UART_UI_RES_HOST_DFU, 0);
+#endif
 				goto __exit;
 			}
+#ifdef JIGTEST
+				jigtest_direct_report(UART_UI_RES_HOST_DFU, 1);
+#endif
 		}
 	__exit:
 		fota.state=FOTA_CORE_EXIT;

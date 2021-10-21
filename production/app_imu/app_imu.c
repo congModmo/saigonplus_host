@@ -21,6 +21,7 @@ typedef struct
 }imu_t;
 
 static imu_t imu={0};
+static imu_callback_t callback=NULL;
 
 static void imu_int_update()
 {
@@ -31,8 +32,15 @@ static void imu_int_update()
 		{
 			debug("Motion detected\n");
 			kxtj3_readRegister(&imu.int_rel, KXTJ3_INT_REL);
+			if(callback!=NULL)
+				callback();
 		}
 	}
+}
+
+void imu_set_callback(imu_callback_t cb)
+{
+	callback=cb;
 }
 
 bool app_imu_init()

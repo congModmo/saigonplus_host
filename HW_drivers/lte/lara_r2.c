@@ -93,7 +93,7 @@ static bool wait_return(const char *resOk, int timeout){
 		if(atResp.n > 0)
 		{
 			if(atResp.n >at_len){
-				debug("%s\n", atResp.buf);
+//				debug("%s\n", atResp.buf);
 				at_len=atResp.n;
 			}
 			if (strstr(atResp.buf, resOk) != NULL){
@@ -244,24 +244,6 @@ uint8_t lara_r2_get_ccid(char _ccid[], uint16_t maxLen)
 			_ccid[maxLen - 1] = 0;
 			return true;
 		}
-	}
-	return false;
-}
-
-bool lara_r2_process_imei(char *_imei_str, uint16_t maxLen, uint8_t _imei_bcd[])
-{
-	_imei_str[0] = 0;
-	if(lara_r2_get_imei(_imei_str, maxLen)){
-		debug("IMEI str: %s\n", _imei_str);
-		_imei_bcd[0] = (ascii_2_hex('0')      << 4) | ascii_2_hex(_imei_str[0]);
-		_imei_bcd[1] = (ascii_2_hex(_imei_str[1])  << 4) | ascii_2_hex(_imei_str[2]);
-		_imei_bcd[2] = (ascii_2_hex(_imei_str[3])  << 4) | ascii_2_hex(_imei_str[4]);
-		_imei_bcd[3] = (ascii_2_hex(_imei_str[5])  << 4) | ascii_2_hex(_imei_str[6]);
-		_imei_bcd[4] = (ascii_2_hex(_imei_str[7])  << 4) | ascii_2_hex(_imei_str[8]);
-		_imei_bcd[5] = (ascii_2_hex(_imei_str[9])  << 4) | ascii_2_hex(_imei_str[10]);
-		_imei_bcd[6] = (ascii_2_hex(_imei_str[11]) << 4) | ascii_2_hex(_imei_str[12]);
-		_imei_bcd[7] = (ascii_2_hex(_imei_str[13]) << 4) | ascii_2_hex(_imei_str[14]);
-		return true;
 	}
 	return false;
 }

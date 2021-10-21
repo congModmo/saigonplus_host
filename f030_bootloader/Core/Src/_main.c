@@ -19,7 +19,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 
-#define __DEBUG__ 4
+#define __DEBUG__ 3
 #include <stdio.h>
 #include "main.h"
 #include "spi.h"

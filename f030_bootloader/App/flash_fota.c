@@ -7,7 +7,7 @@
     12/4/2019
 */
 
-#define __DEBUG__ 4
+#define __DEBUG__ 3
 
 #include <stdio.h>
 #include <string.h>

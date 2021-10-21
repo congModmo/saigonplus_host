@@ -98,8 +98,8 @@ char *ui_cmd_type_to_string(uint8_t type)
 		return "UART_UI_RES_UART_DISPLAY";
 	case UART_UI_RES_EXTERNAL_FLASH:
 		return "UART_UI_RES_EXTERNAL_FLASH";
-	case UART_UI_RES_SERIAL_DFU:
-		return "UART_UI_RES_SERIAL_DFU";
+	case UART_UI_RES_HOST_DFU:
+		return "UART_UI_RES_HOST_DFU";
 	case UART_UI_RES_BLE_DFU:
 		return "UART_UI_RES_BLE_DFU";
 	}
@@ -117,6 +117,7 @@ void uart_ui_comm_send(uint8_t type, uint8_t *data, uint16_t len)
 	slip_send(&slip, &type, 1, SLIP_FRAME_BEGIN);
 	slip_send(&slip, data, len, SLIP_FRAME_END);
 }
+
 void uart_ui_comm_send0(uint8_t *data, size_t len)
 {
 	slip_send(&slip, data, len,SLIP_FRAME_COMPLETE);
@@ -149,10 +150,6 @@ void cmd_import_key_handle(){
 		debug("Key crc failed\n");
 		return;
 	}
-//	jigtest_direct_report(UART_UI_CMD_IMPORT_KEY, 1);
-//	lte_import_key_request_t* request=malloc(sizeof(lte_import_key_request_t));
-//	request->cert=fotaCoreBuff+4;
-//	request->key=fotaCoreBuff+4+2048;
 	if(!jigtest_lte_import_keys(fotaCoreBuff+4, fotaCoreBuff+4+2048)){
 		jigtest_direct_report(UART_UI_CMD_IMPORT_KEY, 0);
 		debug("import failed\n");
@@ -164,8 +161,6 @@ void cmd_import_key_handle(){
 		return;
 	}
 	jigtest_direct_report(UART_UI_CMD_IMPORT_KEY, 1);
-//	mail_t mail= {.type=MAIL_LTE_IMPORT_KEY, .data=request, .len=sizeof(lte_import_key_request_t)};
-//	osMessageQueuePut(lteMailHandle, &mail, 0, 10);
 }
 
 static void uart_ui_command_handle(uint8_t *frame, size_t size)
@@ -185,6 +180,10 @@ static void uart_ui_command_handle(uint8_t *frame, size_t size)
 		break;
 	case UART_UI_CMD_TEST_FUNCTION:
 		jigtest_test_all_function();
+		break;
+	case UART_UI_CMD_READOUT_PROTECT:
+		jigtest_readout_protect();
+		break;
 	case UART_UI_CMD_TEST_LTE:
 //		jigtest_test_lte();
 		break;
@@ -215,7 +214,7 @@ static void uart_ui_command_handle(uint8_t *frame, size_t size)
 		}
 		else if(frame[1]==FOTA_REQUEST_MTU)
 		{
-			uint8_t data[2]={DEVICE_SET_MTU, 128};
+			uint8_t data[2]={DEVICE_SET_MTU, uart_transport.mtu};
 			uart_ui_comm_send(UART_UI_FOTA_DATA, data, 2);
 		}
 		break;

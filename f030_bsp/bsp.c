@@ -129,7 +129,7 @@ static uart_timeout_t ui_comm_udt;
 static uint8_t ui_comm_buff[512];
 void bsp_ui_comm_init(RINGBUF *rb)
 {
-	uart_timeout_init(&ui_comm_udt, UART_TIMEOUT_IT, &huart1, ui_comm_buff, 512);
+	uart_timeout_init(&ui_comm_udt, UART_TIMEOUT_DMA, &huart1, ui_comm_buff, 512);
 	uart_timeout_start(&ui_comm_udt, rb);
 }
 void bsp_ui_comm_send_byte(uint8_t b)
@@ -217,7 +217,7 @@ void eva_m8_bsp_uart_init(RINGBUF *rb)
 {
 	gpsRingbuf = rb;
 	RINGBUF_Init(gpsRingbuf, (uint8_t *)gps_ringbuf_buffer, GPS_BUF_SIZE);
-	HAL_UART_Receive_DMA(&huart4, gps_buff, UART_READ_BLOCK);
+	HAL_UART_Receive_IT(&huart4, gps_buff, UART_READ_BLOCK);
 }
 void eva_m8_bsp_set_reset_pin(uint8_t value)
 {
@@ -287,7 +287,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		{
 			RINGBUF_Put(gpsRingbuf, gps_buff[i]);
 		}
-		HAL_UART_Receive_DMA(&huart4, gps_buff, UART_READ_BLOCK);
+		HAL_UART_Receive_IT(&huart4, gps_buff, UART_READ_BLOCK);
 #endif
 	}
 	if (huart == &huart2)
@@ -330,7 +330,7 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 	else if (huart == &huart4)
 	{
 #ifdef GPS_ENABLE
-		HAL_UART_Receive_DMA(huart, gps_buff, UART_READ_BLOCK);
+		HAL_UART_Receive_IT(huart, gps_buff, UART_READ_BLOCK);
 #endif
 	}
 	else if (huart == &huart2)

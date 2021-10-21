@@ -117,7 +117,6 @@ bool app_serial_fota_request_handle(serial_fota_request_info_t *request, uint8_t
 	return true;
 }
 
-
 void main_mail_process()
 {
 	static mail_t mail;
@@ -136,6 +135,7 @@ void main_mail_process()
 	}
 }
 
+bool __IO imu_test=false;
 void app_main(void)
 {
 	retarget_init();
@@ -146,9 +146,14 @@ void app_main(void)
 	app_gps_init();
 	lara_r2_bsp_init();
 	app_info_init();
+	ioctl_beep(100);
 	while (1)
 	{
 		uart_ui_comm_polling();
+		if(imu_test)
+		{
+			app_imu_process();
+		}
 		if (fota_start)
 		{
 			fota_start = false;

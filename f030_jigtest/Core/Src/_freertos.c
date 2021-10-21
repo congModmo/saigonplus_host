@@ -162,6 +162,15 @@ const osMutexAttr_t lteRingbufMutex_attributes = {
   .cb_size = sizeof(lteRingbufMutexControlBlock),
 };
 
+/* Definitions for jigtestMutex */
+osMutexId_t jigtestMutexHandle;
+osStaticMutexDef_t jigtestMutexControlBlock;
+const osMutexAttr_t jigtestMutex_attributes = {
+  .name = "jigtestMutex",
+  .cb_mem = &jigtestMutexControlBlock,
+  .cb_size = sizeof(jigtestMutexControlBlock),
+};
+
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
 
@@ -198,6 +207,7 @@ void MX_FREERTOS_Init(void) {
   /* creation of lteRingbufMutex */
   lteRingbufMutexHandle = osMutexNew(&lteRingbufMutex_attributes);
 
+  jigtestMutexHandle = osMutexNew(&jigtestMutex_attributes);
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */

@@ -37,5 +37,6 @@ typedef struct __packed{
 extern osMessageQueueId_t lteMailHandle;
 extern osMessageQueueId_t mainMailHandle;
 extern osMessageQueueId_t mqttMailHandle;
+extern osMutexId_t jigtestMutexHandle;
 bool system_is_ready();
 #endif /* APP_MAIN_APP_MAIN_H_ */

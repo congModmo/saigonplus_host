@@ -57,10 +57,10 @@ extern osMutexId appResourceHandle;
 
 #define EXT_FLASH_UNLOCK() osMutexRelease(flashMutexHandle)
 
-#define JIGTEST_LOCK()
-#define JIGTEST_UNLOCK()
-//#define JIGTEST_LOCK() osMutexWait(reportMutexHandle, osWaitForever)
-//#define JIGTEST_UNLOCK() osMutexRelease(reportMutexHandle)
+#ifdef JIGTEST
+#define JIGTEST_LOCK() osMutexWait(jigtestMutexHandle, osWaitForever)
+#define JIGTEST_UNLOCK() osMutexRelease(jigtestMutexHandle)
+#endif
 
 #ifdef RELEASE
 #define WATCHDOG_FEED() HAL_IWDG_Refresh(&hiwdg);

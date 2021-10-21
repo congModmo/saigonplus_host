@@ -72,7 +72,7 @@ bool jigtest_lte_function_test()
 	extern __IO bool system_ready;
 	system_ready=true;
 	uint32_t tick=millis();
-	while(millis()-tick<60000 && !network_is_ready())
+	while(millis()-tick<180000 && !network_is_ready())
 	{
 		delay(5);
 	}

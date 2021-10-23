@@ -299,7 +299,7 @@ const serial_interface_t uart_transport = {.init=uart_transport_init, .mtu = 128
 void uart_ui_comm_init()
 {
 	bsp_ui_comm_init(&uartUiRingbuf);
-	slip_init(&slip, slip_buff, 512, bsp_ui_comm_send_byte);
+	slip_init(&slip, true, slip_buff, 512, bsp_ui_comm_send_byte);
 }
 
 void uart_ui_comm_polling(void)

@@ -132,7 +132,6 @@ void jigtest_readout_protect() {
 		if (HAL_FLASHEx_OBProgram(&OBInit) != HAL_OK) {
 			/* Error occurred while options bytes programming. **********************/
 			jigtest_direct_report(UART_UI_CMD_READOUT_PROTECT, 0);
-//			NVIC_SystemReset();
 		}
 		/* Generate System Reset to load the new option byte values ***************/
 		jigtest_direct_report(UART_UI_CMD_READOUT_PROTECT, 1);
@@ -163,14 +162,10 @@ void jigtest_test_all_hardware() {
 	jigtest_direct_report(UART_UI_RES_EXTERNAL_FLASH,
 			GD25Q16_test(fotaCoreBuff, 4096));
 	if (jigtest_test_uart_esp()) {
-		jigtest_direct_report(UART_UI_RES_ESP_ADAPTOR, 1);
-		jigtest_io_result_t *result = jigtest_test_io();
-		jigtest_direct_report(UART_UI_RES_LED_RED, result->red);
-		jigtest_direct_report(UART_UI_RES_LED_GREEN, result->green);
-		jigtest_direct_report(UART_UI_RES_LED_BLUE, result->blue);
-		jigtest_direct_report(UART_UI_RES_LED_HEAD, result->head);
-		jigtest_direct_report(UART_UI_RES_LOCKPIN, result->lock);
-	} else {
+		jigtest_test_io();
+	}
+	else
+	{
 		jigtest_direct_report(UART_UI_RES_ESP_ADAPTOR, 0);
 	}
 	{
@@ -183,38 +178,34 @@ void jigtest_test_all_hardware() {
 	{
 		jigtest_ble_hardware_test();
 	}
+
+	imu_set_callback(NULL);
 	if (app_imu_init()) {
 		jigtest_direct_report(UART_UI_RES_IMU_TEST, 1);
 	}
-	jigtest_direct_report(UART_UI_RES_LTE_KEY, 0);
 	if (jigtest_lte_test_hardware()) {
-		jigtest_direct_report(UART_UI_RES_LTE_RESET, 1);
-		jigtest_direct_report(UART_UI_RES_LTE_TXRX, 1);
-		jigtest_direct_report(UART_UI_RES_LTE_KEY, jigtest_lte_check_key());
-		if (jigtest_lte_get_info()) {
-			jigtest_report(UART_UI_RES_LTE_IMEI, jigtest_lte_imei,
-					strlen(jigtest_lte_imei));
-			jigtest_report(UART_UI_RES_LTE_SIM_CCID, jigtest_lte_ccid,
-					strlen(jigtest_lte_ccid));
-		}
+		jigtest_lte_check_key();
+		jigtest_lte_get_info();
 	}
 	ioctl_beepbeep(3, 100);
 	jigtest_direct_report(UART_UI_CMD_TEST_ALL_HW, UART_UI_RES_OK);
 }
 
-void imu_motion_detected(void) {
+void imu_motion_detected(void)
+{
 	jigtest_direct_report(UART_UI_RES_IMU_TRIGGER, 1);
 }
 
 void jigtest_test_all_function() {
 	jigtest_ble_function_test();
 	jigtest_lte_function_test();
-	uint32_t timeout = 120000 - checklist.tick;
+	int timeout = 120000 - checklist.tick;
 	if (timeout < 10000)
 		timeout = 10000;
 	jigtest_gps_function_test(timeout);
 	imu_test = true;
 	imu_set_callback(imu_motion_detected);
+	jigtest_direct_report(UART_UI_CMD_TEST_FUNCTION, UART_UI_RES_OK);
 }
 
 void jigtest_console_handle(char *result) {

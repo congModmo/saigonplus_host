@@ -6,7 +6,7 @@
  *      Purpose: to update ble firmware
  */
 
-#define __DEBUG__ 4
+#define __DEBUG__ 3
 #ifndef __MODULE__
   #define __MODULE__ "ble dfu"
 #endif

@@ -152,6 +152,7 @@ void jigtest_ble_function_test()
 	{
 		jigtest_direct_report(UART_UI_RES_BLE_CONNECT, 1);
 	}
+	delay(1000);
 	if(ble_transceiver_test())
 	{
 		jigtest_direct_report(UART_UI_RES_BLE_TRANSCEIVER, 1);

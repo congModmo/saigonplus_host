@@ -25,6 +25,7 @@
 
 static char _imei[32];
 static char _ccid[32];
+static char _carrier[32];
 static int rssi=0;
 static network_type_t type=NETWORK_TYPE_NONE;
 const int *const lteRssi= &rssi;
@@ -159,6 +160,28 @@ static bool lte_mail_process(){
 	return true;
 }
 
+#ifdef JIGTEST
+#include "jigtest.h"
+void jigtest_network_ready_report()
+{
+	if(*network_type==NETWORK_TYPE_2G)
+	{
+		jigtest_direct_report(UART_UI_RES_LTE_2G, 1);
+	}
+	else if(*network_type==NETWORK_TYPE_4G)
+	{
+		jigtest_direct_report(UART_UI_RES_LTE_4G, 1);
+	}
+	if(!lara_r2_get_network_info(_carrier, sizeof(_carrier)-1, &rssi))
+	{
+		error("get network info\n");
+		return;
+	}
+	jigtest_report(UART_UI_RES_LTE_CARRIER,(uint8_t *)_carrier, strlen(_carrier));
+	jigtest_report(UART_UI_RES_LTE_RSSI, (uint8_t *)&rssi, sizeof(int));
+}
+#endif
+
 void lte_task(){
 #ifdef LTE_ENABLE
 	while(!system_is_ready()){
@@ -199,6 +222,9 @@ void lte_task(){
 	if(type==NETWORK_TYPE_NONE)
 		type=NETWORK_TYPE_2G;
 	network_ready=true;
+#ifdef JIGTEST
+	jigtest_network_ready_report();
+#endif
 	while(true){
 		lte_async_response_handle();
 		lara_r2_socket_process();

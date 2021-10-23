@@ -1,5 +1,5 @@
 
-#define __DEBUG__ 4
+#define __DEBUG__ 3
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -66,6 +66,7 @@ static char ack_topic[64];
 static char client_id[64];
 
 #ifdef JIGTEST
+#include "jigtest.h"
 static char test_topic[64];
 static char test_message[]="hello from Modmo, wishing you have a nice day";
 static int test_count;
@@ -387,11 +388,15 @@ static void jigtest_mqtt_start_test()
 static void jigtest_mqtt_test_result()
 {
 	debug("Mqtt test done result: %d/%d\n", test_success, test_num);
+	mqtt_test_done=true;
 	if(test_success > test_num/2)
 	{
-		mqtt_test_result=true;
+		jigtest_direct_report(UART_UI_RES_MQTT_TEST, 1);
 	}
-	mqtt_test_done=true;
+	else
+	{
+		jigtest_direct_report(UART_UI_RES_MQTT_TEST, 0);
+	}
 }
 
 static void jigtest_mqtt_event_handle()

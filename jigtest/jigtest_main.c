@@ -142,11 +142,12 @@ void app_main(void)
 	uart_ui_comm_init();
 	light_control_init();
 	jigtest_uart_esp_init();
-	nina_b1_init();
+	app_ble_init();
 	app_gps_init();
 	lara_r2_bsp_init();
 	app_info_init();
 	ioctl_beep(100);
+
 	while (1)
 	{
 		uart_ui_comm_polling();
@@ -163,6 +164,7 @@ void app_main(void)
 		}
 		main_mail_process();
 		fota_core_process();
+		app_ble_task();
 		delay(5);
 	}
 }

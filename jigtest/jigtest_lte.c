@@ -19,10 +19,14 @@ enum{
 
 char jigtest_lte_imei[32];
 char jigtest_lte_ccid[32];
+char jigtest_lte_carrier[32];
 
 bool jigtest_lte_test_hardware()
 {
-	return lara_r2_hardware_init();
+	ASSERT_RET(lara_r2_hardware_init(), false, "hardware init");
+	jigtest_direct_report(UART_UI_RES_LTE_RESET, 1);
+	jigtest_direct_report(UART_UI_RES_LTE_TXRX, 1);
+	return true;
 }
 
 bool jigtest_lte_import_keys(char *cert, char *private_key)
@@ -46,6 +50,7 @@ bool jigtest_lte_check_key()
 	ASSERT_RET(strstr(response, "TrustCA")!=NULL, false, "TrustCA");
 	ASSERT_RET(strstr(response, "DeviceCert")!=NULL, false, "DeviceCert");
 	ASSERT_RET(strstr(response, "DeviceKey")!=NULL, false, "DeviceKey");
+	jigtest_direct_report(UART_UI_RES_LTE_KEY, 1);
 	return true;
 }
 
@@ -54,12 +59,21 @@ bool jigtest_lte_remove_key()
 	ASSERT_RET(gsm_send_at_command("AT+USECMNG=2,0,\"TrustCA\"\r\n", "OK", 500, 2, NULL), false, "Remove trustCa");
 	ASSERT_RET(gsm_send_at_command("AT+USECMNG=2,1,\"DeviceCert\"\r\n", "OK", 500, 2, NULL), false, "Remove cert");
 	ASSERT_RET(gsm_send_at_command("AT+USECMNG=2,2,\"DeviceKey\"\r\n", "OK", 500, 2, NULL), false, "Remove key");
+	jigtest_direct_report(UART_UI_RES_LTE_KEY, 0);
 	return true;
 }
 
 bool jigtest_lte_get_info()
 {
-	return lara_r2_init_info(jigtest_lte_imei, 32, jigtest_lte_ccid, 32);
+	if( lara_r2_init_info(jigtest_lte_imei, 32, jigtest_lte_ccid, 32))
+	{
+		jigtest_report(UART_UI_RES_LTE_IMEI, jigtest_lte_imei,
+					strlen(jigtest_lte_imei));
+		jigtest_report(UART_UI_RES_LTE_SIM_CCID, jigtest_lte_ccid,
+					strlen(jigtest_lte_ccid));
+		return true;
+	}
+	return false;
 }
 
 bool jigtest_lte_test_network()
@@ -71,38 +85,12 @@ bool jigtest_lte_function_test()
 {
 	extern __IO bool system_ready;
 	system_ready=true;
+	mqtt_test_done=false;
 	uint32_t tick=millis();
-	while(millis()-tick<180000 && !network_is_ready())
+	while(millis() -tick <180000 &&!mqtt_test_done)
 	{
-		delay(5);
+		delay(100);
 	}
-	if(!network_is_ready()){
-		debug("Network timeout\n");
-		return false;
-	}
-	if(*network_type==NETWORK_TYPE_2G)
-	{
-		jigtest_direct_report(UART_UI_RES_LTE_2G, 1);
-	}
-	else if(*network_type==NETWORK_TYPE_4G)
-	{
-		jigtest_direct_report(UART_UI_RES_LTE_4G, 1);
-	}
-	tick=millis();
-	while(millis()-tick<60000 && !mqtt_is_ready())
-	{
-		delay(5);
-	}
-	if(!mqtt_is_ready())
-	{
-		debug("Mqtt timeout\n");
-		return false;
-	}
-	while(!mqtt_test_done)
-	{
-		delay(5);
-	}
-	jigtest_direct_report(UART_UI_RES_MQTT_TEST, mqtt_test_result);
 	return true;
 }
 
@@ -115,6 +103,24 @@ void jigtest_lte_console_handle(char *result)
 		}
 		else{
 			debug("Test hardware error\n");
+		}
+	}
+	else if(__check_cmd("test function"))
+	{
+		if(jigtest_lte_function_test()){
+			debug("Test function ok\n");
+		}
+		else{
+			debug("Test function error\n");
+		}
+	}
+	else if(__check_cmd("get info"))
+	{
+		if(jigtest_lte_get_info()){
+			debug("get info ok\n");
+		}
+		else{
+			debug("get info error\n");
 		}
 	}
 	else if(__check_cmd("test network"))

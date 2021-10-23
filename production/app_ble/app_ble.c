@@ -9,7 +9,7 @@
  *
  */
 
-#define __DEBUG__ 4
+#define __DEBUG__ 3
 #include <string.h>
 #include <stdio.h>
 #include "app_ble.h"
@@ -50,8 +50,8 @@ static void app_ble_handle_ui_raw_packet(uint8_t * packet, size_t len)
 	else if (packet[0] == FOTA_REQUEST_MTU)
 	{
 //		debug("Send mtu: %d\n", ble_serial.mtu);
-//		uint8_t frame[2] = {DEVICE_SET_MTU, ble_serial.mtu};
-//		nina_b1_send1(HOST_COMM_UI_MSG, frame, 2);
+		uint8_t frame[2] = {DEVICE_SET_MTU, ble_serial.mtu};
+		nina_b1_send1(HOST_COMM_UI_MSG, frame, 2);
 	}
 }
 
@@ -296,9 +296,23 @@ static void transport_polling(frame_handler handler)
 	nina_b1_polling(ble_frame_cb);
 }
 
-static void transport_send(uint8_t *data, size_t len, bool _continue)
+static void transport_send(uint8_t *data, size_t len, slip_frame_type_t type)
 {
-
+	static uint8_t cmd=HOST_COMM_UI_MSG;
+	if(type==SLIP_FRAME_BEGIN )
+	{
+		nina_b1_send3(&cmd, 1, SLIP_FRAME_BEGIN);
+		nina_b1_send3(data, len, SLIP_FRAME_MIDDLE);
+	}
+	else if(type==SLIP_FRAME_COMPLETE)
+	{
+		nina_b1_send3(&cmd, 1, SLIP_FRAME_BEGIN);
+		nina_b1_send3(data, len, SLIP_FRAME_END);
+	}
+	else
+	{
+		nina_b1_send3(data, len, type);
+	}
 }
 
 static void transport_init()
@@ -308,4 +322,4 @@ static void transport_init()
 	delay(200); //delay to let ble update connection params
 }
 
-const serial_interface_t ble_serial = {.mtu = 200, .init=transport_init, .polling = transport_polling, .send = nina_b1_send3};
+const serial_interface_t ble_serial = {.mtu = 200, .init=transport_init, .polling = transport_polling, .send = transport_send};

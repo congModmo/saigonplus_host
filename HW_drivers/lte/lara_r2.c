@@ -1,5 +1,5 @@
 
-#define __DEBUG__ 4
+#define __DEBUG__ 3
 
 #include <lte/lara_r2.h>
 #include "bsp.h"
@@ -93,7 +93,7 @@ static bool wait_return(const char *resOk, int timeout){
 		if(atResp.n > 0)
 		{
 			if(atResp.n >at_len){
-//				debug("%s\n", atResp.buf);
+				debug("%s\n", atResp.buf);
 				at_len=atResp.n;
 			}
 			if (strstr(atResp.buf, resOk) != NULL){
@@ -111,7 +111,7 @@ bool gsm_send_at_command(char *atCommand, const char *resOk, int timeout, int re
 		gsm_clear_buffer();
 		gsm_at_init_resp();
 		gsm_send_string(atCommand);
-//		debug("AT send: %s\n", atCommand);
+		debug("AT send: %s\n", atCommand);
 		if(wait_return(resOk, timeout)){
 			if(resp!=NULL){
 				*resp=atResp.buf;
@@ -256,15 +256,33 @@ bool lara_r2_init_info(char * imei, int imei_len, char* ccid, int ccid_len){
 	return true;
 }
 
+bool lara_r2_get_network_info(char *carrier, int carrier_len, int *csq)
+{
+	char *response;
+	ASSERT_RET(gsm_send_at_command("AT+COPS?\r\n", "OK", 1000, 2, &response), false, "AT+COPS?");
+	char *_carrier=strtok(response, "\"");
+	_carrier=strtok(NULL, "\"");
+	ASSERT_RET(strlen(_carrier)>0 && strlen(_carrier)<carrier_len, false, "Carrier len");
+	strcpy(carrier, _carrier);
+	debug("Carrier: %s\n", carrier);
+	ASSERT_RET(gsm_send_at_command("AT+CSQ\r\n", "+CSQ: ", 1000, 2, &response), false, "AT+CSQ?");
+	response=strstr(response, "+CSQ: ")+strlen("+CSQ: ");
+	ASSERT_RET(sscanf(response, "%d,", csq)==1, false, "Sscanf");
+	debug("csq: %s\n", *csq);
+	return true;
+}
+
 bool lara_r2_bsp_init(void)
 {
 	uart_lte_bsp_init(&lte_rb);
+	return true;
 }
 
 bool lara_r2_hardware_init(void)
 {
 	return lara_r2_setup_power();
 }
+
 bool lara_r2_software_init(void)
 {
 	ASSERT_RET(gsm_send_at_command("AT\r\n",                "OK", 1000, 4, NULL), false, "AT");
@@ -275,7 +293,8 @@ bool lara_r2_software_init(void)
 	return true;
 }
 
-bool lara_r2_init(){
+bool lara_r2_init()
+{
 	if(!lara_r2_hardware_init()){
 		return false;
 	}

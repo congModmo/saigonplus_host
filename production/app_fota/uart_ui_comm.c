@@ -12,7 +12,7 @@
     26/12/2020
     HieuNT
 */
-#define __DEBUG__ 4
+#define __DEBUG__ 3
 #include "uart_ui_comm.h"
 #include <string.h>
 #include "log_sys.h"

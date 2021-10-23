@@ -1,6 +1,6 @@
 
 
-#define __DEBUG__ 4
+#define __DEBUG__ 3
 #include "bsp.h"
 #include "nina_b1.h"
 #include "slip/slip_v2.h"
@@ -26,7 +26,7 @@ static slip_t slip;
 void nina_b1_init(void)
 {
 	nina_b1_bsp_init(&bleRingbuf);
-	slip_init(&slip, bleSlipBuff, 512, nina_b1_bsp_send_byte);
+	slip_init(&slip, false, bleSlipBuff, 512, nina_b1_bsp_send_byte);
 }
 
 void nina_b1_polling(frame_handler handler)

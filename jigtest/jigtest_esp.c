@@ -56,7 +56,7 @@ bool uart_esp_block_test(){
 
 void jigtest_uart_esp_init(){
 	bsp_uart5_init(&esp_tester.rb);
-	slip_init(&esp_tester.slip, esp_tester.inBuffer, 128, bsp_uart5_send_byte);
+	slip_init(&esp_tester.slip, true, esp_tester.inBuffer, 128, bsp_uart5_send_byte);
 }
 
 bool jigtest_test_uart_esp()
@@ -74,6 +74,8 @@ bool jigtest_test_uart_esp()
 			return false;
 		}
 	}
+
+	jigtest_direct_report(UART_UI_RES_ESP_ADAPTOR, 1);
 	return true;
 }
 
@@ -90,6 +92,12 @@ void jigtest_esp_console_handle(char *result)
 {
 	if(__check_cmd("test esp"))
 	{
-		jigtest_test_uart_esp();
+		if(jigtest_test_uart_esp())
+		{
+			debug("test esp ok\n");
+		}
+		else{
+			debug("test esp error\n");
+		}
 	}
 }

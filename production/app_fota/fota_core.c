@@ -5,7 +5,7 @@
  *      Author: thanhcong
  */
 
-#define __DEBUG__ 4
+#define __DEBUG__ 3
 #include "fota_core.h"
 #include <string.h>
 #include <stdlib.h>

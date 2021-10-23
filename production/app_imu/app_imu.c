@@ -51,7 +51,7 @@ bool app_imu_init()
 		return false;
 	}
 	debug("Imu ready\n");
-	kxtj3_intConf(32, 5, 10, HIGH);
+	kxtj3_intConf(50, 5, 10, HIGH);
 	imu.detected=true;
 	imu.motion_detected=false;
 	imu.state=0;

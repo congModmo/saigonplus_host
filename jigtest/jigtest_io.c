@@ -150,12 +150,16 @@ void lockpin_testing()
 	}
 }
 
-jigtest_io_result_t *jigtest_test_io()
+void jigtest_test_io()
 {
 	memset(&test_io_result, 0, sizeof(jigtest_io_result_t));
 	light_testing();
 	lockpin_testing();
-	return &test_io_result;
+	jigtest_direct_report(UART_UI_RES_LED_RED, test_io_result.red);
+	jigtest_direct_report(UART_UI_RES_LED_GREEN, test_io_result.green);
+	jigtest_direct_report(UART_UI_RES_LED_BLUE, test_io_result.blue);
+	jigtest_direct_report(UART_UI_RES_LED_HEAD, test_io_result.head);
+	jigtest_direct_report(UART_UI_RES_LOCKPIN, test_io_result.lock);
 }
 
 void jigtest_io_console_handle(char *result)

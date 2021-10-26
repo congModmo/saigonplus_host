@@ -135,6 +135,11 @@ void publish_scheduler_init()
     app_imu_register_callback(motion_detect_handler);
 }
 
+void publish_scheduler_bike_lock_handle()
+{
+	motion_detected=false;
+}
+
 void publish_scheduler_process()
 {
     switch (scheduler.state)

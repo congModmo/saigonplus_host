@@ -99,7 +99,7 @@ bool network_connect_init(void)
 int lte_async_response_handle(){
 	static char *response;
 	if(gsm_at_poll_msg(&response)){
-		debugx("msg: %s\n", response);
+		debug("msg: %s\n", response);
 		if(strstr(response,"+UUSOCL")){
 			debug("handle socket close\n");
 			lara_r2_socket_urc_handle(response);

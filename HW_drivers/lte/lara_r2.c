@@ -1,5 +1,5 @@
 
-#define __DEBUG__ 3
+#define __DEBUG__ 4
 
 #include <lte/lara_r2.h>
 #include "bsp.h"

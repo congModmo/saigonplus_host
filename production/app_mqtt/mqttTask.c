@@ -1,5 +1,5 @@
 
-#define __DEBUG__ 3
+#define __DEBUG__ 4
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -509,7 +509,7 @@ bool mqtt_start(){
 
 void mqtt_task_process( )
 {
-	if(mqtt.publish_failed>20){
+	if(mqtt.publish_failed>5){
 		mqtt.publish_failed=0;
 		debug("Request to restart network cause public fail too many time\n");
 		mqtt_ready=false;

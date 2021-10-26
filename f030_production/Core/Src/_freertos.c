@@ -24,7 +24,7 @@
 #include "main.h"
 #include "cmsis_os.h"
 #include "app_main/app_main.h"
-
+#include "app_mqtt/mqttTask.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 

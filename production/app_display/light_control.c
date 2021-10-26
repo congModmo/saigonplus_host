@@ -51,3 +51,19 @@ void light_control_restart()
 		light_on();
 	}
 }
+
+void light_control_blink(bool on)
+{
+	if(on){
+		__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, 255);
+		__HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_4, 255);
+		__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_3, 255);
+		__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2, 255);
+	}
+	else{
+		__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, 0);
+		__HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_4, 0);
+		__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_3, 0);
+		__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2, 0);
+	}
+}

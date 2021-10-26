@@ -21,7 +21,8 @@ typedef struct
 }imu_t;
 
 static imu_t imu={0};
-static imu_callback_t callback=NULL;
+static imu_callback_t callback[IMU_MAX_CALLBACK_COUNT]={NULL};
+static int imu_callback_count;
 
 static void imu_int_update()
 {
@@ -30,17 +31,37 @@ static void imu_int_update()
 		imu.state=HAL_GPIO_ReadPin(IMU_INT_GPIO_Port, IMU_INT_Pin);
 		if(imu.state==1)
 		{
-			debug("Motion detected\n");
 			kxtj3_readRegister(&imu.int_rel, KXTJ3_INT_REL);
-			if(callback!=NULL)
-				callback();
+			//suppress noise due to buzzer
+			if(!check_buzzer_margin())
+			{
+				return;
+			}
+			debug("Motion detected\n");
+			for(int i=0; i<IMU_MAX_CALLBACK_COUNT; i++)
+			{
+				if(callback[i]!=NULL){
+					callback[i]();
+				}
+			}
 		}
 	}
 }
 
-void imu_set_callback(imu_callback_t cb)
+bool app_imu_register_callback(imu_callback_t cb)
 {
-	callback=cb;
+	if(imu_callback_count==IMU_MAX_CALLBACK_COUNT)
+		return false;
+	for(int i=0; i<IMU_MAX_CALLBACK_COUNT; i++)
+	{
+		if(callback[i]==NULL)
+		{
+			callback[i]=cb;
+			imu_callback_count++;
+			return true;
+		}
+	}
+	return false;
 }
 
 bool app_imu_init()
@@ -51,7 +72,7 @@ bool app_imu_init()
 		return false;
 	}
 	debug("Imu ready\n");
-	kxtj3_intConf(50, 5, 10, HIGH);
+	kxtj3_intConf(30, 5, 5, HIGH);
 	imu.detected=true;
 	imu.motion_detected=false;
 	imu.state=0;

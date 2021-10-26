@@ -8,7 +8,8 @@
 #ifndef TESTKIT_TESTKIT_H_
 #define TESTKIT_TESTKIT_H_
 #include "bsp.h"
-#include "uart_ui_comm.h"
+#include "app_main/uart_ui_comm.h"
+
 
 void testkit_report(uint8_t type, uint8_t *data, uint8_t len);
 void testkit_console_handle(char *result);

@@ -93,6 +93,46 @@ bool jigtest_lte_function_test()
 	}
 	return true;
 }
+void lte_cert_handle(uint8_t type, uint8_t idx, uint8_t *data, uint8_t data_len){
+	uint8_t *des;
+	if(type==UART_UI_LTE_CERT){
+		des=fotaCoreBuff;
+	}
+	else{
+		des=fotaCoreBuff +2048;
+	}
+	memcpy(des +idx*128, data, data_len);
+	if(data_len!=128){
+		des[idx*128+data_len]=0;
+	}
+}
+
+void cmd_import_key_handle()
+{
+	uint8_t *des=fotaCoreBuff;
+	if(!crc32_verify(des+4, strlen(des+4), *((uint32_t *)des))){
+		jigtest_direct_report(UART_UI_CMD_IMPORT_KEY, 0);
+		debug("Key crc failed\n");
+		return;
+	}
+	des=fotaCoreBuff+2048;
+	if(!crc32_verify(des+4, strlen(des+4), *((uint32_t *)des))){
+		jigtest_direct_report(UART_UI_CMD_IMPORT_KEY, 0);
+		debug("Key crc failed\n");
+		return;
+	}
+	if(!jigtest_lte_import_keys(fotaCoreBuff+4, fotaCoreBuff+4+2048)){
+		jigtest_direct_report(UART_UI_CMD_IMPORT_KEY, 0);
+		debug("import failed\n");
+		return;
+	}
+	if(!jigtest_lte_check_key()){
+		jigtest_direct_report(UART_UI_CMD_IMPORT_KEY, 0);
+		debug("Verify failed\n");
+		return;
+	}
+	jigtest_direct_report(UART_UI_CMD_IMPORT_KEY, 1);
+}
 
 void jigtest_lte_console_handle(char *result)
 {

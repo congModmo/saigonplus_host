@@ -22,6 +22,7 @@ typedef struct
 } publish_scheduler_t;
 
 static publish_scheduler_t scheduler = {0};
+static __IO bool motion_detected=false;
 
 static void ps_publish_riding()
 {
@@ -34,7 +35,7 @@ static void ps_state_check_process()
 {
     if (display_state->display_on)
     {
-        if (scheduler.state != SCHEDULER_PUBLISH_RIDING && !publish_setting->report_disabled)
+        if (scheduler.state != SCHEDULER_PUBLISH_RIDING && !publish_setting->report_disabled && !*bike_locked)
         {
             debug("Start publish riding\n");
             scheduler.tick = millis();
@@ -43,7 +44,7 @@ static void ps_state_check_process()
             scheduler.state = SCHEDULER_PUBLISH_RIDING;
             ps_publish_riding();
         }
-        else if(publish_setting->report_disabled && scheduler.state != SCHEDULER_PUBLISH_KEEP_ALIVE)
+        else if(scheduler.state != SCHEDULER_PUBLISH_KEEP_ALIVE && (publish_setting->report_disabled || *bike_locked))
         {
 			debug("Start publish keep alive\n");
             scheduler.tick = millis();
@@ -101,28 +102,37 @@ __exit:
 
 static void ps_publish_keep_alive_process()
 {
-    if(millis()-scheduler.tick > publish_setting->keep_alive_interval)
+	if(millis()-scheduler.tick < publish_setting->min_report_interval)
+	{
+		goto __exit;
+	}
+	if(*bike_locked && motion_detected)
+	{
+        scheduler.tick=millis();
+		debug("Publish alarm message\n");
+		motion_detected=false;
+		publish_theft_message();
+	}
+    if((millis()-scheduler.tick > publish_setting->keep_alive_interval))
     {
         scheduler.tick=millis();
         publish_keep_alive_message();
     }
+    __exit:
     ps_state_check_process();
 }
 
-void publish_scheduler_lockpin_update()
+static void motion_detect_handler()
 {
-	if(display_state->display_on)
-	{
-		if(!publish_setting->report_disabled){
-
-		}
-	}
+	motion_detected=true;
 }
 
 void publish_scheduler_init()
 {
     scheduler.state = SCHEDULER_INIT;
     scheduler.tick = millis();
+    motion_detected=false;
+    app_imu_register_callback(motion_detect_handler);
 }
 
 void publish_scheduler_process()

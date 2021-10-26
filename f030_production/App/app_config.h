@@ -6,7 +6,7 @@
 //	#define GPS_UNIT_TEST
 
   // #define PROTOCOL_V3_UNIT_TEST
-
+	#define ALARM_ENABLE
 	#define BLE_ENABLE
 ////
 	#define LTE_ENABLE
@@ -14,7 +14,7 @@
 	#define DISPLAY_ENABLE
 //	#define DISPLAY_UNIT_TEST
 
-//	#define IMU_ENABLE
+	#define IMU_ENABLE
 
 	#define PUBLISH_ENABLE
 //	#define PUBLISH_UNIT_TEST
@@ -23,6 +23,9 @@
 
 //	#define UART_UI_ENABLE
 #else
+
+	#define ALARM_ENABLE
+
 	#define GPS_ENABLE
 
 	#define BLE_ENABLE

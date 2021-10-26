@@ -69,6 +69,8 @@ typedef struct __packed{
 
 typedef struct __packed{
     uint8_t theft;
+    double longitude;
+    double latitude;
 }theft_msg_t;
 
 typedef struct __packed{

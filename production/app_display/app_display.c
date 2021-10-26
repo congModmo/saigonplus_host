@@ -4,7 +4,7 @@
  *  Created on: Apr 21, 2021
  *      Author: thanhcong
  */
-#define __DEBUG__ 3
+#define __DEBUG__ 4
 #include "app_display.h"
 #include "display_parser/display_parser.h"
 #include "ringbuf/ringbuf.h"
@@ -91,21 +91,24 @@ static void lockPinUpdate()
 		app_display_reset_data();
 		ioctl_beepbeep(2, 100);
 	}
-	publish_scheduler_lockpin_update();
 }
 
 void app_display_set_mode(display_mode_t mode)
 {
-	display_mode=(mode==0)? DISPLAY_NORMAL_MODE:DISPLAY_ANTI_THEFT_MODE;
+	display_mode=mode;
 	if (mode == DISPLAY_NORMAL_MODE)
 	{
-		debug("Set display to normal mode\n");
+		info("Set display to normal mode\n");
 		HAL_GPIO_DeInit(DISPLAY_TX_GPIO_Port, DISPLAY_TX_Pin);
+		delay(10);
 		MX_USART1_UART_Init();
+		display_bsp_init(&displayRb);
+		alarm_process_end();
 	}
 	else
 	{
-		debug("Set display to anti theft mode\n");
+		info("Set display to anti theft mode\n");
+		alarm_process_start();
 		HAL_UART_DeInit(&huart1);
 		GPIO_InitTypeDef GPIO_InitStruct = {0};
 		HAL_GPIO_WritePin(DISPLAY_TX_GPIO_Port, DISPLAY_TX_Pin, GPIO_PIN_SET);
@@ -158,7 +161,7 @@ void app_display_console_handle(char *result)
 		int mode;
 		if(sscanf(__param_pos("set mode "), "%d", &mode) ==1)
 		{
-			app_display_set_mode(mode);
+			app_display_set_mode((mode==1)?DISPLAY_ANTI_THEFT_MODE:DISPLAY_NORMAL_MODE);
 		}
 	}
 	else debug("Unknown cmd\n");

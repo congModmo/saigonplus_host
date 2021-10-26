@@ -8,7 +8,6 @@
 #define __DEBUG__ 4
 #include "bsp.h"
 #include "app_main/app_main.h"
-#include "uart_ui_comm.h"
 #include "app_imu/app_imu.h"
 #include "jigtest_esp.h"
 #include "app_config.h"
@@ -48,7 +47,7 @@ static __IO jigtest_checklist_t checklist;
 
 void jigtest_report(uint8_t type, uint8_t *data, uint8_t len) {
 	JIGTEST_LOCK();
-	debug("%s ", ui_cmd_type_to_string(type));
+	debug("%s ", ui_cmd_to_string(type));
 	switch (type) {
 	case UART_UI_RES_LTE_IMEI:
 		debugx("%.*s\n", len, data);
@@ -206,6 +205,53 @@ void jigtest_test_all_function() {
 	imu_test = true;
 	imu_set_callback(imu_motion_detected);
 	jigtest_direct_report(UART_UI_CMD_TEST_FUNCTION, UART_UI_RES_OK);
+}
+
+void jigtest_cmd_handle(uint8_t *frame)
+{
+	switch(frame[0])
+	{
+	case UART_UI_CMD_TEST_ALL_HW:
+		jigtest_test_all_hardware();
+		break;
+	case UART_UI_CMD_TEST_FUNCTION:
+		jigtest_test_all_function();
+		break;
+	case UART_UI_CMD_READOUT_PROTECT:
+		jigtest_readout_protect();
+		break;
+	case UART_UI_CMD_TEST_LTE:
+//		jigtest_test_lte();
+		break;
+	case UART_UI_CMD_TEST_BLE:
+//		jigtest_ble_function_test();
+		break;
+	case UART_UI_CMD_TEST_GPS:
+//		jigtest_test_gps();
+		break;
+	case UART_UI_CMD_TEST_IO:
+//		jigtest_test_io();
+		break;
+	case UART_UI_CMD_FACTORY_RESET:
+		uart_ui_comm_command_send(UART_UI_CMD_FACTORY_RESET, UART_UI_RES_OK);
+		//factory_reset();
+		break;
+	case UART_UI_CMD_PING:
+		uart_ui_comm_command_send(UART_UI_RES_PING, UART_UI_RES_OK);
+		break;
+	// to import lte cert + key, both length < 2048 byte, first half fotaCoreBuff for cert, second half for key
+	// frame[1]:idx
+	//data len: size-2;
+	case UART_UI_LTE_CERT:
+		lte_cert_handle(UART_UI_LTE_CERT, frame[1], frame +2, size-2);
+		break;
+	case UART_UI_LTE_KEY:
+		lte_cert_handle(UART_UI_LTE_KEY, frame[1], frame+2, size-2);
+		break;
+	case UART_UI_CMD_IMPORT_KEY:
+		cmd_import_key_handle();
+		break;
+	}
 }
 
 void jigtest_console_handle(char *result) {

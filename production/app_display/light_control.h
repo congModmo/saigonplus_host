@@ -21,5 +21,5 @@ typedef struct{
 void light_control_init();
 void light_control(bool on);
 void light_control_set_config(light_config_t *config);
-
+void light_control_blink(bool on);
 #endif /* APP_MAIN_LIGHT_CONTROL_H_ */

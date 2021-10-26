@@ -116,15 +116,14 @@ static void send_keep_alive_msg(gps_data_t *gps)
 	msg.gps_signal=(uint8_t)((gps->hdop < 20.0)?(gps->hdop*10):0);
 	msg.longitude=gps->longitude;
 	msg.latitude=gps->latitude;
-	msg.bike_lock=(uint8_t) *bike_lock;
+	msg.bike_lock=(uint8_t) *bike_locked;
 	msg.report_disabled=publish_setting->report_disabled;
 	msg.display_on=(uint8_t)display_state->display_on;
 	send_status_topic_message(STATUS_TOPIC_KEEP_ALIVE, (uint8_t *)&msg, sizeof(keep_alive_msg_t));
 }
 
-void send_theft_msg(uint8_t theft)
+void send_theft_msg()
 {
-	send_status_topic_message(STATUS_TOPIC_THEFT, &theft, 1);
 }
 
 void send_fall_msg(uint8_t fall)
@@ -225,6 +224,15 @@ void publish_device_info_message(void)
 void publish_battery_message()
 {
 	send_battery_msg(display_state);
+}
+
+void publish_theft_message()
+{
+	static theft_msg_t theft;
+	theft.theft=1;
+	theft.longitude=gps_data->longitude;
+	theft.latitude=gps_data->latitude;
+	send_status_topic_message(STATUS_TOPIC_THEFT, &theft, sizeof(theft_msg_t));
 }
 
 void TEST_protocol_v3()

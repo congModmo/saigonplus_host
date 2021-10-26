@@ -25,7 +25,7 @@
 #include "publish_scheduler.h"
 #include "iwdg.h"
 #include "usart.h"
-#include "app_fota/uart_ui_comm.h"
+#include "uart_ui_comm.h"
 #include "app_fota/fota_core.h"
 #include "app_fota/serial_transport.h"
 #include "tim.h"
@@ -149,12 +149,17 @@ void app_main(void)
 	app_imu_init();
 #endif
 
+#ifdef ALARM_ENABLE
+	alarm_init();
+#endif
+
 #ifdef GPS_ENABLE
 	app_gps_init();
 #endif
 
 #ifdef DISPLAY_ENABLE
 	app_display_init();
+	app_display_set_mode(*bike_locked?DISPLAY_ANTI_THEFT_MODE:DISPLAY_NORMAL_MODE);
 #else
 	uart_ui_comm_init();
 #endif
@@ -181,6 +186,9 @@ void app_main(void)
 #endif
 #ifdef IMU_ENABLE
 		app_imu_process();
+#endif
+#ifdef ALARM_ENABLE
+		alarm_process();
 #endif
 #ifndef RELEASE
 		console_task();

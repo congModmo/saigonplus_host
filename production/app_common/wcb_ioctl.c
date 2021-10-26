@@ -5,6 +5,9 @@
 #include "WC_Board.h"
 #include "app_main/app_info.h"
 
+static uint32_t buzzer_tick=0;
+static uint8_t buzzer_state=0;
+
 void ioctl_init(void)
 {
 
@@ -46,8 +49,17 @@ void ioctl_led(uint8_t led, uint8_t state)
 	}
 }
 
+bool check_buzzer_margin()
+{
+	if(buzzer_state==0 && millis() - buzzer_tick >1000)
+		return true;
+	return false;
+}
+
 void ioctl_buzz(uint8_t state)
 {
+	buzzer_state=state;
+	buzzer_tick=millis();
 	HAL_GPIO_WritePin(GPIOB, BUZZER, state);
 }
 
@@ -58,6 +70,7 @@ void ioctl_beep(uint32_t ms)
 	delay(ms);
 	ioctl_buzz(0);
 	BUZZER_UNLOCK();
+	buzzer_tick=millis();
 }
 
 void ioctl_beepbeep(uint32_t n, uint32_t ms)
@@ -73,6 +86,7 @@ void ioctl_beepbeep(uint32_t n, uint32_t ms)
 		delay(ms);
 	}
 	BUZZER_UNLOCK();
+	buzzer_tick=millis();
 }
 
 void ioctl_beep_with_all_led(uint32_t timeout)

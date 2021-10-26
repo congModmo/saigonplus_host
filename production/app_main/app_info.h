@@ -34,7 +34,7 @@ typedef struct
 #define DEFAULT_SIDE_LIGHT_RED 255
 #define DEFAULT_SIDE_LIGHT_GREEN 0
 #define DEFAULT_SIDE_LIGHT_BLUE 0
-#define DEFAULT_IMU_SENSITIVITY 2 //(1 2 3)
+#define DEFAULT_IMU_SENSITIVITY 2 //(0 1 2 3)
 #define DEFAULT_LOCK_STATE 0
 
 extern const factory_config_t * const factory_config;
@@ -42,7 +42,7 @@ extern const user_config_t * const user_config;
 extern const firmware_version_t *const firmware_version;
 extern const char *const serial_number;
 extern const publish_setting_cmd_t *const publish_setting;
-extern const bool *const bike_lock;
+extern const bool *const bike_locked;
 
 void app_info_init();
 // frequently config param, has it own flash sector

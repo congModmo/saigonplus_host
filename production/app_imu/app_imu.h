@@ -15,8 +15,10 @@
 
 typedef void (*imu_callback_t)(void);
 
+#define IMU_MAX_CALLBACK_COUNT 5
+
 bool app_imu_init();
 void app_imu_process();
 void app_imu_set_active(bool active);
-void app_imu_set_callback(imu_callback_t cb);
+bool app_imu_register_callback(imu_callback_t cb);
 #endif /* APP_APP_IMU_APP_IMU_H_ */

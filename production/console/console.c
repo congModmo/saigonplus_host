@@ -18,6 +18,7 @@
 #include "tim.h"
 #include "app_fota/fota_core.h"
 #include "app_main/app_main.h"
+#include "app_main/factory_config.h"
 // Utils
 static RINGBUF debugRingbuf;
 

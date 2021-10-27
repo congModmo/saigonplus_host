@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 #include "bsp.h"
-#include "host_comm/host_comm.h"
+#include "host_ble_comm.h"
 #include "app_fota/serial_transport.h"
 
 extern const serial_interface_t ble_serial;
@@ -33,6 +33,7 @@ extern const char *const ble_mac;
 #define REQ_CONF_BEEP 		"CFG_BS"
 #define REQ_CONF_MSS 		"CFG_MSS"
 #define REQ_CONF_GET  		"GET_CFG"
+#define REQ_CONF_SN			"CFG_SN"
 
 void app_ble_init(void);
 void app_ble_task(void);

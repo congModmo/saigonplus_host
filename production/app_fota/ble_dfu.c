@@ -20,7 +20,7 @@
 #include "crc/crc32.h"
 #include "flash_fota.h"
 #include "bsp.h"
-#include "app_ble/host_comm/host_comm.h"
+#include "host_ble_comm.h"
 
 static ble_dfu_t ble_dfu = {.mtu=0, .prn=0};
 

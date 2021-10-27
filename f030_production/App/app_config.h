@@ -2,14 +2,13 @@
 #define APP_CONFIG_H_
 
 #ifndef RELEASE
-	#define GPS_ENABLE
-//	#define GPS_UNIT_TEST
+//	#define GPS_ENABLE
 
-  // #define PROTOCOL_V3_UNIT_TEST
-	#define ALARM_ENABLE
+//	#define ALARM_ENABLE
+
 	#define BLE_ENABLE
 ////
-	#define LTE_ENABLE
+//	#define LTE_ENABLE
 //
 	#define DISPLAY_ENABLE
 //	#define DISPLAY_UNIT_TEST

@@ -3,19 +3,8 @@
 
 #include "protocol_v3.h"
 #include "app_ble/app_ble.h"
-
-typedef struct
-{
-    char endpoint[128];
-    int port;
-    int secure;
-} broker_t;
-
-typedef struct
-{
-    uint16_t hardwareVersion;
-    broker_t broker;
-} factory_config_t;
+#include "factory_config.h"
+#include "host_ble_comm.h"
 
 typedef struct 
 {
@@ -36,6 +25,7 @@ typedef struct
 #define DEFAULT_SIDE_LIGHT_BLUE 0
 #define DEFAULT_IMU_SENSITIVITY 2 //(0 1 2 3)
 #define DEFAULT_LOCK_STATE 0
+#define DEFAULT_SERIAL_NUMBER "MOMO_SN"
 
 extern const factory_config_t * const factory_config;
 extern const user_config_t * const user_config;
@@ -43,6 +33,7 @@ extern const firmware_version_t *const firmware_version;
 extern const char *const serial_number;
 extern const publish_setting_cmd_t *const publish_setting;
 extern const bool *const bike_locked;
+extern const host_ble_info_t *const host_ble_info;
 
 void app_info_init();
 // frequently config param, has it own flash sector

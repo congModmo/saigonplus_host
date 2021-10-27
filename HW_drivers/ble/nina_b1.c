@@ -6,7 +6,6 @@
 #include "slip/slip_v2.h"
 #include "ringbuf/ringbuf.h"
 #include "app_fota/serial_transport.h"
-#include "app_ble/host_comm/host_comm.h"
 
 typedef struct
 {

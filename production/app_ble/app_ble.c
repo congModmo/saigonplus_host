@@ -9,14 +9,13 @@
  *
  */
 
-#define __DEBUG__ 3
+#define __DEBUG__ 4
 #include <string.h>
 #include <stdio.h>
 #include "app_ble.h"
 #include <ble/nina_b1.h>
 #include "crc/crc16.h"
 #include "log_sys.h"
-#include "host_comm/host_comm.h"
 #include "ext_flash/GD25Q16.h"
 #include "app_main/app_info.h"
 #include <app_fota/serial_transport.h>
@@ -24,6 +23,8 @@
 #include "app_config.h"
 #include "app_lte/lteTask.h"
 #include "app_common/wcb_ioctl.h"
+#include "host_ble_comm.h"
+#include "app_main/app_info.h"
 
 static frame_handler transport_handler = NULL;
 #define APP_BLE_CHECK_CMD(cmd2) (strncmp(cmd, cmd2, strlen(cmd2)) == 0)
@@ -62,7 +63,7 @@ static bool imei_mac_valid()
 	//create imei_mac
 	if(strlen(mac)==0)
 	{
-		ble_request_cmd(HOST_CMD_SYN_INFO);
+		ble_request_cmd(HOST_CMD_SYNC_INFO);
 		return false;
 	}
 	if(strlen(lteImei) == 0)
@@ -165,6 +166,21 @@ static void app_ble_handle_ui_string_cmd(char * result)
 					  user_config->side_light.green, user_config->side_light.blue, user_config->beep_sound, user_config->imu_sensitivity );
 		response=ble_resp;
 	}
+	else if(__check_cmd(REQ_CONF_SN))
+	{
+		char sn[32];
+		if(sscanf(__param_pos(REQ_CONF_SN), "%s", sn)==1)
+		{
+			debug("ble update sn: %d\n", sn);
+			app_info_update_serial_number(sn);
+			sprintf(ble_resp, "%s OK", REQ_CONF_SN);
+		}
+		else
+		{
+			sprintf(ble_resp, "%s ERRO", REQ_CONF_SN);
+		}
+		response=ble_resp;
+	}
 	if(response!=NULL)
 	{
 		nina_b1_send1(HOST_COMM_UI_MSG, (uint8_t *)response, strlen(response));
@@ -200,6 +216,11 @@ void host_comm_ble_msg_handle(uint8_t *msg, size_t len)
 	else if(msg[0]==BLE_STATE_CONNECTED)
 	{
 		debug("Ble connected\n");
+	}
+	else if(msg[0]==BLE_CMD_SYNC_INFO)
+	{
+		nina_b1_send1(HOST_BLE_RES_INFO, (uint8_t *)host_ble_info, sizeof(host_ble_info_t));
+		debug("response to ble sync cmd\n");
 	}
 	else if(msg[0]==BLE_STATE_DISCONNECTED)
 	{
@@ -238,7 +259,7 @@ static void testing_callback(uint8_t *packet, size_t len)
 void app_ble_init(void)
 {
 	nina_b1_init();
-	ble_request_cmd(HOST_CMD_SYN_INFO);
+	ble_request_cmd(HOST_CMD_SYNC_INFO);
 }
 
 void app_ble_task(void)
@@ -251,7 +272,7 @@ void app_ble_console_handle(char *result)
 	if(__check_cmd("sync info"))
 	{
 		debug("Request ble mac\n");
-		ble_request_cmd(HOST_CMD_SYN_INFO);
+		ble_request_cmd(HOST_CMD_SYNC_INFO);
 	}
 	else if(__check_cmd("disconnect"))
 	{

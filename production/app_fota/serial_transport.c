@@ -9,7 +9,6 @@
 #include <string.h>
 #include "fota_core.h"
 #include <app_fota/serial_transport.h>
-#include "app_ble/host_comm/host_comm.h"
 #include "ble/nina_b1.h"
 #include "crc/crc32.h"
 //typedef struct __packed

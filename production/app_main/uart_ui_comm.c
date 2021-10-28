@@ -123,8 +123,6 @@ void uart_ui_comm_send0(uint8_t *data, size_t len)
 	slip_send(&slip, data, len,SLIP_FRAME_COMPLETE);
 }
 
-
-
 static void uart_ui_command_handle(uint8_t *frame, size_t size)
 {
 	static serial_fota_request_info_t *request;
@@ -136,9 +134,9 @@ static void uart_ui_command_handle(uint8_t *frame, size_t size)
 		jigtest_console_handle(frame);
 		return;
 	}
-	else if(frame[0]>UART_UI_CMD_FOTA_DATA)
+	else if(frame[0]>UART_UI_FOTA_DATA)
 	{
-		jigtest_cmd_handle(frame);
+		jigtest_cmd_handle(frame, size);
 		return;
 	}
 #endif
@@ -149,7 +147,7 @@ static void uart_ui_command_handle(uint8_t *frame, size_t size)
 		uart_ui_comm_command_send(UART_UI_CMD_PING, UART_UI_RES_OK);
 		break;
 	case UART_UI_CMD_FACTORY_RESET:
-		app_info_factory_reset();
+		app_config_factory_reset();
 		break;
 	case UART_UI_FOTA_DATA:
 		if (frame[1] == FOTA_REQUEST_FOTA)

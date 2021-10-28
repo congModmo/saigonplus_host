@@ -121,14 +121,7 @@ const osMessageQueueAttr_t mqttMail_attributes = {
   .mq_mem = &mqttMailBuffer,
   .mq_size = sizeof(mqttMailBuffer)
 };
-/* Definitions for appResource */
-osMutexId_t appResourceHandle;
-osStaticMutexDef_t appResourceControlBlock;
-const osMutexAttr_t appResource_attributes = {
-  .name = "appResource",
-  .cb_mem = &appResourceControlBlock,
-  .cb_size = sizeof(appResourceControlBlock),
-};
+
 /* Definitions for debugMutex */
 osMutexId_t debugMutexHandle;
 osStaticMutexDef_t debugMutexControlBlock;
@@ -182,9 +175,6 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN Init */
 
   /* USER CODE END Init */
-  /* Create the mutex(es) */
-  /* creation of appResource */
-  appResourceHandle = osMutexNew(&appResource_attributes);
 
   /* creation of debugMutex */
   debugMutexHandle = osMutexNew(&debugMutex_attributes);

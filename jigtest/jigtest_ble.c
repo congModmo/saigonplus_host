@@ -1,7 +1,7 @@
 
 #define __DEBUG__ 4
 #include "jigtest.h"
-#include "uart_ui_comm.h"
+#include "app_main/uart_ui_comm.h"
 #include "jigtest_esp.h"
 #include "ble/nina_b1.h"
 #include "esp_host_comm.h"

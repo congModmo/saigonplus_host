@@ -120,14 +120,6 @@ const osMessageQueueAttr_t mqttMail_attributes = {
   .mq_mem = &mqttMailBuffer,
   .mq_size = sizeof(mqttMailBuffer)
 };
-/* Definitions for appResource */
-osMutexId_t appResourceHandle;
-osStaticMutexDef_t appResourceControlBlock;
-const osMutexAttr_t appResource_attributes = {
-  .name = "appResource",
-  .cb_mem = &appResourceControlBlock,
-  .cb_size = sizeof(appResourceControlBlock),
-};
 /* Definitions for debugMutex */
 osMutexId_t debugMutexHandle;
 osStaticMutexDef_t debugMutexControlBlock;
@@ -143,22 +135,6 @@ const osMutexAttr_t buzzerMutex_attributes = {
   .name = "buzzerMutex",
   .cb_mem = &buzzerMutexControlBlock,
   .cb_size = sizeof(buzzerMutexControlBlock),
-};
-/* Definitions for flashMutex */
-osMutexId_t flashMutexHandle;
-osStaticMutexDef_t flashMutexControlBlock;
-const osMutexAttr_t flashMutex_attributes = {
-  .name = "flashMutex",
-  .cb_mem = &flashMutexControlBlock,
-  .cb_size = sizeof(flashMutexControlBlock),
-};
-/* Definitions for lteRingbufMutex */
-osMutexId_t lteRingbufMutexHandle;
-osStaticMutexDef_t lteRingbufMutexControlBlock;
-const osMutexAttr_t lteRingbufMutex_attributes = {
-  .name = "lteRingbufMutex",
-  .cb_mem = &lteRingbufMutexControlBlock,
-  .cb_size = sizeof(lteRingbufMutexControlBlock),
 };
 
 /* Private function prototypes -----------------------------------------------*/
@@ -182,20 +158,11 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE END Init */
   /* Create the mutex(es) */
-  /* creation of appResource */
-  appResourceHandle = osMutexNew(&appResource_attributes);
-
   /* creation of debugMutex */
   debugMutexHandle = osMutexNew(&debugMutex_attributes);
 
   /* creation of buzzerMutex */
   buzzerMutexHandle = osMutexNew(&buzzerMutex_attributes);
-
-  /* creation of flashMutex */
-  flashMutexHandle = osMutexNew(&flashMutex_attributes);
-
-  /* creation of lteRingbufMutex */
-  lteRingbufMutexHandle = osMutexNew(&lteRingbufMutex_attributes);
 
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */

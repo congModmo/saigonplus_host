@@ -106,37 +106,17 @@ void delay(uint32_t t)
  * UART UI/DISPLAY
  ***************************************************************************/
 
-#ifdef DISPLAY_ENABLE
-
-#define DISPLAY_BUFF_LEN 128
-
-static uart_timeout_t display_udt;
-static uint8_t displayRbBuff[DISPLAY_BUFF_LEN];
-
-void display_bsp_init(RINGBUF *rb)
+static uart_timeout_t uart1_udt;
+static uint8_t uart1_buff[512];
+void bsp_uart1_init(RINGBUF *rb)
 {
-	uart_timeout_init(&display_udt, UART_TIMEOUT_IT, &huart1, displayRbBuff, DISPLAY_BUFF_LEN);
-	uart_timeout_start(&display_udt, rb);
+	uart_timeout_init(&uart1_udt, UART_TIMEOUT_DMA, &huart1, uart1_buff, sizeof(uart1_buff));
+	uart_timeout_start(&uart1_udt, rb);
 }
-
-void display_bsp_send_byte(uint8_t b)
+void bsp_uart1_send_byte(uint8_t b)
 {
 	HAL_UART_Transmit(&huart1, &b, 1, 100);
 }
-#else
-
-static uart_timeout_t ui_comm_udt;
-static uint8_t ui_comm_buff[512];
-void bsp_ui_comm_init(RINGBUF *rb)
-{
-	uart_timeout_init(&ui_comm_udt, UART_TIMEOUT_DMA, &huart1, ui_comm_buff, 512);
-	uart_timeout_start(&ui_comm_udt, rb);
-}
-void bsp_ui_comm_send_byte(uint8_t b)
-{
-	HAL_UART_Transmit(&huart1, &b, 1, 100);
-}
-#endif
 
 /****************************************************************************
  *
@@ -273,11 +253,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	}
 	else if (huart == &huart1)
 	{
-#ifdef DISPLAY_ENABLE
-		uart_timeout_rx_cb(&display_udt);
-#else
-		uart_timeout_rx_cb(&ui_comm_udt);
-#endif
+		uart_timeout_rx_cb(&uart1_udt);
 	}
 	else if (huart == &huart4)
 	{
@@ -321,11 +297,7 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 	}
 	else if (huart == &huart1)
 	{
-#ifdef DISPLAY_ENABLE
-		uart_timeout_err_cb(&display_udt);
-#else
-		uart_timeout_err_cb(&ui_comm_udt);
-#endif
+		uart_timeout_err_cb(&uart1_udt);
 	}
 	else if (huart == &huart4)
 	{

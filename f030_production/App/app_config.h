@@ -2,25 +2,21 @@
 #define APP_CONFIG_H_
 
 #ifndef RELEASE
-//	#define GPS_ENABLE
+	#define GPS_ENABLE
 
-//	#define ALARM_ENABLE
+	#define ALARM_ENABLE
 
 	#define BLE_ENABLE
-////
-//	#define LTE_ENABLE
-//
+
+	#define LTE_ENABLE
+
 	#define DISPLAY_ENABLE
-//	#define DISPLAY_UNIT_TEST
 
 	#define IMU_ENABLE
 
 	#define PUBLISH_ENABLE
-//	#define PUBLISH_UNIT_TEST
-//
-	#define MQTT_ENABLE
 
-//	#define UART_UI_ENABLE
+	#define MQTT_ENABLE
 #else
 
 	#define ALARM_ENABLE

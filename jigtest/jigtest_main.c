@@ -27,7 +27,7 @@
 #include "app_main/publish_scheduler.h"
 #include "iwdg.h"
 #include "usart.h"
-#include "app_fota/uart_ui_comm.h"
+#include "app_main/uart_ui_comm.h"
 #include "app_fota/fota_core.h"
 #include "app_fota/serial_transport.h"
 #include "tim.h"

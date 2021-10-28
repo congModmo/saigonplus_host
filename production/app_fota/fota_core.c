@@ -43,10 +43,10 @@ typedef struct
 	fota_file_info_t *requesting_file;
 	fota_file_info_t json_info;
 	fota_file_info_t host_app;
-	uint16_t host_app_version;
+	uint32_t host_app_version;
 	fota_file_info_t ble_init;
 	fota_file_info_t ble_app;
-	uint16_t ble_app_version;
+	uint32_t ble_app_version;
 	void *params;
 } fota_core_t;
 
@@ -103,6 +103,61 @@ bool fota_check_fota_request(fota_request_msg_t *request)
 	return true;
 }
 
+static bool parse_json_as_string(char *json_string)
+{
+	char *p;
+	ASSERT_RET((p=strstr(json_string, "\"hardwareVersion\""))!=NULL, false, "parse hw version");
+	uint32_t hardware_version;
+	ASSERT_RET(sscanf(p, "\"hardwareVersion\":%lu", &hardware_version)==1, false, "parse hw version");
+	ASSERT_RET(hardware_version==factory_config->hardwareVersion, false, "hardware miss match");
+	ASSERT_RET((p=strstr(json_string, "\"version\""))!=NULL, false, "parse host version");
+	ASSERT_RET(sscanf(p, "\"version\":%lu", &fota.host_app_version)==1, false, "parse host version");
+	if(fota.host_app_version >0)
+	{
+		ASSERT_RET((p=strstr(json_string, "\"len\""))!=NULL, false, "parse len version");
+		ASSERT_RET(sscanf(p, "\"len\":%d", &fota.host_app.len)==1, false, "scan host len");
+		ASSERT_RET((p=strstr(json_string, "\"crc\""))!=NULL, false, "parse host crc");
+		ASSERT_RET(sscanf(p, "\"crc\":%lu", &fota.host_app.crc)==1, false, "scan host crc");
+		strcpy(fota.host_app.file_name, "hostApp.bin");
+		debug("Host app_version: %d\n", fota.host_app_version);
+		debug("Host app len: %d\n", fota.host_app.len);
+		debug("Host app crc: %u\n", fota.host_app.crc);
+	}
+	else
+	{
+		memset(fota.host_app.file_name, 0, sizeof(fota.host_app.file_name));
+		fota.host_app_version = 0;
+	}
+	ASSERT_RET((p=strstr(json_string, "\"bleVersion\""))!=NULL, false, "parse ble version");
+	ASSERT_RET(sscanf(p, "\"bleVersion\":%lu", &fota.ble_app_version)==1, false, "scan ble version");
+	if(fota.ble_app_version>0)
+	{
+		ASSERT_RET((p=strstr(json_string, "\"initLen\""))!=NULL, false, "parse init len");
+		ASSERT_RET(sscanf(p, "\"initLen\":%d", &fota.ble_init.len)==1, false, "scan init len");
+		ASSERT_RET((p=strstr(json_string, "\"initCrc\""))!=NULL, false, "parse init crc");
+		ASSERT_RET(sscanf(p, "\"initCrc\":%lu", &fota.ble_init.crc)==1, false, "scan init crc");
+		ASSERT_RET((p=strstr(json_string, "\"appLen\""))!=NULL, false, "parse ble len");
+		ASSERT_RET(sscanf(p, "\"appLen\":%d", &fota.ble_app.len)==1, false, "scan ble len");
+		ASSERT_RET((p=strstr(json_string, "\"appCrc\""))!=NULL, false, "parse ble crc");
+		ASSERT_RET(sscanf(p, "\"appCrc\":%lu", &fota.ble_app.crc)==1, false, "scan ble crc");
+		strcpy(fota.ble_app.file_name, "bleApp.bin");
+		strcpy(fota.ble_init.file_name, "bleApp.dat");
+		debug("ble app version: %d\n", fota.ble_app_version);
+		debug("ble init len :%d\n", fota.ble_init.len);
+		debug("ble init crc: %u\n", fota.ble_init.crc);
+		debug("ble app len: %d\n", fota.ble_app.len);
+		debug("ble app crc: %u\n", fota.ble_app.crc);
+	}
+	else
+	{
+		memset(fota.ble_app.file_name, 0, sizeof(fota.ble_app.file_name));
+		memset(fota.ble_init.file_name, 0, sizeof(fota.ble_init.file_name));
+		fota.ble_app_version = 0;
+	}
+	return true;
+}
+
+//waring parse json may not work in low ram available.
 static bool parse_json_info(char *json_string)
 {
 	bool status = false;
@@ -137,7 +192,7 @@ static bool parse_json_info(char *json_string)
 	}
 	if (cJSON_IsObject(ble_app))
 	{
-		cJSON *version = cJSON_GetObjectItem(ble_app, "version");
+		cJSON *version = cJSON_GetObjectItem(ble_app, "bleVersion");
 		cJSON *init_len = cJSON_GetObjectItem(ble_app, "initLen");
 		cJSON *init_crc = cJSON_GetObjectItem(ble_app, "initCrc");
 		cJSON *app_len = cJSON_GetObjectItem(ble_app, "appLen");
@@ -230,7 +285,7 @@ void fota_core_process()
 			GD25Q16_ReadSector(fota.json_info.flash_addr, fotaCoreBuff, fota.json_info.len);
 			ASSERT_RET(crc32_verify((uint8_t *)fotaCoreBuff, fota.json_info.len, fota.json_info.crc), false, "read flash");
 			fotaCoreBuff[fota.json_info.len] = 0;
-			if (!parse_json_info((char *)fotaCoreBuff))
+			if (!parse_json_as_string((char *)fotaCoreBuff))
 			{
 				error("Parse info\n");
 				fota.state = FOTA_CORE_IDLE;
@@ -342,7 +397,8 @@ void fota_core_process()
 			if(fota.host_app_version > 0)
 			{
 				debug("restart to update host app\n");
-				delay(1000);
+				delay(100);
+				nina_b1_reset();
 				NVIC_SystemReset();
 			}
 		}
@@ -353,73 +409,89 @@ void fota_core_process()
  * Unit test
  ******************************************************************************/
 
+bool test_check()
+{
+	ASSERT_RET(fota.host_app_version == 2, false, "parse host app version");
+	ASSERT_RET(fota.host_app.len == 345, false, "parse host app len");
+	ASSERT_RET(fota.host_app.crc == 678, false, "parse host app crc");
+	ASSERT_RET(strcmp(fota.host_app.file_name, "hostApp.bin") == 0, false, "parse host name");
+	ASSERT_RET(fota.ble_app_version == 2, false, "parse ble app version");
+	ASSERT_RET(fota.ble_init.len == 345, false, "parse ble init len");
+	ASSERT_RET(fota.ble_init.crc == 678, false, "parse ble init crc");
+	ASSERT_RET(fota.ble_app.len == 901, false, "parse ble app len");
+	ASSERT_RET(fota.ble_app.crc == 234, false, "parse ble app crc");
+	ASSERT_RET(strcmp(fota.ble_init.file_name, "bleApp.dat") == 0, false, "parse ble init name");
+	ASSERT_RET(strcmp(fota.ble_app.file_name, "bleApp.bin") == 0, false, "parse ble app name");
+//	//host update
+//	ASSERT_RET(parse_json_info(host_update), false, "parse host update fail");
+//	ASSERT_RET(fota.host_app_version == 2, false, "parse host app version");
+//	ASSERT_RET(fota.host_app.len == 345, false, "parse host app len");
+//	ASSERT_RET(fota.host_app.crc == 678, false, "parse host app crc");
+//	ASSERT_RET(strcmp(fota.host_app.file_name, "hostApp.bin") == 0, false, "parse host name");
+//	ASSERT_RET(strlen(fota.ble_app.file_name) == 0, false, "ble app name should be 0");
+//	ASSERT_RET(strlen(fota.ble_init.file_name) == 0, false, "ble init name should be 0");
+//	//
+//	//ble update
+//	ASSERT_RET(parse_json_info(ble_update), false, "parse ble update fail");
+//	ASSERT_RET(fota.ble_app_version == 2, false, "parse ble app version");
+//	ASSERT_RET(fota.ble_init.len == 345, false, "parse ble init len");
+//	ASSERT_RET(fota.ble_init.crc == 678, false, "parse ble init crc");
+//	ASSERT_RET(fota.ble_app.len == 901, false, "parse ble app len");
+//	ASSERT_RET(fota.ble_app.crc == 234, false, "parse ble app crc");
+//	ASSERT_RET(strcmp(fota.ble_init.file_name, "bleApp.dat") == 0, false, "parse ble init name");
+//	ASSERT_RET(strcmp(fota.ble_app.file_name, "bleApp.bin") == 0, false, "parse ble app name");
+//	ASSERT_RET(strlen(fota.host_app.file_name) == 0, false, "host name should be 0");
+}
+
 bool TEST_parse_json_info()
 {
 	char full_update[] = "{\
-	    \"hardwareVersion\": 1,\
+	    \"hardwareVersion\":1,\
 	    \"hostApp\": {\
-	        \"version\": 2,\
-	        \"len\": 345,\
-	        \"crc\": 678\
+	        \"version\":2,\
+	        \"len\":345,\
+	        \"crc\":678\
 	    },\
-	    \"bleApp\": {\
-	        \"version\": 2,\
-	        \"initLen\": 345,\
-	        \"initCrc\": 678,\
-	        \"appLen\": 901,\
-	        \"appCrc\": 234\
+	    \"bleApp\":{\
+	        \"bleVersion\":2,\
+	        \"initLen\":345,\
+	        \"initCrc\":678,\
+	        \"appLen\":901,\
+	        \"appCrc\":234\
 	    }\
 	}";
 	char host_update[] = "{\
-	    \"hardwareVersion\": 1,\
+	    \"hardwareVersion\":1,\
 	    \"hostApp\": {\
-	        \"version\": 2,\
-	        \"len\": 345,\
-	        \"crc\": 678\
+	        \"version\":2,\
+	        \"len\":345,\
+	        \"crc\":678\
 	    }\
 	}";
 	char ble_update[] = "{\
-	    \"hardwareVersion\": 1,\
+	    \"hardwareVersion\":1,\
 	    \"bleApp\": {\
-	        \"version\": 2,\
-	        \"initLen\": 345,\
-	        \"initCrc\": 678,\
-	        \"appLen\": 901,\
-	        \"appCrc\": 234\
+	        \"blVersion\":2,\
+	        \"initLen\":345,\
+	        \"initCrc\":678,\
+	        \"appLen\":901,\
+	        \"appCrc\":234\
 	    }\
 	}";
 	//full update
-	ASSERT_RET(parse_json_info(full_update), false, "parse full update fail");
-	ASSERT_RET(fota.host_app_version == 2, false, "parse host app version");
-	ASSERT_RET(fota.host_app.len == 345, false, "parse host app len");
-	ASSERT_RET(fota.host_app.crc == 678, false, "parse host app crc");
-	ASSERT_RET(strcmp(fota.host_app.file_name, "hostApp.bin") == 0, false, "parse host name");
-	ASSERT_RET(fota.ble_app_version == 2, false, "parse ble app version");
-	ASSERT_RET(fota.ble_init.len == 345, false, "parse ble init len");
-	ASSERT_RET(fota.ble_init.crc == 678, false, "parse ble init crc");
-	ASSERT_RET(fota.ble_app.len == 901, false, "parse ble app len");
-	ASSERT_RET(fota.ble_app.crc == 234, false, "parse ble app crc");
-	ASSERT_RET(strcmp(fota.ble_init.file_name, "bleApp.dat") == 0, false, "parse ble init name");
-	ASSERT_RET(strcmp(fota.ble_app.file_name, "bleApp.bin") == 0, false, "parse ble app name");
-	//host update
-	ASSERT_RET(parse_json_info(host_update), false, "parse host update fail");
-	ASSERT_RET(fota.host_app_version == 2, false, "parse host app version");
-	ASSERT_RET(fota.host_app.len == 345, false, "parse host app len");
-	ASSERT_RET(fota.host_app.crc == 678, false, "parse host app crc");
-	ASSERT_RET(strcmp(fota.host_app.file_name, "hostApp.bin") == 0, false, "parse host name");
-	ASSERT_RET(strlen(fota.ble_app.file_name) == 0, false, "ble app name should be 0");
-	ASSERT_RET(strlen(fota.ble_init.file_name) == 0, false, "ble init name should be 0");
-	//
-	//ble update
-	ASSERT_RET(parse_json_info(ble_update), false, "parse ble update fail");
-	ASSERT_RET(fota.ble_app_version == 2, false, "parse ble app version");
-	ASSERT_RET(fota.ble_init.len == 345, false, "parse ble init len");
-	ASSERT_RET(fota.ble_init.crc == 678, false, "parse ble init crc");
-	ASSERT_RET(fota.ble_app.len == 901, false, "parse ble app len");
-	ASSERT_RET(fota.ble_app.crc == 234, false, "parse ble app crc");
-	ASSERT_RET(strcmp(fota.ble_init.file_name, "bleApp.dat") == 0, false, "parse ble init name");
-	ASSERT_RET(strcmp(fota.ble_app.file_name, "bleApp.bin") == 0, false, "parse ble app name");
-	ASSERT_RET(strlen(fota.host_app.file_name) == 0, false, "host name should be 0");
+//	ASSERT_RET(parse_json_info(full_update), false, "parse json full update fail");
+//	ASSERT_RET(test_check(), false, "check value");
+
+	ASSERT_RET(parse_json_as_string(full_update), false, "parse json as string full update fail");
+	ASSERT_RET(test_check(), false, "check value");
 	debug("Test passed");
 	return true;
+}
+
+void fota_console_handle(char *result)
+{
+	if(__check_cmd("test"))
+	{
+		TEST_parse_json_info();
+	}
 }

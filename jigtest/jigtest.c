@@ -15,6 +15,7 @@
 #include "jigtest_ble.h"
 #include "jigtest_gps.h"
 #include "jigtest_lte.h"
+#include "app_main/uart_ui_comm.h"
 
 typedef struct {
 	uint8_t reported;
@@ -178,7 +179,6 @@ void jigtest_test_all_hardware() {
 		jigtest_ble_hardware_test();
 	}
 
-	imu_set_callback(NULL);
 	if (app_imu_init()) {
 		jigtest_direct_report(UART_UI_RES_IMU_TEST, 1);
 	}
@@ -203,11 +203,11 @@ void jigtest_test_all_function() {
 		timeout = 10000;
 	jigtest_gps_function_test(timeout);
 	imu_test = true;
-	imu_set_callback(imu_motion_detected);
+	app_imu_register_callback(imu_motion_detected);
 	jigtest_direct_report(UART_UI_CMD_TEST_FUNCTION, UART_UI_RES_OK);
 }
 
-void jigtest_cmd_handle(uint8_t *frame)
+void jigtest_cmd_handle(uint8_t *frame, size_t size)
 {
 	switch(frame[0])
 	{

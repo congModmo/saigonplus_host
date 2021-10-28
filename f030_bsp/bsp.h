@@ -110,6 +110,10 @@ extern osMutexId lteRingbufMutexHandle;
  * display bps
  */
 
+#define display_bsp_init(x) bsp_uart1_init(x)
+#define bsp_ui_comm_init(x) bsp_uart1_init(x)
+#define bsp_ui_comm_send_byte bsp_uart1_send_byte
+
 void bsp_ui_comm_init(RINGBUF *rb);
 void bsp_display_uart_init(RINGBUF *rb);
 void display_bsp_send_byte(uint8_t b);

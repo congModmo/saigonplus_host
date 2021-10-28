@@ -111,7 +111,7 @@ void app_info_init()
 {
 	app_lock_init();
 	app_config_init();
-	factory.hardwareVersion=0x21;
+	factory.hardwareVersion=0x201;
 	factory.broker.port=8883;
 	factory.broker.secure=1;
 	strcpy(factory.broker.endpoint, "a28c4si2pkzbml-ats.iot.ap-southeast-1.amazonaws.com");

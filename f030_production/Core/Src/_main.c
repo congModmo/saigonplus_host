@@ -103,7 +103,6 @@ int main(void)
 #endif
   MX_SPI1_Init();
   MX_USART2_UART_Init();
-  MX_USART1_UART_Init();
   MX_I2C1_Init();
 #ifdef RELEASE
   MX_IWDG_Init();

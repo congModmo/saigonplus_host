@@ -16,6 +16,7 @@
 #include "console/console.h"
 #include <app_common/wcb_ioctl.h>
 #include <app_gps/app_gps.h>
+#include "app_lte/lteTask.h"
 #include <app_common/wcb_common.h>
 #include <app_common/common.h>
 #include "app_info.h"
@@ -136,7 +137,8 @@ void app_main(void)
 
 #ifndef RELEASE
 	console_init();
-	RetargetInit(&huart5);
+	MX_USART1_UART_Init(115200, false);
+	RetargetInit(&huart1);
 	info("Hello modmo\n");
 
 	/* File read buffer */
@@ -181,8 +183,14 @@ void app_main(void)
 #endif
 
 	ioctl_beepbeep(3, 100);
+	uint32_t tick=millis();
 	while (1)
 	{
+		if(millis()-tick>1000)
+		{
+			tick=millis();
+			debug("lte rssi: %d, gps hdop: %.2f\n", *lteRssi, gps_data->hdop);
+		}
 #ifdef DISPLAY_ENABLE
 		if(!config_mode)
 			app_display_process();

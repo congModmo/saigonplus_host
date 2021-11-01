@@ -225,7 +225,13 @@ void lte_task(){
 #ifdef JIGTEST
 	jigtest_network_ready_report();
 #endif
+	uint32_t tick=millis();
 	while(true){
+		if(millis()-tick>1000)
+		{
+			tick=millis();
+			lara_r2_get_network_csq(&rssi);
+		}
 		lte_async_response_handle();
 		lara_r2_socket_process();
 		lte_mail_process();

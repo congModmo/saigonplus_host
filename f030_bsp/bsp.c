@@ -295,7 +295,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		{
 			RINGBUF_Put(gpsRingbuf, gps_buff[i]);
 		}
-		HAL_UART_Receive_IT(&huart4, gps_buff, UART_READ_BLOCK);
+		HAL_UART_Receive_DMA(&huart4, gps_buff, UART_READ_BLOCK);
 #endif
 	}
 	if (huart == &huart2)
@@ -334,7 +334,7 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 	else if (huart == &huart4)
 	{
 #ifdef GPS_ENABLE
-		HAL_UART_Receive_IT(huart, gps_buff, UART_READ_BLOCK);
+		HAL_UART_Receive_DMA(huart, gps_buff, UART_READ_BLOCK);
 #endif
 	}
 	else if (huart == &huart2)

@@ -86,17 +86,19 @@ void fota_start_process(uint8_t source, void *params)
 	}
 }
 
-bool app_serial_fota_request(uint8_t transport, serial_fota_request_info_t *request)
+bool serial_fota_request_handle(serial_fota_request_info_t *request, uint8_t source)
 {
-	json_info.crc = request->info_crc;
-	json_info.len = request->info_len;
-	debug("Serial fota request\n");
+	json_info.crc=request->info_crc;
+	json_info.len=request->info_len;
+	json_info.flash_addr= EX_FLASH_FOTA_FILES_START;
+	strcpy(json_info.file_name, "info.json");
+	debug("%s fota request\n", source==FOTA_OVER_UART?"uart":"ble");
 	debug("Info len: %d\n", request->info_len);
 	debug("Info crc: %u\n", request->info_crc);
-	fota_start = true;
-	fota_finish = false;
-	fota_source = transport;
-	fota_params = NULL;
+	fota_start=true;
+	fota_finish=false;
+	fota_source= source;
+	fota_params=NULL;
 	return true;
 }
 
@@ -118,6 +120,17 @@ void main_mail_process()
 	}
 }
 
+static bool config_mode=false;
+void app_main_enter_config_mode()
+{
+	config_mode=true;
+}
+
+void uart_ui_process()
+{
+
+}
+
 void app_main(void)
 {
 
@@ -131,16 +144,21 @@ void app_main(void)
 	app_info_init();
 	debug("Host app version: %d\n", firmware_version->hostApp);
 	debug("Ble app version: %d\n", firmware_version->bleApp);
+#ifdef DISPLAY_ENABLE
+	uart_ui_process();
+	if(!config_mode)
+	{
+		app_display_init();
+		app_display_set_mode(*bike_locked?DISPLAY_ANTI_THEFT_MODE:DISPLAY_NORMAL_MODE);
+	}
+#endif
 #ifdef PUBLISH_ENABLE
 	publish_scheduler_init();
 #endif
 #ifdef BLE_ENABLE
 	app_ble_init();
 #endif
-#ifdef UART_UI_ENABLE
-	uart_ui_process();
-#endif
-	ioctl_beepbeep(3, 100);
+
 #ifdef LTE_ENABLE
 	system_ready = true;
 #endif
@@ -154,29 +172,27 @@ void app_main(void)
 #endif
 
 #ifdef GPS_ENABLE
-	app_gps_init();
-#endif
-
-#ifdef DISPLAY_ENABLE
-	app_display_init();
-	app_display_set_mode(*bike_locked?DISPLAY_ANTI_THEFT_MODE:DISPLAY_NORMAL_MODE);
-#else
-	uart_ui_comm_init();
+	if(!config_mode)
+		app_gps_init();
 #endif
 
 #ifdef REPORT_ENABLE
 	publish_scheduler_init();
 #endif
 
+	ioctl_beepbeep(3, 100);
 	while (1)
 	{
 #ifdef DISPLAY_ENABLE
-		app_display_process();
-#else
-		uart_ui_comm_polling();
+		if(!config_mode)
+			app_display_process();
+		else
+			uart_ui_comm_polling();
 #endif
+
 #ifdef GPS_ENABLE
-		app_gps_process();
+		if(!config_mode)
+			app_gps_process();
 #endif
 #ifdef PUBLISH_ENABLE
 		publish_scheduler_process();

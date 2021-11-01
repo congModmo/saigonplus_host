@@ -46,7 +46,7 @@ static void app_ble_handle_ui_raw_packet(uint8_t * packet, size_t len)
 	{
 		serial_fota_request_info_t *request;
 		request = (serial_fota_request_info_t *)(packet + 1);
-		app_serial_fota_request(FOTA_OVER_BLE, request);
+		serial_fota_request_handle(FOTA_OVER_BLE, request);
 	}
 	else if (packet[0] == FOTA_REQUEST_MTU)
 	{

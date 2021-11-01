@@ -100,9 +100,7 @@ void app_display_set_mode(display_mode_t mode)
 	{
 		info("Set display to normal mode\n");
 		HAL_GPIO_DeInit(DISPLAY_TX_GPIO_Port, DISPLAY_TX_Pin);
-		delay(10);
-		MX_USART1_UART_Init();
-		display_bsp_init(&displayRb);
+		bsp_display_init(&displayRb);
 		alarm_process_end();
 	}
 	else
@@ -110,7 +108,7 @@ void app_display_set_mode(display_mode_t mode)
 		info("Set display to anti theft mode\n");
 		alarm_process_start();
 		publish_scheduler_bike_lock_handle();
-		HAL_UART_DeInit(&huart1);
+		bsp_display_deinit();
 		GPIO_InitTypeDef GPIO_InitStruct = {0};
 		HAL_GPIO_WritePin(DISPLAY_TX_GPIO_Port, DISPLAY_TX_Pin, GPIO_PIN_SET);
 		GPIO_InitStruct.Pin = DISPLAY_TX_Pin;

@@ -26,7 +26,7 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-
+#include <stdbool.h>
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
@@ -41,7 +41,7 @@ extern UART_HandleTypeDef huart5;
 
 /* USER CODE END Private defines */
 
-void MX_USART1_UART_Init(uint32_t baud);
+void MX_USART1_UART_Init(uint32_t speed, bool dma);
 void MX_USART2_UART_Init(void);
 void MX_USART3_UART_Init(void);
 void MX_USART4_UART_Init(void);

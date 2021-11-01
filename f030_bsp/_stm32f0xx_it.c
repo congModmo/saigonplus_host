@@ -19,8 +19,8 @@
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
+#include <_stm32f0xx_it.h>
 #include "main.h"
-#include "stm32f0xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 /* USER CODE END Includes */
@@ -57,6 +57,7 @@
 
 /* External variables --------------------------------------------------------*/
 extern I2C_HandleTypeDef hi2c1;
+extern DMA_HandleTypeDef hdma_usart1_rx;
 extern DMA_HandleTypeDef hdma_usart2_rx;
 extern DMA_HandleTypeDef hdma_usart3_rx;
 extern DMA_HandleTypeDef hdma_usart4_rx;
@@ -128,12 +129,21 @@ void DMA1_Channel1_IRQHandler(void)
 /**
   * @brief This function handles DMA1 channel 2 and 3 interrupts.
   */
+
+static DMA_HandleTypeDef *hdma1_channel2_3=NULL;
+
+void DMA1_Channel2_3_set_irq(DMA_HandleTypeDef *dma)
+{
+	hdma1_channel2_3 =dma;
+}
+
 void DMA1_Channel2_3_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Channel2_3_IRQn 0 */
 
   /* USER CODE END DMA1_Channel2_3_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_usart4_rx);
+  if(hdma1_channel2_3 !=NULL)
+	  HAL_DMA_IRQHandler(hdma1_channel2_3);
   /* USER CODE BEGIN DMA1_Channel2_3_IRQn 1 */
 
   /* USER CODE END DMA1_Channel2_3_IRQn 1 */

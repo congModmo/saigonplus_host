@@ -111,7 +111,7 @@ typedef void (*uart_ui_data_callback_t)(uint16_t len);
 
 extern const serial_interface_t uart_transport;
 
-void uart_ui_comm_init();
+void uart_ui_comm_init(bool highspeed);
 void uart_ui_comm_command_send(uint8_t type, uint8_t status);
 void uart_ui_comm_send(uint8_t type, uint8_t *data, uint16_t len);
 void uart_ui_comm_polling(void);

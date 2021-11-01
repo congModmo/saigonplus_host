@@ -153,10 +153,7 @@ static void uart_ui_command_handle(uint8_t *frame, size_t size)
 		if (frame[1] == FOTA_REQUEST_FOTA)
 		{
 			request = (serial_fota_request_info_t *)(frame + 2);
-			strcpy(info_file.file_name, "info.json");
-			info_file.crc = request->info_crc;
-			info_file.len = request->info_len;
-			app_serial_fota_request_handle(request, FOTA_OVER_UART);
+			serial_fota_request_handle(request, FOTA_OVER_UART);
 		}
 		else if(frame[1]==FOTA_REQUEST_MTU)
 		{
@@ -230,9 +227,10 @@ const serial_interface_t uart_transport = {.init=uart_transport_init, .mtu = 128
  * Public APIs
  ****************************************************************************************/
 
-void uart_ui_comm_init()
+void uart_ui_comm_init(bool highspeed)
 {
-	bsp_ui_comm_init(&uartUiRingbuf);
+	bsp_ui_comm_deinit();
+	bsp_ui_comm_init(&uartUiRingbuf, highspeed);
 	slip_init(&slip, true, slip_buff, 512, bsp_ui_comm_send_byte);
 }
 

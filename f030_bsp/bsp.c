@@ -105,19 +105,44 @@ void delay(uint32_t t)
 /****************************************************************************
  * UART UI/DISPLAY
  ***************************************************************************/
-
 static uart_timeout_t uart1_udt;
 static uint8_t uart1_buff[512];
-void bsp_uart1_init(RINGBUF *rb)
+void bsp_uart1_init(RINGBUF *rb, uint32_t speed, bool dma)
 {
-	uart_timeout_init(&uart1_udt, UART_TIMEOUT_DMA, &huart1, uart1_buff, sizeof(uart1_buff));
+	MX_USART1_UART_Init(speed, dma);
+	uart_timeout_init(&uart1_udt, dma?UART_TIMEOUT_DMA:UART_TIMEOUT_IT, &huart1, uart1_buff, sizeof(uart1_buff));
 	uart_timeout_start(&uart1_udt, rb);
 }
+
+void bsp_uart1_deinit()
+{
+	HAL_UART_DeInit(&huart1);
+}
+
 void bsp_uart1_send_byte(uint8_t b)
 {
 	HAL_UART_Transmit(&huart1, &b, 1, 100);
 }
 
+void bsp_display_init(RINGBUF *rb)
+{
+	bsp_uart1_init(rb, 9600, false);
+}
+
+void bsp_display_deinit()
+{
+	bsp_uart1_deinit();
+}
+
+void bsp_ui_comm_init(RINGBUF *rb, bool dma)
+{
+	bsp_uart1_init(rb, 115200, dma);
+}
+
+void bsp_ui_comm_deinit()
+{
+	bsp_uart1_deinit();
+}
 /****************************************************************************
  *
  ***************************************************************************/
@@ -195,10 +220,17 @@ static RINGBUF *gpsRingbuf;
 
 void eva_m8_bsp_uart_init(RINGBUF *rb)
 {
+	MX_USART4_UART_Init();
 	gpsRingbuf = rb;
 	RINGBUF_Init(gpsRingbuf, (uint8_t *)gps_ringbuf_buffer, GPS_BUF_SIZE);
 	HAL_UART_Receive_IT(&huart4, gps_buff, UART_READ_BLOCK);
 }
+
+void eva_m8_bsp_uart_deinit()
+{
+	HAL_UART_DeInit(&huart4);
+}
+
 void eva_m8_bsp_set_reset_pin(uint8_t value)
 {
 	HAL_GPIO_WritePin(GPS_RESET_GPIO_Port, GPS_RESET_Pin, value);

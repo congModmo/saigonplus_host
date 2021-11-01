@@ -26,7 +26,7 @@
 #include "app_display/app_display.h"
 #include "app_main/publish_scheduler.h"
 #include "iwdg.h"
-#include "usart.h"
+#include <_usart.h>
 #include "app_main/uart_ui_comm.h"
 #include "app_fota/fota_core.h"
 #include "app_fota/serial_transport.h"
@@ -60,6 +60,11 @@ void fota_callback(uint8_t source, bool status)
 {
 	fota_finish = true;
 	debug("FOTA  is %s\n", status ? "done" : "failed");
+	if(source==FOTA_OVER_UART)
+	{
+		uart_ui_comm_init(false);
+		eva_m8_bsp_uart_init();
+	}
 }
 
 void fota_start_process(uint8_t source, void *params)
@@ -69,6 +74,8 @@ void fota_start_process(uint8_t source, void *params)
 	{
 		serial_transport_init(uart_transport);
 		transport = &serial_transport;
+		eva_m8_bsp_uart_deinit();
+		uart_ui_comm_init(true);
 	}
 	else if (source == FOTA_OVER_LTE)
 	{
@@ -88,26 +95,12 @@ void fota_start_process(uint8_t source, void *params)
 	}
 }
 
-bool app_serial_fota_request(uint8_t transport, serial_fota_request_info_t *request)
-{
-	json_info.crc = request->info_crc;
-	json_info.len = request->info_len;
-	debug("Serial fota request\n");
-	debug("Info len: %d\n", request->info_len);
-	debug("Info crc: %u\n", request->info_crc);
-	fota_start = true;
-	fota_finish = false;
-	fota_source = transport;
-	fota_params = NULL;
-	return true;
-}
-
-bool app_serial_fota_request_handle(serial_fota_request_info_t *request, uint8_t source){
+bool serial_fota_request_handle(serial_fota_request_info_t *request, uint8_t source){
 	json_info.crc=request->info_crc;
 	json_info.len=request->info_len;
 	json_info.flash_addr= EX_FLASH_FOTA_FILES_START;
 	strcpy(json_info.file_name, "info.json");
-	debug("Ble fota request\n");
+	debug("%s fota request\n", source==FOTA_OVER_UART?"uart":"ble");
 	debug("Info len: %d\n", request->info_len);
 	debug("Info crc: %u\n", request->info_crc);
 	fota_start=true;
@@ -139,7 +132,7 @@ bool __IO imu_test=false;
 void app_main(void)
 {
 	retarget_init();
-	uart_ui_comm_init();
+	uart_ui_comm_init(false);
 	light_control_init();
 	jigtest_uart_esp_init();
 	app_ble_init();

@@ -101,7 +101,6 @@ int main(void)
 #ifndef RELEASE
   MX_USART5_UART_Init();
 #endif
-  MX_USART4_UART_Init();
   MX_SPI1_Init();
   MX_USART2_UART_Init();
   MX_USART1_UART_Init();

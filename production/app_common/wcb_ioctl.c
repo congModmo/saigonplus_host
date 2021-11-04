@@ -73,9 +73,9 @@ void ioctl_beep(uint32_t ms)
 	buzzer_tick=millis();
 }
 
-void ioctl_beepbeep(uint32_t n, uint32_t ms)
+void ioctl_beepbeep(uint32_t n, uint32_t ms, bool forced)
 {
-	if(!user_config->beep_sound)
+	if(!forced && !user_config->beep_sound)
 		return;
 	BUZZER_LOCK();
 	while (n--)

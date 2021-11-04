@@ -223,7 +223,7 @@ void eva_m8_bsp_uart_init(RINGBUF *rb)
 	MX_USART4_UART_Init();
 	gpsRingbuf = rb;
 	RINGBUF_Init(gpsRingbuf, (uint8_t *)gps_ringbuf_buffer, GPS_BUF_SIZE);
-	HAL_UART_Receive_IT(&huart4, gps_buff, UART_READ_BLOCK);
+	HAL_UART_Receive_DMA(&huart4, gps_buff, UART_READ_BLOCK);
 }
 
 void eva_m8_bsp_uart_deinit()
@@ -264,6 +264,7 @@ static void lte_input_handle(uint8_t *buff, uint32_t len)
 		RINGBUF_Put(lte_rb, buff[i]);
 	}
 }
+
 void gsm_send_string(char *str)
 {
 	HAL_UART_Transmit(&huart3, (uint8_t *)str, strlen(str), 1000);
@@ -295,7 +296,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		{
 			RINGBUF_Put(gpsRingbuf, gps_buff[i]);
 		}
-		HAL_UART_Receive_IT(&huart4, gps_buff, UART_READ_BLOCK);
+		HAL_UART_Receive_DMA(&huart4, gps_buff, UART_READ_BLOCK);
 #endif
 	}
 	if (huart == &huart2)
@@ -334,7 +335,7 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 	else if (huart == &huart4)
 	{
 #ifdef GPS_ENABLE
-		HAL_UART_Receive_IT(huart, gps_buff, UART_READ_BLOCK);
+		HAL_UART_Receive_DMA(huart, gps_buff, UART_READ_BLOCK);
 #endif
 	}
 	else if (huart == &huart2)

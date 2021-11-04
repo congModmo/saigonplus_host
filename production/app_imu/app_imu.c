@@ -64,7 +64,7 @@ bool app_imu_register_callback(imu_callback_t cb)
 	return false;
 }
 
-bool app_imu_init()
+bool app_imu_init(uint16_t threshold)
 {
 	if(kxtj3_begin(50, 2 )!=IMU_SUCCESS)
 	{
@@ -72,7 +72,7 @@ bool app_imu_init()
 		return false;
 	}
 	debug("Imu ready\n");
-	kxtj3_intConf(30, 5, 5, HIGH);
+	kxtj3_intConf(threshold, 5, 5, HIGH);
 	imu.detected=true;
 	imu.motion_detected=false;
 	imu.state=0;

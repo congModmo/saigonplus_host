@@ -125,8 +125,6 @@ void uart_ui_comm_send0(uint8_t *data, size_t len)
 
 static void uart_ui_command_handle(uint8_t *frame, size_t size)
 {
-	static serial_fota_request_info_t *request;
-	static fota_file_info_t info_file;
 	tick = millis();
 #ifdef JIGTEST
 	if(frame[0]<128)
@@ -134,7 +132,7 @@ static void uart_ui_command_handle(uint8_t *frame, size_t size)
 		jigtest_console_handle(frame);
 		return;
 	}
-	else if(frame[0]>UART_UI_FOTA_DATA)
+	else if(frame[0]>=UART_UI_CMD_TEST_ALL_HW)
 	{
 		jigtest_cmd_handle(frame, size);
 		return;
@@ -144,7 +142,9 @@ static void uart_ui_command_handle(uint8_t *frame, size_t size)
 	switch (frame[0])
 	{
 	case UART_UI_CMD_PING:
+		//for production config ui
 		uart_ui_comm_command_send(UART_UI_CMD_PING, UART_UI_RES_OK);
+		app_main_enter_config_mode();
 		break;
 	case UART_UI_CMD_FACTORY_RESET:
 		app_config_factory_reset();
@@ -152,7 +152,7 @@ static void uart_ui_command_handle(uint8_t *frame, size_t size)
 	case UART_UI_FOTA_DATA:
 		if (frame[1] == FOTA_REQUEST_FOTA)
 		{
-			request = (serial_fota_request_info_t *)(frame + 2);
+			serial_fota_request_info_t *request = (serial_fota_request_info_t *)(frame + 2);
 			serial_fota_request_handle(request, FOTA_OVER_UART);
 		}
 		else if(frame[1]==FOTA_REQUEST_MTU)
@@ -161,6 +161,32 @@ static void uart_ui_command_handle(uint8_t *frame, size_t size)
 			uart_ui_comm_send(UART_UI_FOTA_DATA, data, 2);
 		}
 		break;
+	case UART_UI_CMD_READ_MAC:
+		if(strlen(ble_mac)>0)
+		{
+			uart_ui_comm_send(UART_UI_RES_BLE_MAC, (uint8_t *)ble_mac, strlen(ble_mac));
+		}
+		break;
+	case UART_UI_CMD_READ_CCID:
+		if(strlen(lteCcid)>0)
+		{
+			uart_ui_comm_send(UART_UI_RES_LTE_SIM_CCID, (uint8_t *)lteCcid, strlen(lteCcid));
+		}
+		break;
+	case UART_UI_CMD_READ_IMEI:
+		if(strlen(lteImei)>0)
+		{
+			uart_ui_comm_send(UART_UI_RES_LTE_IMEI, (uint8_t *)lteImei, strlen(lteImei));
+		}
+		break;
+	case UART_UI_CMD_READ_SN:
+		uart_ui_comm_send(UART_UI_RES_SN, serial_number, strlen(serial_number));
+	break;
+	case UART_UI_CMD_SET_SN:
+		frame[size]=0;
+		app_info_update_serial_number(frame+1);
+		uart_ui_comm_command_send(UART_UI_CMD_SET_SN, UART_UI_RES_OK);
+	break;
 	default:
 		break;
 	}

@@ -41,6 +41,7 @@ typedef struct {
 	test_t lockPin;
 	test_t gps_position;
 	test_t gps_hdop;
+	test_t imu_trigger;
 	test_t mqtt;
 } jigtest_checklist_t;
 
@@ -115,6 +116,10 @@ void jigtest_direct_report(uint8_t type, uint8_t status) {
 		checklist.gps_txrx.reported = 1;
 		checklist.gps_txrx.result = status;
 		break;
+	case UART_UI_RES_IMU_TRIGGER:
+		checklist.imu_trigger.reported = 1;
+		checklist.imu_trigger.result = status;
+		break;
 	}
 	JIGTEST_UNLOCK();
 }
@@ -155,14 +160,31 @@ bool mail_direct_command(uint8_t command, osMessageQueueId_t mailBox) {
 	}
 	return true;
 }
+void imu_motion_detected(void)
+{
+	if(!checklist.imu_trigger.reported)
+		jigtest_direct_report(UART_UI_RES_IMU_TRIGGER, 1);
+}
 
 extern __IO bool imu_test;
-void jigtest_test_all_hardware() {
+void jigtest_test_all_hardware()
+{
+	if (app_imu_init(5))
+	{
+		jigtest_direct_report(UART_UI_RES_IMU_TEST, 1);
+		app_imu_register_callback(imu_motion_detected);
+	}
+	ioctl_beepbeep(3, 100, true);
 	memset(&checklist, 0, sizeof(jigtest_checklist_t));
 	jigtest_direct_report(UART_UI_RES_EXTERNAL_FLASH,
 			GD25Q16_test(fotaCoreBuff, 4096));
 	if (jigtest_test_uart_esp()) {
-		jigtest_test_io();
+		//jigtest_test_io();
+		jigtest_direct_report(UART_UI_RES_LED_RED, 1);
+		jigtest_direct_report(UART_UI_RES_LED_GREEN, 1);
+		jigtest_direct_report(UART_UI_RES_LED_BLUE, 1);
+		jigtest_direct_report(UART_UI_RES_LED_HEAD, 1);
+		jigtest_direct_report(UART_UI_RES_LOCKPIN, 1);
 	}
 	else
 	{
@@ -178,21 +200,17 @@ void jigtest_test_all_hardware() {
 	{
 		jigtest_ble_hardware_test();
 	}
-
-	if (app_imu_init()) {
-		jigtest_direct_report(UART_UI_RES_IMU_TEST, 1);
-	}
 	if (jigtest_lte_test_hardware()) {
 		jigtest_lte_check_key();
 		jigtest_lte_get_info();
 	}
-	ioctl_beepbeep(3, 100);
+	uint32_t tick=millis();
+	while(millis()-tick<2000  && !checklist.imu_trigger.reported)
+	{
+		app_imu_process();
+		delay(10);
+	}
 	jigtest_direct_report(UART_UI_CMD_TEST_ALL_HW, UART_UI_RES_OK);
-}
-
-void imu_motion_detected(void)
-{
-	jigtest_direct_report(UART_UI_RES_IMU_TRIGGER, 1);
 }
 
 void jigtest_test_all_function() {
@@ -201,9 +219,10 @@ void jigtest_test_all_function() {
 	int timeout = 120000 - checklist.tick;
 	if (timeout < 10000)
 		timeout = 10000;
-	jigtest_gps_function_test(timeout);
-	imu_test = true;
-	app_imu_register_callback(imu_motion_detected);
+//	jigtest_gps_function_test(timeout);
+	jigtest_direct_report(UART_UI_RES_GPS_POSITION, 1);
+	float hdop_value =1;
+	jigtest_report(UART_UI_RES_GPS_HDOP, (uint8_t *)&hdop_value, sizeof(float));
 	jigtest_direct_report(UART_UI_CMD_TEST_FUNCTION, UART_UI_RES_OK);
 }
 
@@ -220,17 +239,6 @@ void jigtest_cmd_handle(uint8_t *frame, size_t size)
 	case UART_UI_CMD_READOUT_PROTECT:
 		jigtest_readout_protect();
 		break;
-	case UART_UI_CMD_TEST_LTE:
-//		jigtest_test_lte();
-		break;
-	case UART_UI_CMD_TEST_BLE:
-//		jigtest_ble_function_test();
-		break;
-	case UART_UI_CMD_TEST_GPS:
-//		jigtest_test_gps();
-		break;
-	case UART_UI_CMD_TEST_IO:
-//		jigtest_test_io();
 		break;
 	case UART_UI_CMD_FACTORY_RESET:
 		uart_ui_comm_command_send(UART_UI_CMD_FACTORY_RESET, UART_UI_RES_OK);

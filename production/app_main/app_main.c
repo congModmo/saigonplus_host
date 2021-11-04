@@ -164,7 +164,7 @@ void app_main(void)
 #endif
 
 #ifdef IMU_ENABLE
-	app_imu_init();
+	app_imu_init(30);
 #endif
 
 #ifdef ALARM_ENABLE
@@ -180,7 +180,7 @@ void app_main(void)
 	publish_scheduler_init();
 #endif
 
-	ioctl_beepbeep(3, 100);
+	ioctl_beepbeep(3, 100, false);
 	while (1)
 	{
 #ifdef DISPLAY_ENABLE

@@ -123,7 +123,7 @@ void app_display_set_mode(display_mode_t mode)
 void app_display_init()
 {
 	display_parser_init(display_parser_cb);
-	display_bsp_init(&displayRb);
+	bsp_display_init(&displayRb);
 	Bounce3_Init(&lockPinDebounce, 100, lock_pin_get_state);
 	lockPinUpdate();
 	light_control_init();

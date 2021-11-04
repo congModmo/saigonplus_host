@@ -127,6 +127,10 @@ void main_mail_process()
 		}
 	}
 }
+void app_main_enter_config_mode()
+{
+
+}
 
 bool __IO imu_test=false;
 void app_main(void)

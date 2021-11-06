@@ -178,13 +178,9 @@ void jigtest_test_all_hardware()
 	memset(&checklist, 0, sizeof(jigtest_checklist_t));
 	jigtest_direct_report(UART_UI_RES_EXTERNAL_FLASH,
 			GD25Q16_test(fotaCoreBuff, 4096));
-	if (jigtest_test_uart_esp()) {
-		//jigtest_test_io();
-		jigtest_direct_report(UART_UI_RES_LED_RED, 1);
-		jigtest_direct_report(UART_UI_RES_LED_GREEN, 1);
-		jigtest_direct_report(UART_UI_RES_LED_BLUE, 1);
-		jigtest_direct_report(UART_UI_RES_LED_HEAD, 1);
-		jigtest_direct_report(UART_UI_RES_LOCKPIN, 1);
+	if (jigtest_test_uart_esp())
+	{
+		jigtest_test_io();
 	}
 	else
 	{
@@ -216,12 +212,12 @@ void jigtest_test_all_hardware()
 void jigtest_test_all_function() {
 	jigtest_ble_function_test();
 	jigtest_lte_function_test();
-	int timeout = 120000 - checklist.tick;
-	if (timeout < 10000)
-		timeout = 10000;
+//	int timeout = 120000 - checklist.tick;
+//	if (timeout < 10000)
+//		timeout = 10000;
 //	jigtest_gps_function_test(timeout);
 	jigtest_direct_report(UART_UI_RES_GPS_POSITION, 1);
-	float hdop_value =1;
+	float hdop_value=1;
 	jigtest_report(UART_UI_RES_GPS_HDOP, (uint8_t *)&hdop_value, sizeof(float));
 	jigtest_direct_report(UART_UI_CMD_TEST_FUNCTION, UART_UI_RES_OK);
 }

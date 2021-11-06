@@ -1,5 +1,5 @@
 
-#define __DEBUG__ 4
+#define __DEBUG__ 3
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -104,7 +104,7 @@ static MQTTFixedBuffer_t xBuffer =
 static void mqtt_publish(char *topic, uint8_t *data, size_t len, int qos){
 	if(pdPASS==prvMQTTPublishToTopic(topic, data, len, qos)){
 		mqtt.publish_failed=0;
-		debug("Publish done\n");
+		info("Publish done\n");
 	}
 	else{
 		mqtt.publish_failed++;
@@ -387,7 +387,7 @@ static void jigtest_mqtt_start_test()
 
 static void jigtest_mqtt_test_result()
 {
-	debug("Mqtt test done result: %d/%d\n", test_success, test_num);
+	info("Mqtt test done result: %d/%d\n", test_success, test_num);
 	mqtt_test_done=true;
 	if(test_success > test_num/2)
 	{
@@ -416,7 +416,7 @@ static void prvMQTTProcessIncomingPublish( MQTTPublishInfo_t * pxPublishInfo )
 {
     configASSERT( pxPublishInfo != NULL );
 
-	info ( "Incoming message Topic: %.*s\n",
+	debug ( "Incoming message Topic: %.*s\n",
 			   pxPublishInfo->topicNameLength,
 			   pxPublishInfo->pTopicName);
 
@@ -442,7 +442,7 @@ static void prvMQTTProcessIncomingPublish( MQTTPublishInfo_t * pxPublishInfo )
 				memcmp(pxPublishInfo->pPayload, test_message, strlen(test_message))==0)
 		{
 			test_success++;
-			debug("test success num: %d\n", test_success);
+			info("test success num: %d\n", test_success);
 		}
 		jigtest_mqtt_event_handle();
 	}
@@ -478,7 +478,7 @@ bool mqtt_init( ){
 }
 
 bool mqtt_start(){
-	debug("MQTT start connect\n");
+	info("MQTT start connect\n");
 	if( !lara_r2_socket_connect(mqtt.NetworkContext.socket, factory_config->broker.endpoint, factory_config->broker.port, factory_config->broker.secure ))
 	{
 		return false;
@@ -511,7 +511,7 @@ void mqtt_task_process( )
 {
 	if(mqtt.publish_failed>5){
 		mqtt.publish_failed=0;
-		debug("Request to restart network cause public fail too many time\n");
+		info("Request to restart network cause public fail too many time\n");
 		mqtt_ready=false;
 		mail_t mail={.type=MAIL_LTE_NETWORK_RESTART, .data=NULL, .len=0};
 		osMessageQueuePut(lteMailHandle, &mail, 0, 10);

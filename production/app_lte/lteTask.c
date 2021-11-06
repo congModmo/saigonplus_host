@@ -162,6 +162,18 @@ static bool lte_mail_process(){
 
 #ifdef JIGTEST
 #include "jigtest.h"
+
+void jigtest_report_network_info()
+{
+	if(!lara_r2_get_network_info(_carrier, sizeof(_carrier)-1, &rssi))
+	{
+		error("get network info\n");
+		return;
+	}
+	jigtest_report(UART_UI_RES_LTE_CARRIER,(uint8_t *)_carrier, strlen(_carrier));
+	jigtest_report(UART_UI_RES_LTE_RSSI, (uint8_t *)&rssi, sizeof(int));
+}
+
 void jigtest_network_ready_report()
 {
 	if(*network_type==NETWORK_TYPE_2G)
@@ -172,13 +184,7 @@ void jigtest_network_ready_report()
 	{
 		jigtest_direct_report(UART_UI_RES_LTE_4G, 1);
 	}
-	if(!lara_r2_get_network_info(_carrier, sizeof(_carrier)-1, &rssi))
-	{
-		error("get network info\n");
-		return;
-	}
-	jigtest_report(UART_UI_RES_LTE_CARRIER,(uint8_t *)_carrier, strlen(_carrier));
-	jigtest_report(UART_UI_RES_LTE_RSSI, (uint8_t *)&rssi, sizeof(int));
+	jigtest_report_network_info();
 }
 #endif
 

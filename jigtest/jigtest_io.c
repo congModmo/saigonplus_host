@@ -96,11 +96,8 @@ bool check_io_match()
 		delay(5);
 	}
 }
-
-static void light_testing()
+static void light_blink_test()
 {
-	light_control_init();
-	light_control(true);
 	int test_num=10;
 	int test_count=0;
 	light_test.red=light_test.green=light_test.blue=light_test.head=0;
@@ -121,18 +118,36 @@ static void light_testing()
 		check_io_match();
 		test_count++;
 	}
-	if(light_test.red==test_num*2){
+	if(light_test.red>=test_num){
 		test_io_result.red=true;
 	}
-	if(light_test.green==test_num*2){
+	if(light_test.green>=test_num){
 		test_io_result.green=true;
 	}
-	if(light_test.blue==test_num*2){
+	if(light_test.blue>=test_num*2){
 		test_io_result.blue=true;
 	}
-	if(light_test.head==test_num*2){
+	if(light_test.head>=test_num*2){
 		test_io_result.head=true;
 	}
+}
+static void light_testing()
+{
+	light_control_init();
+	light_control(true);
+
+	for(uint8_t i=0; i<3; i++)
+	{
+		light_blink_test();
+		if(test_io_result.red && test_io_result.green && test_io_result.blue && test_io_result.head)
+		{
+			break;
+		}
+	}
+	jigtest_direct_report(UART_UI_RES_LED_RED, test_io_result.red);
+	jigtest_direct_report(UART_UI_RES_LED_GREEN, test_io_result.green);
+	jigtest_direct_report(UART_UI_RES_LED_BLUE, test_io_result.blue);
+	jigtest_direct_report(UART_UI_RES_LED_HEAD, test_io_result.head);
 }
 
 void lockpin_testing()
@@ -147,6 +162,7 @@ void lockpin_testing()
 	}
 	if(lockpin.count>5){
 		test_io_result.lock=true;
+		jigtest_direct_report(UART_UI_RES_LOCKPIN, test_io_result.lock);
 	}
 }
 
@@ -155,11 +171,7 @@ void jigtest_test_io()
 	memset(&test_io_result, 0, sizeof(jigtest_io_result_t));
 	light_testing();
 	lockpin_testing();
-	jigtest_direct_report(UART_UI_RES_LED_RED, test_io_result.red);
-	jigtest_direct_report(UART_UI_RES_LED_GREEN, test_io_result.green);
-	jigtest_direct_report(UART_UI_RES_LED_BLUE, test_io_result.blue);
-	jigtest_direct_report(UART_UI_RES_LED_HEAD, test_io_result.head);
-	jigtest_direct_report(UART_UI_RES_LOCKPIN, test_io_result.lock);
+
 }
 
 void jigtest_io_console_handle(char *result)
@@ -180,10 +192,12 @@ void jigtest_io_console_handle(char *result)
 	else if(__check_cmd("test led"))
 	{
 		light_testing();
+		debug("test led result red green blue head %d %d %d %d\n", test_io_result.red, test_io_result.green, test_io_result.blue, test_io_result.head);
 	}
 	else if(__check_cmd("test lock"))
 	{
 		lockpin_testing();
+		debug("Test lock %s\n", test_io_result.lock?"ok":"error");
 	}
 	else debug("Unknown command\n");
 }

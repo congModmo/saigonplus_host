@@ -59,12 +59,7 @@ void uart_ui_callback(uint8_t type, fota_file_info_t *file)
 void fota_callback(uint8_t source, bool status)
 {
 	fota_finish = true;
-	debug("FOTA  is %s\n", status ? "done" : "failed");
-	if(source==FOTA_OVER_UART)
-	{
-		uart_ui_comm_init(false);
-		eva_m8_bsp_uart_init();
-	}
+	debug("FOTA  over %s is %s\n", (source==FOTA_OVER_UART)?"uart":"ble", status ? "done" : "failed");
 }
 
 void fota_start_process(uint8_t source, void *params)
@@ -86,12 +81,17 @@ void fota_start_process(uint8_t source, void *params)
 		serial_transport_init(ble_serial);
 		transport = &serial_transport;
 	}
-	fota_core_init(transport, fota_callback, &json_info, params);
+	fota_core_init(transport, fota_callback, &json_info, params, source);
 	while (!fota_finish)
 	{
 		fota_core_process();
 		delay(5);
 		WATCHDOG_FEED();
+	}
+	if(source==FOTA_OVER_UART)
+	{
+		uart_ui_comm_init(false);
+		eva_m8_bsp_init();
 	}
 }
 

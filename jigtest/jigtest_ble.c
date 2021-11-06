@@ -78,16 +78,16 @@ void jigtest_ble_hardware_test()
 bool ble_mac_test()
 {
 	uint32_t tick=millis();
-	app_ble_init();
-	while(strlen(ble_mac)==0 && millis()-tick<5000)
+	while((strlen(ble_mac)==0 || !host_ble_info_sync) && millis()-tick<5000)
 	{
 		app_ble_task();
 		delay(5);
 	}
-	if(strlen(ble_mac)==0)
+	if(strlen(ble_mac)==0 || !host_ble_info_sync)
 	{
 		return false;
 	}
+	return true;
 }
 
 bool ble_connection_test()
@@ -109,24 +109,19 @@ bool ble_connection_test()
 	return ble_connected;
 }
 
-bool ble_transceiver_test()
+static bool transceiver_loop_test()
 {
-	uint32_t tick;
-	for(uint8_t i=0; i<sizeof(ble_data_buffer); i++){
-		ble_data_buffer[i]=i;
-	}
-	uart_esp_send_cmd(ESP_REDIRECT_DATA_TO_HOST);
-	nina_b1_send1(HOST_COMM_UI_MSG,ble_data_buffer, sizeof(ble_data_buffer) );
-	tick=millis();
+	uint32_t tick=millis();
 	transceiver_test.done=false;
 	transceiver_test.result=false;
+	nina_b1_send1(HOST_COMM_UI_MSG,ble_data_buffer, sizeof(ble_data_buffer) );
 	while(millis()-tick <1000 && !transceiver_test.done)
 	{
 		delay(5);
 		esp_uart_polling(esp_polling_callback);
 	}
 	if(!transceiver_test.result){
-		goto __exit;
+		return false;
 	}
 	uart_esp_send(ESP_BLE_HOST_DATA, ble_data_buffer, sizeof(ble_data_buffer));
 	tick=millis();
@@ -137,9 +132,23 @@ bool ble_transceiver_test()
 		delay(5);
 		nina_b1_polling(nina_b1_polling_callback);
 	}
-	__exit:
-	uart_esp_send_cmd(ESP_REDIRECT_DATA_TO_GUI);
 	return transceiver_test.result;
+}
+bool ble_transceiver_test()
+{
+	for(uint8_t i=0; i<sizeof(ble_data_buffer); i++){
+		ble_data_buffer[i]=i;
+	}
+	uart_esp_send_cmd(ESP_REDIRECT_DATA_TO_HOST);
+	bool result;
+	for(uint8_t i=0; i<3; i++)
+	{
+		result=transceiver_loop_test();
+		if(result)
+			break;
+	}
+	uart_esp_send_cmd(ESP_REDIRECT_DATA_TO_GUI);
+	return result;
 }
 
 void jigtest_ble_function_test()
@@ -152,7 +161,7 @@ void jigtest_ble_function_test()
 	{
 		jigtest_direct_report(UART_UI_RES_BLE_CONNECT, 1);
 	}
-	delay(1000);
+	delay(500);
 	if(ble_transceiver_test())
 	{
 		jigtest_direct_report(UART_UI_RES_BLE_TRANSCEIVER, 1);

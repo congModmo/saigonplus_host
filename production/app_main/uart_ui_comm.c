@@ -27,7 +27,7 @@
 #include "app_lte/lteTask.h"
 #include "app_info.h"
 
-static slip_t slip;
+static slip_t ui_slip;
 static uint8_t slip_buff[512];
 static uint32_t tick = 0;
 static RINGBUF uartUiRingbuf;
@@ -108,19 +108,19 @@ char *ui_cmd_to_string(ui_comm_cmd_t cmd)
 
 void uart_ui_comm_command_send(uint8_t type, uint8_t status)
 {
-	slip_send(&slip, &type, 1, SLIP_FRAME_BEGIN);
-	slip_send(&slip, &status, 1, SLIP_FRAME_END);
+	slip_send(&ui_slip, &type, 1, SLIP_FRAME_BEGIN);
+	slip_send(&ui_slip, &status, 1, SLIP_FRAME_END);
 }
 
 void uart_ui_comm_send(uint8_t type, uint8_t *data, uint16_t len)
 {
-	slip_send(&slip, &type, 1, SLIP_FRAME_BEGIN);
-	slip_send(&slip, data, len, SLIP_FRAME_END);
+	slip_send(&ui_slip, &type, 1, SLIP_FRAME_BEGIN);
+	slip_send(&ui_slip, data, len, SLIP_FRAME_END);
 }
 
 void uart_ui_comm_send0(uint8_t *data, size_t len)
 {
-	slip_send(&slip, data, len,SLIP_FRAME_COMPLETE);
+	slip_send(&ui_slip, data, len,SLIP_FRAME_COMPLETE);
 }
 
 static void uart_ui_command_handle(uint8_t *frame, size_t size)
@@ -212,10 +212,10 @@ static void polling(frame_handler handler)
 		static uint8_t c;
 		RINGBUF_Get(&uartUiRingbuf, &c);
 		static uint32_t len;
-		len = slip_parse(&slip, c);
+		len = slip_parse(&ui_slip, c);
 		if (len > 0 && handler != NULL)
 		{
-			handler(slip.buff, len);
+			handler(ui_slip.buff, len);
 		}
 	}
 }
@@ -234,11 +234,11 @@ static void serial_send(uint8_t *data, size_t len, slip_frame_type_t type)
 {
 	if(type==SLIP_FRAME_BEGIN){
 		uint8_t cmd=UART_UI_FOTA_DATA;
-		slip_send(&slip, &cmd, 1, SLIP_FRAME_BEGIN);
-		slip_send(&slip, data, len, SLIP_FRAME_MIDDLE);
+		slip_send(&ui_slip, &cmd, 1, SLIP_FRAME_BEGIN);
+		slip_send(&ui_slip, data, len, SLIP_FRAME_MIDDLE);
 	}
 	else{
-		slip_send(&slip, data, len, type);
+		slip_send(&ui_slip, data, len, type);
 	}
 }
 
@@ -253,11 +253,11 @@ const serial_interface_t uart_transport = {.init=uart_transport_init, .mtu = 128
  * Public APIs
  ****************************************************************************************/
 
-void uart_ui_comm_init(bool highspeed)
+void uart_ui_comm_init(bool dma)
 {
 	bsp_ui_comm_deinit();
-	bsp_ui_comm_init(&uartUiRingbuf, highspeed);
-	slip_init(&slip, true, slip_buff, 512, bsp_ui_comm_send_byte);
+	bsp_ui_comm_init(&uartUiRingbuf, dma);
+	slip_init(&ui_slip, true, slip_buff, 512, bsp_ui_comm_send_byte);
 }
 
 void uart_ui_comm_polling(void)

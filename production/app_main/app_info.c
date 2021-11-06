@@ -33,14 +33,13 @@ static factory_config_t factory;
 static host_ble_info_t _host_ble_info;
 
 const host_ble_info_t * const host_ble_info =&_host_ble_info;
-const factory_config_t *const factory_config = (const factory_config_t *)&factory;
-//const factory_config_t *const factory_config = (const factory_config_t *)FLASH_DEVICE_FACTORY_INFO;
+//const factory_config_t *const factory_config = (const factory_config_t *)&factory;
+const factory_config_t *const factory_config = (const factory_config_t *)FLASH_DEVICE_FACTORY_INFO;
 const user_config_t * const user_config=&app_setting.user_config;
 const firmware_version_t *const firmware_version=&app_setting.firmware_version;
 const char *const serial_number=app_setting.serial_number;
 const bool * const bike_locked=&lock_state.lock;
 const publish_setting_cmd_t *const publish_setting=&app_setting.publish_setting;
-
 
 #define app_info_update_setting() app_info_update((uint8_t *)&app_setting, sizeof(app_info_setting_t), EX_FLASH_APP_INFO)
 
@@ -111,10 +110,10 @@ void app_info_init()
 {
 	app_lock_init();
 	app_config_init();
-	factory.hardwareVersion=0x201;
-	factory.broker.port=8883;
-	factory.broker.secure=1;
-	strcpy(factory.broker.endpoint, "a28c4si2pkzbml-ats.iot.ap-southeast-1.amazonaws.com");
+//	factory.hardwareVersion=0x201;
+//	factory.broker.port=8883;
+//	factory.broker.secure=1;
+//	strcpy(factory.broker.endpoint, "a28c4si2pkzbml-ats.iot.ap-southeast-1.amazonaws.com");
 	app_host_ble_info_init();
 }
 

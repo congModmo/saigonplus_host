@@ -223,7 +223,7 @@ __exit:
 	return status;
 }
 
-void fota_core_init(const fota_transport_t *transport, fota_callback_t cb, fota_file_info_t *info_json, void *params)
+void fota_core_init(const fota_transport_t *transport, fota_callback_t cb, fota_file_info_t *info_json, void *params, uint8_t source)
 {
 	fota.state = FOTA_CORE_IDLE;
 	fota.result = false;
@@ -248,6 +248,7 @@ void fota_core_init(const fota_transport_t *transport, fota_callback_t cb, fota_
 	fota.available_flash_addr = EX_FLASH_FOTA_FILES_START;
 	fota.state = FOTA_CORE_REQUEST_FILE;
 	fota.requesting_file = &fota.json_info;
+	fota.source=source;
 }
 
 bool fota_core_flash_ble(void)
@@ -388,7 +389,7 @@ void fota_core_process()
 	}
 	if (fota.state == FOTA_CORE_EXIT)
 	{
-		fota.callback(fota.transport->source, fota.result);
+		fota.callback(fota.source, fota.result);
 		fota_dispose();
 		fota.state=FOTA_CORE_IDLE;
 		if(fota.result)

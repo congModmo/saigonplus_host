@@ -118,12 +118,16 @@ void parse_gga(char *frame)
 			callback(token[2], token[3], token[4], token[5], token[8]);
 	}
 }
+void eva_m8_bsp_init()
+{
+	eva_m8_bsp_uart_init(&gpsRingbuf);
+}
 
 void eva_m8_init(eva_m8_data_callback_t cb)
 {
 	callback = cb;
 	eva_m8_disable_messages();
-	eva_m8_bsp_uart_init(&gpsRingbuf);
+	eva_m8_bsp_init();
 }
 
 void eva_m8_process()

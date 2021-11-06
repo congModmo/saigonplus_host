@@ -42,7 +42,9 @@ void app_ble_comm_req_set_hw_info(void);
 bool app_ble_update_time(char *s);
 void app_ble_send_notify(void);
 void app_ble_comm_reset(void);
-
+#ifdef JIGTEST
+extern bool host_ble_info_sync;
+#endif
 
 #ifdef __cplusplus
 }

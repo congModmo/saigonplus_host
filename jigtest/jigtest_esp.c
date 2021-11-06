@@ -69,14 +69,13 @@ bool jigtest_test_uart_esp()
 	esp_tester.crc = crc32_compute(esp_tester.outBuffer, 32, NULL);
 	for (uint8_t i = 0; i < 3; i++)
 	{
-		if (!uart_esp_block_test())
+		if (uart_esp_block_test())
 		{
-			return false;
+			jigtest_direct_report(UART_UI_RES_ESP_ADAPTOR, 1);
+			return true;
 		}
 	}
-
-	jigtest_direct_report(UART_UI_RES_ESP_ADAPTOR, 1);
-	return true;
+	return false;
 }
 
 void uart_esp_send_cmd(uint8_t cmd){

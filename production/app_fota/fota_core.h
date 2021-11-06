@@ -41,7 +41,7 @@ typedef struct{
 
 extern uint8_t fotaCoreBuff[FLASH_FOTA_SECTOR_SZ];
 
-void fota_core_init(const fota_transport_t *transport, fota_callback_t cb, fota_file_info_t * info_json, void *params);
+void fota_core_init(const fota_transport_t *transport, fota_callback_t cb, fota_file_info_t * info_json, void *params, uint8_t source);
 void fota_core_process(void);
 bool fota_check_fota_request(fota_request_msg_t *request);
 #endif /* FOTA_CORE_H_ */

@@ -33,6 +33,9 @@ const char * const ble_mac=mac;
 
 static char imei_mac[64] ={0};
 static char ble_resp[256]={0};
+#ifdef JIGTEST
+bool host_ble_info_sync=false;
+#endif
 
 static void ble_request_cmd(uint8_t type)
 {
@@ -46,7 +49,7 @@ static void app_ble_handle_ui_raw_packet(uint8_t * packet, size_t len)
 	{
 		serial_fota_request_info_t *request;
 		request = (serial_fota_request_info_t *)(packet + 1);
-		serial_fota_request_handle(FOTA_OVER_BLE, request);
+		serial_fota_request_handle(request, FOTA_OVER_BLE) ;
 	}
 	else if (packet[0] == FOTA_REQUEST_MTU)
 	{
@@ -221,6 +224,9 @@ void host_comm_ble_msg_handle(uint8_t *msg, size_t len)
 	{
 		nina_b1_send1(HOST_BLE_RES_INFO, (uint8_t *)host_ble_info, sizeof(host_ble_info_t));
 		debug("response to ble sync cmd\n");
+#ifdef JIGTEST
+		host_ble_info_sync=true;
+#endif
 	}
 	else if(msg[0]==BLE_STATE_DISCONNECTED)
 	{
@@ -252,7 +258,6 @@ static void testing_callback(uint8_t *packet, size_t len)
 	else if(packet[0]==HOST_COMM_UI_MSG)
 	{
 		host_comm_ui_msg_handle(packet+1, len-1);
-//		nina_b1_send1(HOST_COMM_UI_MSG, (uint8_t *)packet+1, 10);
 	}
 }
 
@@ -260,6 +265,9 @@ void app_ble_init(void)
 {
 	nina_b1_init();
 	ble_request_cmd(HOST_CMD_SYNC_INFO);
+	#ifdef JIGTEST
+	host_ble_info_sync=false;
+	#endif
 }
 
 void app_ble_task(void)

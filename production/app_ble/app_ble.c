@@ -106,8 +106,11 @@ static void app_ble_handle_ui_string_cmd(char * result)
 	bool reset=false;
 	if (__check_cmd(REQ_SYS_INFO))
 	{
-		//<IMEI> <CCID> <MAC> <HARDWARE_VERSION> <HOST_VERSION> <BLE_VERSION>
-		sprintf(ble_resp, "%s OK %s %s %s %d %d %d", REQ_SYS_INFO, lteImei, lteCcid, mac, factory_config->hardwareVersion, firmware_version->hostApp, firmware_version->bleApp);
+		//<HARDWARE_VERSION> <HOST_VERSION> <BLE_VERSION>
+		sprintf(ble_resp, "%s OK %u.%u %u.%u %u.%u",REQ_SYS_INFO,\
+				factory_config->hardwareVersion>>8, factory_config->hardwareVersion&0x0FF,\
+				firmware_version->hostApp>>8, firmware_version->hostApp&0x0FF,\
+				firmware_version->bleApp>>8, firmware_version->bleApp&0x0FF);
 		nina_b1_send1(HOST_COMM_UI_MSG, (uint8_t *)ble_resp, strlen(ble_resp));
 	}
 	else if (__check_cmd(REQ_SYS_RESET))

@@ -21,10 +21,10 @@
 
 extern RINGBUF uartRingbuf;
 void bsp_uart_fota_init();
-#ifdef HAL_IWDG_MODULE_ENABLED
-#define WDT_FEED() HAL_IWDG_Refresh(&hiwdg)
-#else
+#ifdef DEBUG
 #define WDT_FEED()
+#else
+#define WDT_FEED() HAL_IWDG_Refresh(&hiwdg)
 #endif
 
 

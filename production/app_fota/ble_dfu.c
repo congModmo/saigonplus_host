@@ -200,31 +200,29 @@ bool ble_dfu_start(){
 	while(retry)
 	{
 		ble_request_dfu();
-		delay(200);
-		if(ble_slip_ping(1))
-		{
-			//Ping ok
-			break;
-		}
-		else if(retry==0)
+		delay(100);
+		if(!ble_slip_ping(1))
 		{
 			error("ping fail\n");
-			return false;
+			goto __retry;
 		}
+		if(!ble_slip_prn())
+		{
+			error("ping fail\n");
+			goto __retry;
+		}
+		if(!ble_slip_mtu(&ble_dfu.mtu))
+		{
+			error("mtu fail\n");
+			goto __retry;
+		}
+		return true;
+		__retry:
 		nina_b1_reset();
 		delay(100);
 		retry--;
 	}
-	delay(100);
-	if(!ble_slip_prn()){
-		error("prn fail\n");
-		return false;
-	}
-	if(!ble_slip_mtu(&ble_dfu.mtu)){
-		error("mtu fail\n");
-		return false;
-	}
-	return true;
+	return false;
 }
 
 // Note: data is ext flash address

@@ -19,7 +19,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 
-#define __DEBUG__ 3
+#define __DEBUG__ 4
 #include <stdio.h>
 #include "main.h"
 #include "spi.h"
@@ -88,10 +88,13 @@ int main(void)
 #ifdef DEBUG
 	MX_USART5_UART_Init();
 	RetargetInit(&huart5);
+#else
+	MX_IWDG_Init();
 #endif
-//	debug("***************************\n");
-//	debug("*  Hello 1st bootloader  *\n");
-//	debug("***************************\n");
+
+	debug("***************************\n");
+	debug("*  Hello 1st bootloader  *\n");
+	debug("***************************\n");
 
   	if (!flash_fota_check_valid_app_upgrade(&fotaInfo)){
   		goto __app_jump;

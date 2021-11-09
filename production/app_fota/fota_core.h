@@ -23,7 +23,13 @@ enum{
 	FOTA_OVER_UART=2
 };
 
-typedef void (*fota_callback_t)(uint8_t fota_source, bool status);
+typedef enum{
+	FOTA_NONE,
+	FOTA_DONE,
+	FOTA_FAIL
+}fota_status_t;
+
+typedef void (*fota_callback_t)(uint8_t fota_source, fota_status_t host, fota_status_t ble);
 typedef void (*transport_get_file_cb_t)(bool status);
 typedef void (*transport_err_cb_t)(int num);
 typedef bool (*transport_init_t)(uint8_t *buff, size_t size, void *params, transport_err_cb_t cb);

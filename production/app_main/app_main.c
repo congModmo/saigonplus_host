@@ -54,10 +54,23 @@ void uart_ui_callback(uint8_t type, fota_file_info_t *file)
 	json_info.len = file->len;
 }
 
-void fota_callback(uint8_t source, bool status)
+void fota_callback(uint8_t source, fota_status_t host_fota, fota_status_t ble_fota)
 {
 	fota_finish = true;
-	debug("FOTA  is %s\n", status ? "done" : "failed");
+	if(ble_fota!=FOTA_NONE)
+	{
+		 uart_ui_comm_command_send(UART_UI_RES_BLE_DFU, (ble_fota==FOTA_DONE)?1:0);
+	}
+	if(host_fota==FOTA_FAIL)
+	{
+		 uart_ui_comm_command_send(UART_UI_RES_HOST_DFU, 0);
+	}
+	else if(host_fota==FOTA_DONE)
+	{
+		debug("Restart to update host\n");
+		delay(10);
+		NVIC_SystemReset();
+	}
 }
 
 void fota_start_process(uint8_t source, void *params)
@@ -77,7 +90,7 @@ void fota_start_process(uint8_t source, void *params)
 		serial_transport_init(ble_serial);
 		transport = &serial_transport;
 	}
-	fota_core_init(transport, fota_callback, &json_info, params);
+	fota_core_init(transport, fota_callback, &json_info, params, source);
 	while (!fota_finish)
 	{
 		fota_core_process();
@@ -120,7 +133,7 @@ void main_mail_process()
 	}
 }
 
-static bool config_mode=false;
+static __IO bool config_mode=false;
 void app_main_enter_config_mode()
 {
 	config_mode=true;
@@ -128,7 +141,23 @@ void app_main_enter_config_mode()
 
 void uart_ui_process()
 {
-
+	uint32_t tick=millis();
+	uart_ui_comm_init(true);
+	if(host_app_upgrade_form_uart_check())
+	{
+		 uart_ui_comm_command_send(UART_UI_RES_HOST_DFU, 1);
+		 debug("Just upgrade host from uart\n");
+	}
+	else{
+		debug("Normal boot\n");
+	}
+	while(millis()-tick<2000 && !config_mode)
+	{
+		uart_ui_comm_polling();
+		delay(5);
+	}
+	if(!config_mode)
+		bsp_ui_comm_deinit();
 }
 
 void app_main(void)
@@ -144,6 +173,11 @@ void app_main(void)
 	app_info_init();
 	debug("Host app version: %d\n", firmware_version->hostApp);
 	debug("Ble app version: %d\n", firmware_version->bleApp);
+
+#ifdef BLE_ENABLE
+	app_ble_init();
+#endif
+
 #ifdef DISPLAY_ENABLE
 	uart_ui_process();
 	if(!config_mode)
@@ -152,11 +186,9 @@ void app_main(void)
 		app_display_set_mode(*bike_locked?DISPLAY_ANTI_THEFT_MODE:DISPLAY_NORMAL_MODE);
 	}
 #endif
+
 #ifdef PUBLISH_ENABLE
 	publish_scheduler_init();
-#endif
-#ifdef BLE_ENABLE
-	app_ble_init();
 #endif
 
 #ifdef LTE_ENABLE
@@ -180,7 +212,7 @@ void app_main(void)
 	publish_scheduler_init();
 #endif
 
-	ioctl_beepbeep(3, 100, false);
+//	ioctl_beepbeep(3, 200, true);
 	while (1)
 	{
 #ifdef DISPLAY_ENABLE

@@ -47,6 +47,8 @@ typedef struct
 	fota_file_info_t ble_init;
 	fota_file_info_t ble_app;
 	uint32_t ble_app_version;
+	fota_status_t ble_status;
+	fota_status_t host_status;
 	void *params;
 } fota_core_t;
 
@@ -56,7 +58,7 @@ uint8_t fotaCoreBuff[FLASH_FOTA_SECTOR_SZ];
 static void tranport_err_callback_handle(int err_num)
 {
 	error("Transport error cb\n");
-	fota.callback(fota.transport->source, false);
+	fota.callback(fota.transport->source, FOTA_NONE, FOTA_NONE);
 	fota.state = FOTA_CORE_IDLE;
 	fota.transport->signal(false);
 }
@@ -227,6 +229,8 @@ void fota_core_init(const fota_transport_t *transport, fota_callback_t cb, fota_
 {
 	fota.state = FOTA_CORE_IDLE;
 	fota.result = false;
+	fota.ble_status=FOTA_NONE;
+	fota.host_status=FOTA_NONE;
 	if (fota.json_info.len >= FLASH_FOTA_SECTOR_SZ)
 	{
 		error("info file too long\n");
@@ -257,20 +261,34 @@ bool fota_core_flash_ble(void)
 	return ble_dfu_process();
 }
 
+static host_app_fota_info_t host_fota_info;
 bool host_app_dfu_start()
 {
-	static host_app_fota_info_t info;
-	strcpy(info.signature, VALID_FOTA_FW_FLAG);
-	strcpy(info.fileName, fota.host_app.file_name);
-	info.source=fota.transport->source;
-	info.len=fota.host_app.len;
-	info.crc=fota.host_app.crc;
-	info.flash_addr=fota.host_app.flash_addr;
-	if(!GD25Q16_WriteAndVerifySector(EX_FLASH_APP_INFO_ADDR, (uint8_t *)&info, sizeof(host_app_fota_info_t))){
+	strcpy(host_fota_info.signature, VALID_FOTA_FW_FLAG);
+	strcpy(host_fota_info.fileName, fota.host_app.file_name);
+	host_fota_info.source=fota.source;
+	host_fota_info.len=fota.host_app.len;
+	host_fota_info.crc=fota.host_app.crc;
+	host_fota_info.flash_addr=fota.host_app.flash_addr;
+	if(!GD25Q16_WriteAndVerifySector(EX_FLASH_APP_INFO_ADDR, (uint8_t *)&host_fota_info, sizeof(host_app_fota_info_t))){
 		error("Write flash\n");
 		return false;
 	}
 	return true;
+}
+
+bool host_app_upgrade_form_uart_check()
+{
+	GD25Q16_ReadSector(EX_FLASH_APP_INFO_ADDR, (uint8_t *)&host_fota_info, sizeof(host_app_fota_info_t));
+	if(0==strcmp(host_fota_info.signature, VALID_FOTA_FW_FLAG))
+	{
+		GD25Q16_SectorErase(EX_FLASH_APP_INFO_ADDR);
+		if(host_fota_info.source==FOTA_OVER_UART)
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 void fota_core_process()
@@ -291,7 +309,7 @@ void fota_core_process()
 				error("Parse info\n");
 				fota.state = FOTA_CORE_IDLE;
 				fota_dispose();
-				fota.callback(fota.transport->source, false);
+				fota.callback(fota.transport->source, FOTA_NONE, FOTA_NONE);
 			}
 			if (fota.host_app_version > 0)
 			{
@@ -341,31 +359,24 @@ void fota_core_process()
 	}
 	if (fota.state == FOTA_CORE_START_DFU)
 	{
-		//from here mcu just complete firmware file transfering process,
-		//I assume that firmware dfu process is 100% reliable,
-		//TODO call signal dfu source (app, server) after dfu process.
+		fota.state = FOTA_CORE_IDLE;
 		fota.result=true;
 		fota.transport->signal(fota.result);
-
-		fota.state = FOTA_CORE_IDLE;
 		if (fota.ble_app_version > 0)
 		{
 #ifdef BLE_ENABLE
+			//to let response signal back to gui
+			if(fota.source==FOTA_OVER_BLE)
+				delay(200);
 			if (!fota_core_flash_ble())
 			{
 				error("Ble app dfu fail, lam sao gio choi\n");
-#ifdef JIGTEST
-				jigtest_direct_report(UART_UI_RES_BLE_DFU, 0);
-#endif
+				fota.ble_status=FOTA_FAIL;
+				fota.result=false;
 				goto __exit;
 			}
-			else
-			{
-#ifdef JIGTEST
-				jigtest_direct_report(UART_UI_RES_BLE_DFU, 1);
-#endif
-			}
-
+			fota.ble_status=FOTA_DONE;
+			app_info_update_ble_version(fota.ble_app_version);
 #else
 			goto __exit;
 #endif
@@ -375,34 +386,22 @@ void fota_core_process()
 			if (!host_app_dfu_start())
 			{
 				error("Host app dfu fail\n");
-#ifdef JIGTEST
-				jigtest_direct_report(UART_UI_RES_HOST_DFU, 0);
-#endif
+				fota.host_status=FOTA_FAIL;
+				fota.result=false;
 				goto __exit;
 			}
-#ifdef JIGTEST
-				jigtest_direct_report(UART_UI_RES_HOST_DFU, 1);
-#endif
+			fota.host_status=FOTA_DONE;
+			//I assume that host firmware dfu process is 100% reliable,
+			app_info_update_host_version(fota.host_app_version);
 		}
 	__exit:
 		fota.state=FOTA_CORE_EXIT;
 	}
 	if (fota.state == FOTA_CORE_EXIT)
 	{
-		fota.callback(fota.source, fota.result);
 		fota_dispose();
 		fota.state=FOTA_CORE_IDLE;
-		if(fota.result)
-		{
-			app_info_update_firmware_version(fota.host_app_version, fota.ble_app_version);
-			if(fota.host_app_version > 0)
-			{
-				debug("restart to update host app\n");
-				delay(100);
-				nina_b1_reset();
-				NVIC_SystemReset();
-			}
-		}
+		fota.callback(fota.source, fota.host_status, fota.ble_status);
 	}
 }
 
@@ -442,6 +441,7 @@ bool test_check()
 //	ASSERT_RET(strcmp(fota.ble_init.file_name, "bleApp.dat") == 0, false, "parse ble init name");
 //	ASSERT_RET(strcmp(fota.ble_app.file_name, "bleApp.bin") == 0, false, "parse ble app name");
 //	ASSERT_RET(strlen(fota.host_app.file_name) == 0, false, "host name should be 0");
+	return true;
 }
 
 bool TEST_parse_json_info()

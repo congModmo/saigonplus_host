@@ -58,7 +58,7 @@ bool flash_fota_program_mcu_from_ext_flash(uint32_t mcuFlashAddr, uint32_t extFl
         _mcuFlashAddr += _len;
         _extFlashAddr += _len;
         total -= _len;
-        //ioctl_beepbeep(1,1);
+		WDT_FEED();
     }
 
 
@@ -119,14 +119,13 @@ bool flash_fota_check_valid_app_upgrade(host_app_fota_info_t *fwInfo)
         return false;
     }
     if(strcmp(fwInfo->fileName, "hostApp.bin")!=0){
-    	error("Not valid bootloader name\n");
+    	error("Not valid host name\n");
     	return false;
     }
     if (!GD25Q16_Crc32_check(fwInfo->flash_addr, fwInfo->len, fwInfo->crc)){
         error("File CRC check failed\n");
         return false;
     }
-    GD25Q16_SectorErase(EX_FLASH_APP_INFO_ADDR);
     debug("Fota app valid:\n");
     debug("Filename: %s\n", fwInfo->fileName);
     debug("Filesize: %lu bytes\n", fwInfo->len);

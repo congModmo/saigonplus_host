@@ -206,7 +206,7 @@ static char *cmd_to_string(uint8_t cmd)
 	case FOTA_REQUEST_MTU:
 		return "FOTA_REQUEST_MTU";
 	default:
-		return NULL;
+		return "NULL";
 	}
 }
 

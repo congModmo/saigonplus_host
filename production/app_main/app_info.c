@@ -117,12 +117,17 @@ void app_info_init()
 	app_host_ble_info_init();
 }
 
-void app_info_update_firmware_version(uint16_t hostApp, uint16_t bleApp)
+void app_info_update_host_version(uint16_t hostApp)
 {
 	if(hostApp>0)
 	{
 		app_setting.firmware_version.hostApp=hostApp;
 	}
+	app_info_update_setting();
+}
+
+void app_info_update_ble_version(uint16_t bleApp)
+{
 	if(bleApp>0)
 	{
 		app_setting.firmware_version.bleApp=bleApp;
@@ -244,7 +249,8 @@ void app_info_console_handle(char *result)
 		int ble, app;
 		if(sscanf(__param_pos("set firmware version"), "%d %d", &app, &ble)==2)
 		{
-			app_info_update_firmware_version(app, ble);
+			app_info_update_ble_version(ble);
+			app_info_update_host_version(app);
 			debug("Set firmware version to app: %d, ble: %d\n", app, ble);
 		}
 		else debug("Params error\n");

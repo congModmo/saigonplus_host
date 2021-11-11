@@ -189,7 +189,10 @@ void app_main(void)
 		if(millis()-tick>1000)
 		{
 			tick=millis();
-			debug("lte rssi: %d, gps hdop: %.2f\n", *lteRssi, gps_data->hdop);
+			if(strlen(lteCarrier)>0)
+			{
+				debug("lte carrier: %s, type: %s rssi: %d, gps hdop: %.2f\n", lteCarrier, (*network_type==NETWORK_TYPE_2G?"2G":"4G"), *lteRssi, gps_data->hdop);
+			}
 		}
 #ifdef DISPLAY_ENABLE
 		if(!config_mode)

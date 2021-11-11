@@ -32,6 +32,7 @@ const int *const lteRssi= &rssi;
 const char *const lteImei= &_imei;
 const char *const lteCcid= &_ccid;
 const network_type_t * const network_type =&type;
+const char *const lteCarrier=_carrier;
 static __IO bool network_ready=false;
 
 bool network_is_ready(){
@@ -63,7 +64,7 @@ static bool network_security_init()
 bool network_connect_init(void)
 {
 	ASSERT_RET(gsm_send_at_command("AT+CMEE=2\r\n", "OK", 500, 2, NULL), false, "AT+CMEE=2");
-	ASSERT_RET(gsm_send_at_command("AT+URAT=5,3\r\n", "OK", 500, 2, NULL), false, "AT+URAT=5,3");
+	ASSERT_RET(gsm_send_at_command("AT+URAT=0\r\n", "OK", 500, 2, NULL), false, "AT+URAT=0");
 	ASSERT_RET(gsm_send_at_command("AT+UPSD=0,1,\"TSIOT\"\r\n", "OK", 500, 2, NULL), false, "AT+UPSD=0,1,\"TSIOT\"");
 	ASSERT_RET(gsm_send_at_command("AT+UPSD=0,0,0\r\n", "OK", 500, 5, NULL), false, "AT+UPSD=0,0,0");
 	ASSERT_RET(gsm_send_at_command("AT+CREG=2\r\n", "OK", 500, 2, NULL), false, "AT+CREG=2");
@@ -226,6 +227,7 @@ void lte_task(){
 	jigtest_network_ready_report();
 #endif
 	uint32_t tick=millis();
+	lara_r2_get_network_info(_carrier, &rssi);
 	while(true){
 		if(millis()-tick>1000)
 		{

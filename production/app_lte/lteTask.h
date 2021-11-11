@@ -26,5 +26,5 @@ extern const network_type_t * const network_type;
 extern const char *const lteImei;
 extern const int *const lteRssi;
 extern const char *const lteCcid;
-
+extern const char *const lteCarrier;
 #endif /* APP_LTE_LTETASK_H_ */

@@ -56,10 +56,23 @@ void uart_ui_callback(uint8_t type, fota_file_info_t *file)
 	json_info.len = file->len;
 }
 
-void fota_callback(uint8_t source, bool status)
+void fota_callback(uint8_t source, fota_status_t host_fota, fota_status_t ble_fota)
 {
 	fota_finish = true;
-	debug("FOTA  over %s is %s\n", (source==FOTA_OVER_UART)?"uart":"ble", status ? "done" : "failed");
+	if(ble_fota!=FOTA_NONE)
+	{
+		 jigtest_direct_report(UART_UI_RES_BLE_DFU, (ble_fota==FOTA_DONE)?1:0);
+	}
+	if(host_fota==FOTA_FAIL)
+	{
+		 jigtest_direct_report(UART_UI_RES_HOST_DFU, 0);
+	}
+	else if(host_fota==FOTA_DONE)
+	{
+		debug("Restart to update host\n");
+		delay(10);
+		NVIC_SystemReset();
+	}
 }
 
 void fota_start_process(uint8_t source, void *params)
@@ -132,11 +145,23 @@ void app_main_enter_config_mode()
 
 }
 
-bool __IO imu_test=false;
+void host_upgrade_check()
+{
+	if(host_app_upgrade_form_uart_check())
+	{
+		 jigtest_direct_report(UART_UI_RES_HOST_DFU, 1);
+		 debug("Just upgrade host from uart\n");
+	}
+	else{
+		debug("Normal boot\n");
+	}
+}
+
 void app_main(void)
 {
 	retarget_init();
 	uart_ui_comm_init(false);
+	host_upgrade_check();
 	light_control_init();
 	jigtest_uart_esp_init();
 	app_ble_init();
@@ -144,14 +169,9 @@ void app_main(void)
 	lara_r2_bsp_init();
 	app_info_init();
 	ioctl_beep(100);
-
 	while (1)
 	{
 		uart_ui_comm_polling();
-		if(imu_test)
-		{
-			app_imu_process();
-		}
 		if (fota_start)
 		{
 			fota_start = false;
@@ -164,5 +184,4 @@ void app_main(void)
 		app_ble_task();
 		delay(5);
 	}
-}
 

@@ -32,6 +32,9 @@ typedef struct{
     bool display_on;
     bool light_on;
     uint8_t gear;
+    bool charging;
+    bool full_charged;
+    int16_t bms_current;
 }display_data_t;
 
 typedef enum{

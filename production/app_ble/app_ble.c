@@ -30,13 +30,16 @@ static frame_handler transport_handler = NULL;
 #define APP_BLE_CHECK_CMD(cmd2) (strncmp(cmd, cmd2, strlen(cmd2)) == 0)
 static char mac[32];
 const char * const ble_mac=mac;
-
-static char imei_mac[64] ={0};
 static char ble_resp[256]={0};
 #ifdef JIGTEST
 bool host_ble_info_sync=false;
 #endif
 
+static struct{
+	bool connected;
+	uint32_t connect_tick;
+	bool auth;
+}ble_auth;
 static void ble_request_cmd(uint8_t type)
 {
 	uint8_t cmd[2]={HOST_COMM_BLE_MSG, type};
@@ -59,51 +62,30 @@ static void app_ble_handle_ui_raw_packet(uint8_t * packet, size_t len)
 	}
 }
 
-static bool imei_mac_valid()
-{
-	if(strlen(imei_mac)>0)
-		return true;
-	//create imei_mac
-	if(strlen(mac)==0)
-	{
-		ble_request_cmd(HOST_CMD_SYNC_INFO);
-		return false;
-	}
-	if(strlen(lteImei) == 0)
-		return false;
-	sprintf(imei_mac, "%s_%s", lteImei, mac);
-	return true;
-}
-
 static void app_ble_handle_ui_string_cmd(char * result)
 {
-	if (__check_cmd(REQ_GET_IMEI_MAC))
+	char *response=NULL;
+	bool reset=false;
+	if(!ble_auth.auth)
 	{
-		if(imei_mac_valid())
+		if(!__check_cmd(REQ_CHECK_ID))
 		{
-			sprintf(ble_resp, "%s OK %s", REQ_GET_IMEI_MAC, imei_mac);
+			return;
+		}
+		result+=strlen(REQ_CHECK_ID)+1;
+		if(strlen(lteImei)>0 && strlen(lteCcid)>0 && 0==strcmp(lteImei, result))
+		{
+			ble_auth.auth=true;
+			info("ble authentcated\n");
+			sprintf(ble_resp, "%s OK %s", REQ_CHECK_ID, lteCcid);
 		}
 		else
 		{
-			sprintf(ble_resp, "%s ERROR", REQ_GET_IMEI_MAC);
+			sprintf(ble_resp, "%s ERROR", REQ_CHECK_ID);
 		}
-		nina_b1_send1(HOST_COMM_UI_MSG, (uint8_t *)ble_resp, strlen(ble_resp));
-		debug("rep: %s\n", ble_resp);
-		return;
+		response=ble_resp;
+		goto __exit;
 	}
-	if(!imei_mac_valid())
-	{
-		error("Imei mac not available\n");
-		return;
-	}
-	if(!__check_cmd(imei_mac))
-	{
-		error("Invalid cmd\n");
-		return;
-	}
-	result+=strlen(imei_mac)+1;
-	char *response=NULL;
-	bool reset=false;
 	if (__check_cmd(REQ_SYS_INFO))
 	{
 		//<HARDWARE_VERSION> <HOST_VERSION> <BLE_VERSION>
@@ -187,6 +169,7 @@ static void app_ble_handle_ui_string_cmd(char * result)
 		}
 		response=ble_resp;
 	}
+	__exit:
 	if(response!=NULL)
 	{
 		nina_b1_send1(HOST_COMM_UI_MSG, (uint8_t *)response, strlen(response));
@@ -222,6 +205,9 @@ void host_comm_ble_msg_handle(uint8_t *msg, size_t len)
 	else if(msg[0]==BLE_STATE_CONNECTED)
 	{
 		debug("Ble connected\n");
+		ble_auth.auth=false;
+		ble_auth.connected=true;
+		ble_auth.connect_tick=millis();
 	}
 	else if(msg[0]==BLE_CMD_SYNC_INFO)
 	{
@@ -234,6 +220,8 @@ void host_comm_ble_msg_handle(uint8_t *msg, size_t len)
 	else if(msg[0]==BLE_STATE_DISCONNECTED)
 	{
 		debug("Ble disconnected\n");
+		ble_auth.connected=false;
+		ble_auth.auth=false;
 	}
 }
 
@@ -248,14 +236,14 @@ void host_comm_ui_msg_handle(uint8_t *msg, size_t len)
 	else
 	{
 		app_ble_handle_ui_raw_packet(msg, len);
+		ble_auth.auth=true;
 	}
 }
 
-static void testing_callback(uint8_t *packet, size_t len)
+static void packet_switch_callback(uint8_t *packet, size_t len)
 {
 	if(packet[0]==HOST_COMM_BLE_MSG)
 	{
-		debug("Host ble message\n");
 		host_comm_ble_msg_handle(packet+1, len-1);
 	}
 	else if(packet[0]==HOST_COMM_UI_MSG)
@@ -275,7 +263,16 @@ void app_ble_init(void)
 
 void app_ble_task(void)
 {
-	nina_b1_polling(testing_callback);
+	nina_b1_polling(packet_switch_callback);
+	if(ble_auth.connected && !ble_auth.auth)
+	{
+		if(millis()-ble_auth.connect_tick>3000)
+		{
+			ble_request_cmd(HOST_CMD_DISCONNECT);
+			ble_auth.connected=false;
+			info("Reject timeout connection\n");
+		}
+	}
 }
 
 void app_ble_console_handle(char *result)

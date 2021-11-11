@@ -23,9 +23,14 @@ void display_parser_cb(int header, Display_Proto_Unified_Arg_t *value)
 {
 	switch (header)
 	{
-	case DISP_PROTO_CMD_ODO:
-		display.odo=value->odo;
-		debug("-ODO: %d\n", display.odo);
+	case DISP_PROTO_CMD_ODO_GEAR_BMS_CHARGE:
+		display.odo=(*(uint32_t *)(&value->odoGearBmsCharge.odo[0])) & 0x00FFFFFF;
+		display.gear=(uint8_t)GET_GEAR(value->odoGearBmsCharge.gearBmsCharge);
+		display.charging=GET_BMS_CHARGING(value->odoGearBmsCharge.gearBmsCharge),\
+		display.full_charged=GET_BMS_FULL_CHARGED(value->odoGearBmsCharge.gearBmsCharge);
+		debug("-ODO: %u\n", display.odo);
+		debug("-Gear: %u\n", display.gear);
+		debug("-Charging: %d, full charge: %d\n", display.charging, display.full_charged);
 		break;
 	case DISP_PROTO_CMD_TRIP_SPD:
 		display.trip=value->tripSpeed.trip;
@@ -47,9 +52,11 @@ void display_parser_cb(int header, Display_Proto_Unified_Arg_t *value)
 		display.battery_remain = value->battery.remainCapacity;
 		debug("-Batt state: %u, temp: %.1f, remain cap. %u%%\n", display.battery_state, (float)display.battery_temperature / 10, display.battery_remain);
 		break;
-	case DISP_PROTO_CMD_CAP:
-		display.battery_capacity=value->battResidualCapacity;
+	case DISP_PROTO_CMD_CAP_BMS_CURRENT:
+		display.battery_capacity=value->resCapBmsCurrent.resCap;
+		display.bms_current=value->resCapBmsCurrent.bmsCurrent;
 		debug("-Batt. residual cap. %umAh\n", display.battery_capacity & 0xFFFF);
+		debug("-Bms current: %d\n", display.bms_current);
 		break;
 	case DISP_PROTO_CMD_LIGHT:
 		light_control(value->light_on);
@@ -150,10 +157,10 @@ void app_display_console_handle(char *result)
 		int speed;
 		if(sscanf(__param_pos("set speed "), "%d", &speed) ==1)
 		{
-			debug("Set device speed to %.1f\n", (float)speed/10);
+			info("Set device speed to %.1f\n", (float)speed/10);
 			display.speed=speed;
 		}
-		else debug("Params error\n");
+		else error("Params error\n");
 	}
 	else if(__check_cmd("set mode "))
 	{
@@ -163,7 +170,7 @@ void app_display_console_handle(char *result)
 			app_display_set_mode((mode==1)?DISPLAY_ANTI_THEFT_MODE:DISPLAY_NORMAL_MODE);
 		}
 	}
-	else debug("Unknown cmd\n");
+	else error("Unknown cmd\n");
 }
 
 void app_display_reset_data()

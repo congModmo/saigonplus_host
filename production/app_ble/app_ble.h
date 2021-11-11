@@ -37,6 +37,7 @@ extern const char *const ble_mac;
 #define REQ_CONF_GET  		"GET_CFG"
 #define REQ_CONF_SN			"CFG_SN"
 #define REQ_CONF_AUTO_LOCK	"CFG_AUTO_LOCK"
+#define REQ_CHECK_ID 		"CHECK_ID"
 
 void app_ble_init(void);
 void app_ble_task(void);

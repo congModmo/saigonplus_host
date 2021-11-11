@@ -134,7 +134,7 @@ void display_parse_byte(uint8_t b){
 			error("crc\n");
 			goto __error;
 		}
-		Display_Proto_Unified_Arg_t outArg={0};
+		static Display_Proto_Unified_Arg_t outArg={0};
 		if(parser.buff[1]==CONTROLLER_ADDR){
 			if(parser.buff[5]&0x02){
 				outArg.light_on=true;
@@ -236,30 +236,6 @@ int display_parser_extract_packet(uint8_t *rawPkt, Display_Proto_Unified_Arg_t *
         memcpy(outArg, arg, sizeof(Display_Proto_Unified_Arg_t));
     }
 
-    switch(hdr->cmd){
-        case DISP_PROTO_CMD_ODO:
-            if (outArg) outArg->odo = outArg->odo & 0x00FFFFFF;
-            break;
-        case DISP_PROTO_CMD_TRIP_SPD:
-            //info("-Trip: %d.%d, speed: %d.%d\n", arg->tripSpeed.trip/10, arg->tripSpeed.trip%10, arg->tripSpeed.speed/10, arg->tripSpeed.speed%10);
-            break;
-        case DISP_PROTO_CMD_VOLT:
-            if (outArg) outArg->voltage = outArg->voltage & 0xFFFF;
-            //info("-Voltage: %umV\n", arg->voltage & 0xFFFF);
-            break;
-        case DISP_PROTO_CMD_CHRG:
-            //info("-Batt. charge cycles: %u, uncharge time: %u\n", arg->charge.cycles, arg->charge.unchargedTime);
-            break;
-        case DISP_PROTO_CMD_BATT:
-            //info("-Batt state: %u, temp: %.1f, remain cap. %u%%\n", arg->battery.state, (float)arg->battery.temperature/10, arg->battery.remainCapacity);
-            break;
-        case DISP_PROTO_CMD_CAP:
-            if (outArg) outArg->battResidualCapacity = outArg->battResidualCapacity & 0xFFFF;
-            //info("-Batt. residual cap. %umAh\n", arg->battResidualCapacity & 0xFFFF);
-            break;
-        default:
-            return -1;
-    }
     return (int)hdr->cmd;
 }
 

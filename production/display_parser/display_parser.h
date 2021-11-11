@@ -30,12 +30,12 @@ typedef struct __packed {
 } Display_Proto_PktEnd_t;
 
 enum {
-    DISP_PROTO_CMD_ODO = 0x01,
+    DISP_PROTO_CMD_ODO_GEAR_BMS_CHARGE = 0x01,
     DISP_PROTO_CMD_TRIP_SPD = 0x02,
     DISP_PROTO_CMD_VOLT = 0x03,
     DISP_PROTO_CMD_CHRG = 0x04,
     DISP_PROTO_CMD_BATT = 0x05,
-    DISP_PROTO_CMD_CAP = 0x06,
+    DISP_PROTO_CMD_CAP_BMS_CURRENT = 0x06,
 	DISP_PROTO_CMD_LIGHT=0x07
 };
 
@@ -45,9 +45,17 @@ enum {
     _out[2] = _in[1];         \
     _out[3] = _in[0];
 
+#define GET_GEAR(x) (x & 0x0F)
+#define GET_BMS_CHARGING(x) ((x & (1 << 4)) ? 1 : 0)
+#define GET_BMS_FULL_CHARGED(x) ((x & (1 << 5)) ? 1 : 0)
+
+
 typedef union __packed {
-    // 24bit only
-    uint32_t odo;
+// 24bit only
+	struct __packed{
+		uint8_t odo[3];
+		uint8_t gearBmsCharge;
+	}odoGearBmsCharge;
     struct __packed {
         uint16_t speed;
         uint16_t trip;
@@ -62,7 +70,10 @@ typedef union __packed {
         uint16_t temperature;
         uint8_t state;
     } battery;
-    uint32_t battResidualCapacity;
+    struct __packed{
+		uint16_t resCap;
+		int16_t bmsCurrent;
+    }resCapBmsCurrent;
     bool light_on;
 } Display_Proto_Unified_Arg_t;
 

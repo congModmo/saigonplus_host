@@ -259,8 +259,8 @@ bool lara_r2_init_info(char * imei, int imei_len, char* ccid, int ccid_len){
 bool lara_r2_get_network_csq(int *rssi)
 {
 	char *response;
-	ASSERT_RET(gsm_send_at_command("AT+CESQ\r\n", "+CESQ: ", 1000, 2, &response), false, "AT+CESQ?");
-	response=strstr(response, "+CESQ: ")+strlen("+CESQ: ");
+	ASSERT_RET(gsm_send_at_command("AT+CSQ\r\n", "+CSQ: ", 1000, 2, &response), false, "AT+CSQ?");
+	response=strstr(response, "+CSQ: ")+strlen("+CSQ: ");
 	ASSERT_RET(sscanf(response, "%d,", rssi)==1, false, "Sscanf");
 	debug("rssi: %s\n", *rssi);
 	return true;

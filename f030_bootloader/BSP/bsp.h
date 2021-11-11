@@ -24,6 +24,7 @@ void bsp_uart_fota_init();
 #ifdef DEBUG
 #define WDT_FEED()
 #else
+#include "iwdg.h"
 #define WDT_FEED() HAL_IWDG_Refresh(&hiwdg)
 #endif
 

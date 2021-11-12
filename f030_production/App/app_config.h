@@ -12,9 +12,9 @@
 
 	#define DISPLAY_ENABLE
 
-	#define IMU_ENABLE
+//	#define IMU_ENABLE
 
-	#define PUBLISH_ENABLE
+//	#define PUBLISH_ENABLE
 
 //	#define MQTT_ENABLE
 #else

@@ -55,6 +55,9 @@ typedef struct __packed{
     uint8_t gps_signal;
     uint8_t lte_signal;
     uint8_t gear;
+    uint8_t charging;
+    uint8_t full_charged;
+    int16_t bms_current;
 }riding_status_msg_t;
 
 typedef struct __packed{

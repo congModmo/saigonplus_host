@@ -92,7 +92,8 @@ static bool wait_return(const char *resOk, int timeout){
 		gsm_at_read_resp(10);
 		if(atResp.n > 0)
 		{
-			if(atResp.n >at_len){
+			if(atResp.n >at_len)
+			{
 				debug("%s\n", atResp.buf);
 				at_len=atResp.n;
 			}

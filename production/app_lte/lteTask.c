@@ -241,7 +241,7 @@ void lte_task(){
 		delay(5);
 	}
 #else
-	strcpy(_imei, "abcd1234");
+	strcpy(_imei, "abcdefgh");
 	strcpy(_ccid, "12345678");
 #endif
 }

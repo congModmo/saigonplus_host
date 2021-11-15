@@ -63,6 +63,11 @@ static void ps_state_check_process()
     }
 }
 
+void publish_scheduler_handle_full_charge()
+{
+	ps_publish_riding();
+}
+
 static void ps_init_process()
 {
     if (mqtt_is_ready())

@@ -92,6 +92,9 @@ void send_riding_status_msg(display_data_t *display, gps_data_t *gps )
 	msg.battery_remain=display->battery_remain;
 	msg.battery_temperature=display->battery_temperature;
 	msg.gear=display->gear;
+	msg.charging=display->charging;
+	msg.full_charged=display->full_charged;
+	msg.bms_current=display->bms_current;
 #ifdef PROTOCOL_V3_UNIT_TEST
 	msg.lte_signal=10;
 #else

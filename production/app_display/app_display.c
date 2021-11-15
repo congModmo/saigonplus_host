@@ -12,6 +12,7 @@
 #include "log_sys.h"
 #include "debounce/debounce3.h"
 #include "app_main/publish_scheduler.h"
+#include "light_control.h"
 
 static RINGBUF displayRb;
 static display_data_t display = {0};
@@ -19,13 +20,49 @@ const display_data_t *const display_state = &display;
 static Bounce3_t lockPinDebounce;
 static display_mode_t display_mode = DISPLAY_NORMAL_MODE;
 
+static struct
+{
+	bool charging;
+	bool full_charged;
+}charge_status;
+
+static void charge_process_handle()
+{
+	if(!charge_status.charging && display.charging)
+	{
+		info("start charging\n");
+		charge_status.charging=true;
+		light_control_set_sidelight_charge_mode(SIDELIGHT_CHARGING);
+	}
+	if(charge_status.charging && !display.charging)
+	{
+		info("stop charing\n");
+		charge_status.charging=false;
+		charge_status.full_charged=false;
+		light_control_set_sidelight_charge_mode(SIDELIGHT_CHARGE_NONE);
+	}
+	if(charge_status.charging && display.full_charged && !charge_status.full_charged)
+	{
+		info("full charge detected\n");
+		publish_scheduler_handle_full_charge();
+		charge_status.full_charged=true;
+		light_control_set_sidelight_charge_mode(SIDELIGHT_FULL_CHARGED);
+	}
+}
+
 void display_parser_cb(int header, Display_Proto_Unified_Arg_t *value)
 {
 	switch (header)
 	{
-	case DISP_PROTO_CMD_ODO:
-		display.odo=value->odo;
-		debug("-ODO: %d\n", display.odo);
+	case DISP_PROTO_CMD_ODO_GEAR_BMS_CHARGE:
+		display.odo=(*(uint32_t *)(&value->odoGearBmsCharge.odo[0])) & 0x00FFFFFF;
+		display.gear=(uint8_t)GET_GEAR(value->odoGearBmsCharge.gearBmsCharge);
+		display.charging=GET_BMS_CHARGING(value->odoGearBmsCharge.gearBmsCharge);
+		display.full_charged=GET_BMS_FULL_CHARGED(value->odoGearBmsCharge.gearBmsCharge);
+		charge_process_handle();
+		debug("-ODO: %u\n", display.odo);
+		debug("-Gear: %u\n", display.gear);
+		debug("-Charging: %d, full charge: %d\n", display.charging, display.full_charged);
 		break;
 	case DISP_PROTO_CMD_TRIP_SPD:
 		display.trip=value->tripSpeed.trip;
@@ -47,9 +84,11 @@ void display_parser_cb(int header, Display_Proto_Unified_Arg_t *value)
 		display.battery_remain = value->battery.remainCapacity;
 		debug("-Batt state: %u, temp: %.1f, remain cap. %u%%\n", display.battery_state, (float)display.battery_temperature / 10, display.battery_remain);
 		break;
-	case DISP_PROTO_CMD_CAP:
-		display.battery_capacity=value->battResidualCapacity;
+	case DISP_PROTO_CMD_CAP_BMS_CURRENT:
+		display.battery_capacity=value->resCapBmsCurrent.resCap;
+		display.bms_current=value->resCapBmsCurrent.bmsCurrent;
 		debug("-Batt. residual cap. %umAh\n", display.battery_capacity & 0xFFFF);
+		debug("-Bms current: %d\n", display.bms_current);
 		break;
 	case DISP_PROTO_CMD_LIGHT:
 		light_control(value->light_on);
@@ -83,6 +122,7 @@ static void lockPinUpdate()
 	if (display.display_on == false)
 	{
 		debug("Turn light off\n");
+		light_control_set_sidelight_charge_mode(SIDELIGHT_CHARGE_NONE);
 		light_control(false);
 		ioctl_beepbeep(1, 300);
 	}
@@ -123,7 +163,6 @@ void app_display_set_mode(display_mode_t mode)
 void app_display_init()
 {
 	display_parser_init(display_parser_cb);
-	bsp_display_init(&displayRb);
 	Bounce3_Init(&lockPinDebounce, 100, lock_pin_get_state);
 	lockPinUpdate();
 	light_control_init();
@@ -131,6 +170,7 @@ void app_display_init()
 
 void app_display_process()
 {
+	light_control_process();
 	if (Bounce3_Update(&lockPinDebounce))
 	{
 		lockPinUpdate();
@@ -150,10 +190,10 @@ void app_display_console_handle(char *result)
 		int speed;
 		if(sscanf(__param_pos("set speed "), "%d", &speed) ==1)
 		{
-			debug("Set device speed to %.1f\n", (float)speed/10);
+			info("Set device speed to %.1f\n", (float)speed/10);
 			display.speed=speed;
 		}
-		else debug("Params error\n");
+		else error("Params error\n");
 	}
 	else if(__check_cmd("set mode "))
 	{
@@ -163,11 +203,24 @@ void app_display_console_handle(char *result)
 			app_display_set_mode((mode==1)?DISPLAY_ANTI_THEFT_MODE:DISPLAY_NORMAL_MODE);
 		}
 	}
-	else debug("Unknown cmd\n");
+	else if(__check_cmd("set charge "))
+	{
+		int charging, full;
+		if(sscanf(__param_pos("set charge "), "%d %d", &charging, &full) ==2)
+		{
+			info("Charge to: %d, full charge: %d\n", charging, full);
+			display.charging=charging;
+			display.full_charged=full;
+			charge_process_handle();
+		}
+	}
+	else error("Unknown cmd\n");
 }
 
 void app_display_reset_data()
 {
+	charge_status.charging=false;
+	charge_status.full_charged=false;
 	display.trip=0xffff;
 	display.speed=0xffff;
 	display.odo=0xffffffff;
@@ -179,4 +232,7 @@ void app_display_reset_data()
 	display.battery_uncharge_time=0xffff;
 	display.battery_capacity=0xffffffff;
 	display.battery_event=0;
+	display.charging=0xff;
+	display.full_charged=0xff;
+	display.bms_current=0x7fff;
 }

@@ -63,6 +63,8 @@ void app_config_factory_reset()
 	app_setting.user_config.side_light.green = DEFAULT_SIDE_LIGHT_GREEN;
 	app_setting.user_config.side_light.blue = DEFAULT_SIDE_LIGHT_BLUE;
 	app_setting.user_config.imu_sensitivity = DEFAULT_IMU_SENSITIVITY;
+	app_setting.user_config.auto_lock=DEFAULT_AUTO_LOCK;
+	app_setting.user_config.auto_lock_delay=DEFAULT_AUTO_LOCK_DELAY;
 	strcpy(app_setting.serial_number, DEFAULT_SERIAL_NUMBER);
 	app_info_update_setting();
 }
@@ -145,6 +147,13 @@ void app_info_update_lock_state(bool lock)
 void app_info_update_user_config(user_config_t * config)
 {
 	app_setting.user_config=*config;
+	app_info_update_setting();
+}
+
+void app_info_update_auto_lock(bool auto_lock, int delay)
+{
+	app_setting.user_config.auto_lock=auto_lock;
+	app_setting.user_config.auto_lock_delay=delay*1000;
 	app_info_update_setting();
 }
 

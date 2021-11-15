@@ -13,6 +13,7 @@
 #include "debounce/debounce3.h"
 #include "app_main/publish_scheduler.h"
 #include "light_control.h"
+#include "app_main/app_info.h"
 
 static RINGBUF displayRb;
 static display_data_t display = {0};
@@ -126,6 +127,7 @@ static void lockPinUpdate()
 		light_control_set_sidelight_charge_mode(SIDELIGHT_CHARGE_NONE);
 		light_control(false);
 		ioctl_beepbeep(1, 300);
+		display.off_tick=millis();
 	}
 	else
 	{
@@ -161,12 +163,32 @@ void app_display_set_mode(display_mode_t mode)
 	}
 }
 
+void app_display_unlock_bike()
+{
+	app_info_update_lock_state(false);
+	app_display_set_mode(DISPLAY_NORMAL_MODE);
+	display.off_tick=millis();
+}
+
 void app_display_init()
 {
 	display_parser_init(display_parser_cb);
 	Bounce3_Init(&lockPinDebounce, 100, lock_pin_get_state);
 	lockPinUpdate();
 	light_control_init();
+}
+
+static void auto_lock_process()
+{
+	if(user_config->auto_lock && !display.display_on && !*bike_locked && !*ble_authenticated)
+	{
+		if(millis()-display.off_tick > user_config->auto_lock_delay)
+		{
+			info("auto lock\n");
+			app_info_update_lock_state(true);
+			app_display_set_mode(DISPLAY_ANTI_THEFT_MODE);
+		}
+	}
 }
 
 void app_display_process()
@@ -182,6 +204,7 @@ void app_display_process()
 		RINGBUF_Get(&displayRb, &c);
 		display_parse_byte(c);
 	}
+	auto_lock_process();
 }
 
 void app_display_console_handle(char *result)

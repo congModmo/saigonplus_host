@@ -11,6 +11,7 @@ extern "C" {
 
 extern const serial_interface_t ble_serial;
 extern const char *const ble_mac;
+extern const bool *const ble_authenticated;
 
  typedef struct{
  	int red;
@@ -24,7 +25,7 @@ extern const char *const ble_mac;
  	side_light_config_t side_light;
  	int imu_sensitivity;
  	bool auto_lock;
- 	bool auto_lock_delay;
+ 	uint32_t auto_lock_delay;
  }user_config_t;
 
 #define REQ_GET_IMEI_MAC 	"GET_IMEI_MAC"
@@ -38,6 +39,7 @@ extern const char *const ble_mac;
 #define REQ_CONF_SN			"CFG_SN"
 #define REQ_CONF_AUTO_LOCK	"CFG_AUTO_LOCK"
 #define REQ_CHECK_ID 		"CHECK_ID"
+#define REQ_AUTO_LOCK		"AUTO_LOCK"
 
 void app_ble_init(void);
 void app_ble_task(void);

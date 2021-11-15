@@ -25,6 +25,7 @@
 #include "app_common/wcb_ioctl.h"
 #include "host_ble_comm.h"
 #include "app_main/app_info.h"
+#include "app_display/app_display.h"
 
 static frame_handler transport_handler = NULL;
 #define APP_BLE_CHECK_CMD(cmd2) (strncmp(cmd, cmd2, strlen(cmd2)) == 0)
@@ -40,6 +41,9 @@ static struct{
 	uint32_t connect_tick;
 	bool auth;
 }ble_auth;
+
+const bool *const ble_authenticated=&ble_auth.auth;
+
 static void ble_request_cmd(uint8_t type)
 {
 	uint8_t cmd[2]={HOST_COMM_BLE_MSG, type};
@@ -62,6 +66,11 @@ static void app_ble_handle_ui_raw_packet(uint8_t * packet, size_t len)
 	}
 }
 
+static void ble_bool_response(char *cmd, bool ok, char **res)
+{
+	sprintf(ble_resp, "%s %s", cmd, (ok?"OK":"ERROR"));
+	*res=ble_resp;
+}
 static void app_ble_handle_ui_string_cmd(char * result)
 {
 	char *response=NULL;
@@ -78,12 +87,17 @@ static void app_ble_handle_ui_string_cmd(char * result)
 			ble_auth.auth=true;
 			info("ble authentcated\n");
 			sprintf(ble_resp, "%s OK %s", REQ_CHECK_ID, lteCcid);
+			if(*bike_locked)
+			{
+				info("unlock bike\n");
+				app_display_unlock_bike();
+			}
+			response=ble_resp;
 		}
 		else
 		{
-			sprintf(ble_resp, "%s ERROR", REQ_CHECK_ID);
+			ble_bool_response(REQ_CHECK_ID, false, &response);
 		}
-		response=ble_resp;
 		goto __exit;
 	}
 	if (__check_cmd(REQ_SYS_INFO))
@@ -109,13 +123,12 @@ static void app_ble_handle_ui_string_cmd(char * result)
 		{
 			app_info_update_headlight(headlight);
 			light_control_restart();
-			sprintf(ble_resp, "%s OK", REQ_CONF_HL);
+			ble_bool_response(REQ_CONF_HL, true, &response);
 		}
 		else
 		{
-			sprintf(ble_resp, "%s ERROR", REQ_CONF_HL);
+			ble_bool_response(REQ_CONF_HL, false, &response);
 		}
-		response=ble_resp;
 	}
 	else if (__check_cmd(REQ_CONF_BEEP))
 	{
@@ -123,14 +136,13 @@ static void app_ble_handle_ui_string_cmd(char * result)
 		int beep;
 		if (sscanf(result, "%d", &beep) == 1)
 		{
-			sprintf(ble_resp, "%s OK", REQ_CONF_BEEP);
+			ble_bool_response(REQ_CONF_BEEP, true, &response);
 			app_info_update_beep_sound(beep);
 		}
 		else
 		{
-			sprintf(ble_resp, "%s ERROR", REQ_CONF_BEEP);
+			ble_bool_response(REQ_CONF_BEEP, false, &response);
 		}
-		response=ble_resp;
 	}
 	else if (__check_cmd(REQ_CONF_SL))
 	{
@@ -138,15 +150,14 @@ static void app_ble_handle_ui_string_cmd(char * result)
 		int red, green, blue;
 		if (sscanf(result, "%d %d %d", &red, &green, &blue) == 3)
 		{
-			sprintf(ble_resp, "%s OK", REQ_CONF_SL);
+			ble_bool_response(REQ_CONF_SL, true, &response);
 			app_info_update_sidelight(red, green, blue);
 			light_control_restart();
 		}
 		else
 		{
-			sprintf(ble_resp, "%s ERROR", REQ_CONF_SL);
+			ble_bool_response(REQ_CONF_SL, false, &response);
 		}
-		response=ble_resp;
 	}
 	else if (__check_cmd(REQ_CONF_GET))
 	{
@@ -161,13 +172,45 @@ static void app_ble_handle_ui_string_cmd(char * result)
 		{
 			debug("ble update sn: %d\n", sn);
 			app_info_update_serial_number(sn);
-			sprintf(ble_resp, "%s OK", REQ_CONF_SN);
+			ble_bool_response(REQ_CONF_SN, true, &response);
 		}
 		else
 		{
-			sprintf(ble_resp, "%s ERRO", REQ_CONF_SN);
+			ble_bool_response(REQ_CONF_SN, false, &response);
 		}
-		response=ble_resp;
+	}
+	else if(__check_cmd(REQ_AUTO_LOCK))
+	{
+		result+=strlen(REQ_AUTO_LOCK)+1;
+		if(__check_cmd("ON "))
+		{
+			int delay;
+			result+=strlen("ON ");
+			if(sscanf(result, "%d", &delay)==1)
+			{
+				if(delay<0) delay=0;
+				if(delay>600) delay=600;
+				info("Set auto lock on delay %d s\n", delay);
+				app_info_update_auto_lock(true, delay);
+				ble_bool_response(REQ_AUTO_LOCK, true, &response);
+			}
+			else
+			{
+				error("param error\n");
+				ble_bool_response(REQ_AUTO_LOCK, false, &response);
+			}
+		}
+		else if(__check_cmd("OFF"))
+		{
+			info("Set auto lock OFF\n");
+			ble_bool_response(REQ_AUTO_LOCK, true, &response);
+			app_info_update_auto_lock(false, 0);
+		}
+		else
+		{
+			error("param error\n");
+			ble_bool_response(REQ_AUTO_LOCK, false, &response);
+		}
 	}
 	__exit:
 	if(response!=NULL)

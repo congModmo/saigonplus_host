@@ -184,4 +184,4 @@ void app_main(void)
 		app_ble_task();
 		delay(5);
 	}
-
+}

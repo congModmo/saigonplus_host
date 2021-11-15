@@ -35,6 +35,7 @@ typedef struct{
     uint8_t charging;
     uint8_t full_charged;
     int16_t bms_current;
+    uint32_t off_tick;
 }display_data_t;
 
 typedef enum{

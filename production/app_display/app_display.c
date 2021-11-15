@@ -4,7 +4,7 @@
  *  Created on: Apr 21, 2021
  *      Author: thanhcong
  */
-#define __DEBUG__ 4
+#define __DEBUG__ 3
 #include "app_display.h"
 #include "display_parser/display_parser.h"
 #include "ringbuf/ringbuf.h"
@@ -28,20 +28,20 @@ static struct
 
 static void charge_process_handle()
 {
-	if(!charge_status.charging && display.charging)
+	if(!charge_status.charging && display.charging==1)
 	{
 		info("start charging\n");
 		charge_status.charging=true;
 		light_control_set_sidelight_charge_mode(SIDELIGHT_CHARGING);
 	}
-	if(charge_status.charging && !display.charging)
+	if(charge_status.charging && display.charging==0)
 	{
 		info("stop charing\n");
 		charge_status.charging=false;
 		charge_status.full_charged=false;
 		light_control_set_sidelight_charge_mode(SIDELIGHT_CHARGE_NONE);
 	}
-	if(charge_status.charging && display.full_charged && !charge_status.full_charged)
+	if(charge_status.charging && display.full_charged==1 && !charge_status.full_charged)
 	{
 		info("full charge detected\n");
 		publish_scheduler_handle_full_charge();
@@ -91,6 +91,7 @@ void display_parser_cb(int header, Display_Proto_Unified_Arg_t *value)
 		debug("-Bms current: %d\n", display.bms_current);
 		break;
 	case DISP_PROTO_CMD_LIGHT:
+		debug("light: %s\n", (value->light_on?"on":"off"));
 		light_control(value->light_on);
 		display.light_on=value->light_on;
 	default:

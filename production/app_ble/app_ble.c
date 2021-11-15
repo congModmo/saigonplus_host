@@ -266,7 +266,7 @@ void app_ble_task(void)
 	nina_b1_polling(packet_switch_callback);
 	if(ble_auth.connected && !ble_auth.auth)
 	{
-		if(millis()-ble_auth.connect_tick>3000)
+		if(millis()-ble_auth.connect_tick>5000)
 		{
 			ble_request_cmd(HOST_CMD_DISCONNECT);
 			ble_auth.connected=false;

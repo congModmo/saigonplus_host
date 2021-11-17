@@ -26,6 +26,7 @@
 #include "app_display/app_display.h"
 #include "app_lte/lteTask.h"
 #include "app_info.h"
+#include "app_gps/app_gps.h"
 
 static slip_t ui_slip;
 static uint8_t slip_buff[512];
@@ -144,7 +145,9 @@ static void uart_ui_command_handle(uint8_t *frame, size_t size)
 	case UART_UI_CMD_PING:
 		//for production config ui
 		uart_ui_comm_command_send(UART_UI_CMD_PING, UART_UI_RES_OK);
+#ifndef JIGTEST
 		app_main_enter_config_mode();
+#endif
 		break;
 	case UART_UI_CMD_FACTORY_RESET:
 		app_config_factory_reset();
@@ -185,8 +188,19 @@ static void uart_ui_command_handle(uint8_t *frame, size_t size)
 	case UART_UI_CMD_SET_SN:
 		frame[size]=0;
 		app_info_update_serial_number(frame+1);
+		nina_b1_reset();
 		uart_ui_comm_command_send(UART_UI_CMD_SET_SN, UART_UI_RES_OK);
 	break;
+	case UART_UI_CMD_READ_GPS:
+		if(gps_data->hdop > 0)
+		{
+			uart_ui_comm_send(UART_UI_RES_GPS_HDOP, (uint8_t *)&gps_data->hdop, sizeof(float));
+			uart_ui_comm_command_send(UART_UI_RES_GPS_POSITION, 1);
+		}
+		break;
+	case UART_UI_CMD_TEST_LED:
+		light_control_test_start();
+		break;
 	default:
 		break;
 	}

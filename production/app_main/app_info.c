@@ -29,7 +29,6 @@ typedef struct
 
 static app_info_setting_t app_setting={0};
 static app_info_lock_t lock_state;
-static factory_config_t factory;
 static host_ble_info_t _host_ble_info;
 
 const host_ble_info_t * const host_ble_info =&_host_ble_info;
@@ -103,7 +102,7 @@ void app_host_ble_info_init()
 {
 	_host_ble_info.bleVersion=app_setting.firmware_version.bleApp;
 	_host_ble_info.hostVersion=app_setting.firmware_version.hostApp;
-	_host_ble_info.hwVersion=factory.hardwareVersion;
+	_host_ble_info.hwVersion=factory_config->hardwareVersion;
 	strcpy(_host_ble_info.serial, app_setting.serial_number);
 	crc16_append((uint8_t *)&_host_ble_info, sizeof(host_ble_info_t)-2);
 }

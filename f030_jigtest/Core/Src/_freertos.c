@@ -54,7 +54,7 @@ typedef StaticSemaphore_t osStaticMutexDef_t;
 /* USER CODE END Variables */
 /* Definitions for mainTask */
 osThreadId_t mainTaskHandle;
-uint32_t mainTaskBuffer[ 512 ];
+uint32_t mainTaskBuffer[ 384 ];
 osStaticThreadDef_t mainTaskControlBlock;
 const osThreadAttr_t mainTask_attributes = {
   .name = "mainTask",
@@ -66,7 +66,7 @@ const osThreadAttr_t mainTask_attributes = {
 };
 /* Definitions for lteTask */
 osThreadId_t lteTaskHandle;
-uint32_t lteTaskBuffer[ 512 ];
+uint32_t lteTaskBuffer[ 384 ];
 osStaticThreadDef_t lteTaskControlBlock;
 const osThreadAttr_t lteTask_attributes = {
   .name = "lteTask",
@@ -78,7 +78,7 @@ const osThreadAttr_t lteTask_attributes = {
 };
 /* Definitions for mqttTask */
 osThreadId_t mqttTaskHandle;
-uint32_t mqttTaskBuffer[ 512 ];
+uint32_t mqttTaskBuffer[ 384 ];
 osStaticThreadDef_t mqttTaskControlBlock;
 const osThreadAttr_t mqttTask_attributes = {
   .name = "mqttTask",

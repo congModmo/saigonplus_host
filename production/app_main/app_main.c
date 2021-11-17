@@ -143,10 +143,11 @@ void uart_ui_process()
 {
 	uint32_t tick=millis();
 	uart_ui_comm_init(true);
-	if(host_app_upgrade_form_uart_check())
+	if(host_app_upgrade_check())
 	{
-		 uart_ui_comm_command_send(UART_UI_RES_HOST_DFU, 1);
-		 debug("Just upgrade host from uart\n");
+		uart_ui_comm_command_send(UART_UI_RES_HOST_DFU, 1);
+		uart_ui_comm_command_send(UART_UI_RES_HOST_DFU, 1);
+		nina_b1_reset();
 	}
 	else{
 		debug("Normal boot\n");
@@ -163,7 +164,7 @@ void uart_ui_process()
 void app_main(void)
 {
 
-#ifndef RELEASE
+#ifdef DEBUG
 	console_init();
 	RetargetInit(&huart5);
 	info("Hello modmo\n");

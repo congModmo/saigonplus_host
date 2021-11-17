@@ -147,9 +147,10 @@ void app_main_enter_config_mode()
 
 void host_upgrade_check()
 {
-	if(host_app_upgrade_form_uart_check())
+	if(host_app_upgrade_check())
 	{
 		 jigtest_direct_report(UART_UI_RES_HOST_DFU, 1);
+		 nina_b1_reset();
 		 debug("Just upgrade host from uart\n");
 	}
 	else{

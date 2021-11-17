@@ -18,7 +18,7 @@
 #define CMD_TOPIC_PREFIX 								"/cmd/v3/"
 #define ACK_TOPIC_PREFIX 								"/ack/v3/"
 #define TEST_TOPIC_PREFIX								"/test/v3/"
-#define CLIENT_IDENTIFIER_PREFIX                        "modmo_iot_"
+#define CLIENT_IDENTIFIER_PREFIX                        "saigonplus_v2_"
 
 static bool mqtt_ready=false;
 

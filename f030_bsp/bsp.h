@@ -62,7 +62,7 @@ extern osMutexId appResourceHandle;
 #define JIGTEST_UNLOCK() osMutexRelease(jigtestMutexHandle)
 #endif
 
-#ifdef RELEASE
+#if defined(RELEASE) || defined(JIGTEST)
 #define WATCHDOG_FEED() HAL_IWDG_Refresh(&hiwdg);
 #else
 #define WATCHDOG_FEED()

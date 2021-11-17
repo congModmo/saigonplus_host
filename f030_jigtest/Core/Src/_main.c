@@ -102,9 +102,7 @@ int main(void)
   MX_SPI1_Init();
   MX_USART2_UART_Init();
   MX_I2C1_Init();
-#ifdef RELEASE
   MX_IWDG_Init();
-#endif
   MX_RTC_Init();
   MX_TIM1_Init();
   MX_TIM3_Init();

@@ -63,7 +63,11 @@ static bool network_security_init()
 bool network_connect_init(void)
 {
 	ASSERT_RET(gsm_send_at_command("AT+CMEE=2\r\n", "OK", 500, 2, NULL), false, "AT+CMEE=2");
+#ifdef JIGTEST
+	ASSERT_RET(gsm_send_at_command("AT+URAT=0\r\n", "OK", 500, 2, NULL), false, "AT+URAT=0");
+#else
 	ASSERT_RET(gsm_send_at_command("AT+URAT=5,3\r\n", "OK", 500, 2, NULL), false, "AT+URAT=5,3");
+#endif
 	ASSERT_RET(gsm_send_at_command("AT+UPSD=0,1,\"TSIOT\"\r\n", "OK", 500, 2, NULL), false, "AT+UPSD=0,1,\"TSIOT\"");
 	ASSERT_RET(gsm_send_at_command("AT+UPSD=0,0,0\r\n", "OK", 500, 5, NULL), false, "AT+UPSD=0,0,0");
 	ASSERT_RET(gsm_send_at_command("AT+CREG=2\r\n", "OK", 500, 2, NULL), false, "AT+CREG=2");

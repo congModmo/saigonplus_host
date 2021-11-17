@@ -277,16 +277,13 @@ bool host_app_dfu_start()
 	return true;
 }
 
-bool host_app_upgrade_form_uart_check()
+uint32_t host_app_upgrade_check()
 {
 	GD25Q16_ReadSector(EX_FLASH_APP_INFO_ADDR, (uint8_t *)&host_fota_info, sizeof(host_app_fota_info_t));
 	if(0==strcmp(host_fota_info.signature, VALID_FOTA_FW_FLAG))
 	{
 		GD25Q16_SectorErase(EX_FLASH_APP_INFO_ADDR);
-		if(host_fota_info.source==FOTA_OVER_UART)
-		{
-			return true;
-		}
+		return true;
 	}
 	return false;
 }

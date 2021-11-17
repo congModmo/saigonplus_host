@@ -307,6 +307,7 @@ void app_ble_init(void)
 void app_ble_task(void)
 {
 	nina_b1_polling(packet_switch_callback);
+#ifndef JIGTEST
 	if(ble_auth.connected && !ble_auth.auth)
 	{
 		if(millis()-ble_auth.connect_tick>5000)
@@ -316,6 +317,7 @@ void app_ble_task(void)
 			info("Reject timeout connection\n");
 		}
 	}
+#endif
 }
 
 void app_ble_console_handle(char *result)

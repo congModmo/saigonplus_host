@@ -19,6 +19,9 @@ static struct
 	uint32_t charge_tick;
 	int charge_value;
 	int led_dir;
+	bool test;
+	uint32_t test_tick;
+	uint8_t test_count;
 }light_status;
 
 void set_headlight(int value)
@@ -87,7 +90,7 @@ void light_control_restart()
 void light_control_blink(bool on)
 {
 	if(on){
-		set_headlight(255);
+		set_headlight(50);
 		set_redlight(255);
 		set_greenlight(255);
 		set_bluelight(255);
@@ -113,12 +116,15 @@ void light_control_set_sidelight_charge_mode(sidelight_charge_mode_t mode)
 	set_bluelight(0);
 }
 
-void light_control_process()
+void light_control_test_start()
 {
-	if(light_status.light_on)
-	{
-		return;
-	}
+	light_status.test=true;
+	light_status.test_count=0;
+	light_status.test_tick=millis();
+}
+
+void sidelight_charge_process()
+{
 	if(light_status.charge_mode==SIDELIGHT_CHARGE_NONE)
 	{
 		return;
@@ -146,4 +152,46 @@ void light_control_process()
 			light_status.led_dir=1;
 		}
 	}
+}
+
+void light_test_process()
+{
+	if(!light_status.test)
+		return;
+	if(millis()-light_status.test_tick <1000)
+		return;
+	light_status.test_tick=millis();
+	switch(light_status.test_count)
+	{
+	case 0:
+		set_bluelight(0);
+		set_headlight(50);
+		light_status.test_count++;
+		break;
+	case 1:
+		set_headlight(0);
+		set_redlight(255);
+		light_status.test_count++;
+		break;
+	case 2:
+		set_redlight(0);
+		set_greenlight(255);
+		light_status.test_count++;
+		break;
+	case 3:
+		set_greenlight(0);
+		set_bluelight(255);
+		light_status.test_count=0;
+		break;
+	}
+}
+
+void light_control_process()
+{
+	if(light_status.light_on)
+	{
+		return;
+	}
+	sidelight_charge_process();
+	light_test_process();
 }

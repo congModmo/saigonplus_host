@@ -238,6 +238,10 @@ void app_display_console_handle(char *result)
 			charge_process_handle();
 		}
 	}
+	else if(__check_cmd("test light"))
+	{
+		light_control_test_start();
+	}
 	else error("Unknown cmd\n");
 }
 

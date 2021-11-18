@@ -9,6 +9,7 @@
 #include "kxtj3/kxtj3.h"
 #include "app_display/app_display.h"
 #include "bsp.h"
+#include "app_main/app_info.h"
 
 typedef struct
 {
@@ -38,6 +39,7 @@ static void imu_int_update()
 				return;
 			}
 			debug("Motion detected\n");
+//			ioctl_beep(50);
 			for(int i=0; i<IMU_MAX_CALLBACK_COUNT; i++)
 			{
 				if(callback[i]!=NULL){
@@ -64,15 +66,37 @@ bool app_imu_register_callback(imu_callback_t cb)
 	return false;
 }
 
-bool app_imu_init(uint16_t threshold)
+static uint16_t sensitivity_level_to_threshold(int level)
 {
+	switch(level)
+	{
+	case 0:
+		return 0;
+	case 1:
+		return 100;
+	case 2:
+		return 50;
+	case 3:
+		return 10;
+	default:
+		return 50;
+	}
+}
+
+bool app_imu_init()
+{
+	if(user_config->imu_sensitivity==0)
+	{
+		return;
+	}
 	if(kxtj3_begin(50, 2 )!=IMU_SUCCESS)
 	{
 		error("Imu init failed\n");
 		return false;
 	}
 	debug("Imu ready\n");
-	kxtj3_intConf(threshold, 5, 5, HIGH);
+	uint16_t threshold=sensitivity_level_to_threshold(user_config->imu_sensitivity);
+	kxtj3_intConf(threshold, 10, 50, HIGH);
 	imu.detected=true;
 	imu.motion_detected=false;
 	imu.state=0;
@@ -81,7 +105,7 @@ bool app_imu_init(uint16_t threshold)
 
 void app_imu_process()
 {
-	if(!imu.detected)
+	if(!imu.detected || user_config->imu_sensitivity==0)
 		return;
 	imu_int_update();
 }

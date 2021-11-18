@@ -212,6 +212,23 @@ static void app_ble_handle_ui_string_cmd(char * result)
 			ble_bool_response(REQ_AUTO_LOCK, false, &response);
 		}
 	}
+	else if(__check_cmd(REQ_CONF_MSS))
+	{
+		int mss;
+		result+=strlen(REQ_CONF_MSS)+1;
+		if(sscanf(result, "%d", &mss)==1)
+		{
+			debug("set mss level to: %d\n", mss);
+			app_info_update_imu(mss);
+			ble_bool_response(REQ_CONF_MSS, true, &response);
+			app_imu_init();
+		}
+		else
+		{
+			error("parse params\n");
+			ble_bool_response(REQ_CONF_MSS, false, &response);
+		}
+	}
 	__exit:
 	if(response!=NULL)
 	{

@@ -197,7 +197,7 @@ void app_main(void)
 #endif
 
 #ifdef IMU_ENABLE
-	app_imu_init(30);
+	app_imu_init();
 #endif
 
 #ifdef ALARM_ENABLE

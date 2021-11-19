@@ -49,40 +49,49 @@ void ioctl_led(uint8_t led, uint8_t state)
 	}
 }
 
-bool check_buzzer_margin()
+bool buzzer_check_margin()
 {
 	if(buzzer_state==0 && millis() - buzzer_tick >1000)
 		return true;
 	return false;
 }
 
-void ioctl_buzz(uint8_t state)
+void buzzer_set(uint8_t state)
 {
 	buzzer_state=state;
 	buzzer_tick=millis();
 	HAL_GPIO_WritePin(GPIOB, BUZZER, state);
 }
 
-void ioctl_beep(uint32_t ms)
+void buzzer_set_state(uint8_t state)
 {
+	if(!user_config->beep_sound)
+		return;
+	buzzer_set(state);
+}
+
+void buzzer_beep(uint32_t ms)
+{
+	if(!user_config->beep_sound)
+		return;
 	BUZZER_LOCK();
-	ioctl_buzz(1);
+	buzzer_set(1);
 	delay(ms);
-	ioctl_buzz(0);
+	buzzer_set(0);
 	BUZZER_UNLOCK();
 	buzzer_tick=millis();
 }
 
-void ioctl_beepbeep(uint32_t n, uint32_t ms, bool forced)
+void buzzer_beepbeep(uint32_t n, uint32_t ms, bool forced)
 {
 	if(!forced && !user_config->beep_sound)
 		return;
 	BUZZER_LOCK();
 	while (n--)
 	{
-		ioctl_buzz(1);
+		buzzer_set(1);
 		delay(ms);
-		ioctl_buzz(0);
+		buzzer_set(0);
 		delay(ms);
 	}
 	BUZZER_UNLOCK();

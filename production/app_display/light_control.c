@@ -44,7 +44,7 @@ void set_bluelight(int value)
 	__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2, value);
 }
 
-static void light_off()
+void light_off()
 {
 	light_status.light_on=false;
 	set_headlight(0);
@@ -53,7 +53,8 @@ static void light_off()
 	set_bluelight(0);
 }
 
-static void light_on(){
+void light_on()
+{
 	light_status.light_on=true;
 	set_headlight(user_config->head_light);
 	set_redlight(user_config->side_light.red);
@@ -61,7 +62,8 @@ static void light_on(){
 	set_bluelight(user_config->side_light.blue);
 }
 
-void light_control_init(){
+void light_control_init()
+{
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
 	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
 	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);

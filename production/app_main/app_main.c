@@ -184,7 +184,6 @@ void app_main(void)
 	if(!config_mode)
 	{
 		app_display_init();
-		app_display_set_mode(*bike_locked?DISPLAY_ANTI_THEFT_MODE:DISPLAY_NORMAL_MODE);
 	}
 #endif
 

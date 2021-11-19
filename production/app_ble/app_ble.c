@@ -90,7 +90,8 @@ static void app_ble_handle_ui_string_cmd(char * result)
 			if(*bike_locked)
 			{
 				info("unlock bike\n");
-				app_display_unlock_bike();
+				if(*bike_locked)
+					app_display_unlock_bike(false);
 			}
 			response=ble_resp;
 		}
@@ -233,7 +234,7 @@ static void app_ble_handle_ui_string_cmd(char * result)
 	if(response!=NULL)
 	{
 		nina_b1_send1(HOST_COMM_UI_MSG, (uint8_t *)response, strlen(response));
-		ioctl_beepbeep(1, 100, false);
+		buzzer_beepbeep(1, 100, false);
 	}
 	if(reset)
 	{

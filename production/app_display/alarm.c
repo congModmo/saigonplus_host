@@ -33,7 +33,7 @@ static void motion_detect_handler()
 static void alarm_off()
 {
 	alarm_state.active=false;
-	ioctl_buzz(0);
+	buzzer_set(0);
 	light_control_blink(0);
 }
 
@@ -74,7 +74,7 @@ void alarm_process()
 		{
 			alarm_state.buzz_tick=millis();
 			alarm_state.buzz_state = !alarm_state.buzz_state;
-			ioctl_buzz(alarm_state.buzz_state);
+			buzzer_set(alarm_state.buzz_state);
 		}
 		if(millis()-alarm_state.blink_tick>1000)
 		{

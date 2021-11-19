@@ -34,7 +34,7 @@ static void imu_int_update()
 		{
 			kxtj3_readRegister(&imu.int_rel, KXTJ3_INT_REL);
 			//suppress noise due to buzzer
-			if(!check_buzzer_margin())
+			if(!buzzer_check_margin())
 			{
 				return;
 			}

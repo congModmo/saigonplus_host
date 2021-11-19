@@ -150,8 +150,15 @@ void lock_cmd_handler(uint8_t *cmd, uint8_t id)
 	lock_cmd_t *lock =(lock_cmd_t *)cmd;
 	debug("Set device to %d state\n", lock->mode);
 	app_info_update_lock_state(lock->mode);
-	app_display_set_mode(lock->mode?DISPLAY_ANTI_THEFT_MODE:DISPLAY_NORMAL_MODE);
 	send_ack_message(CMD_TOPIC_LOCK, id, 1);
+	if(lock->mode)
+	{
+		app_display_lock_bike();
+	}
+	else
+	{
+		app_display_unlock_bike(true);
+	}
 }
 
 void fota_cmd_handler(uint8_t *cmd, uint8_t id)

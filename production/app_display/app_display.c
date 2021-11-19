@@ -20,6 +20,7 @@ static display_data_t display = {0};
 const display_data_t *const display_state = &display;
 static Bounce3_t lockPinDebounce;
 static display_mode_t display_mode = DISPLAY_NORMAL_MODE;
+static bool display_unlock_hold=false;
 
 static struct
 {
@@ -105,9 +106,8 @@ bool lock_pin_get_state(void)
 	return (HAL_GPIO_ReadPin(LOCK_GPIO_Port, LOCK_Pin) == GPIO_PIN_RESET);
 }
 
-static void lockPinUpdate()
+static void anti_theft_tx_pin_update()
 {
-	display.display_on = Bounce3_Read(&lockPinDebounce);
 	if (display_mode == DISPLAY_ANTI_THEFT_MODE)
 	{
 		if (display.display_on)
@@ -121,18 +121,25 @@ static void lockPinUpdate()
 			HAL_GPIO_WritePin(DISPLAY_TX_GPIO_Port, DISPLAY_TX_Pin, GPIO_PIN_SET);
 		}
 	}
+}
+
+static void lockPinUpdate()
+{
+	display.display_on = Bounce3_Read(&lockPinDebounce);
+	anti_theft_tx_pin_update();
 	if (display.display_on == false)
 	{
 		debug("Turn light off\n");
 		light_control_set_sidelight_charge_mode(SIDELIGHT_CHARGE_NONE);
 		light_control(false);
-		ioctl_beepbeep(1, 300);
+		buzzer_beepbeep(1, 300);
 		display.off_tick=millis();
 	}
 	else
 	{
 		app_display_reset_data();
-		ioctl_beepbeep(2, 100);
+		buzzer_beepbeep(2, 100);
+		display_unlock_hold=false;
 	}
 }
 
@@ -159,15 +166,37 @@ void app_display_set_mode(display_mode_t mode)
 		GPIO_InitStruct.Pull = GPIO_NOPULL;
 		GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 		HAL_GPIO_Init(DISPLAY_TX_GPIO_Port, &GPIO_InitStruct);
-		lockPinUpdate();
+		anti_theft_tx_pin_update();
 	}
 }
 
-void app_display_unlock_bike()
+void app_display_unlock_bike(bool hold)
 {
+	info("unlock bike, hold :%d\n", hold);
 	app_info_update_lock_state(false);
 	app_display_set_mode(DISPLAY_NORMAL_MODE);
 	display.off_tick=millis();
+	display_unlock_hold=hold;
+	light_off();
+	set_greenlight(255);
+	buzzer_beep(50);
+	delay(450);
+	set_greenlight(0);
+	light_control_restart();
+}
+
+void app_display_lock_bike()
+{
+	info("lock bike\n");
+	app_info_update_lock_state(true);
+	app_display_set_mode(DISPLAY_ANTI_THEFT_MODE);
+	display.off_tick=millis();
+	light_off();
+	set_redlight(255);
+	buzzer_beep(200);
+	delay(300);
+	set_redlight(0);
+	light_control_restart();
 }
 
 void app_display_init()
@@ -176,17 +205,24 @@ void app_display_init()
 	Bounce3_Init(&lockPinDebounce, 100, lock_pin_get_state);
 	lockPinUpdate();
 	light_control_init();
+	if(*bike_locked)
+	{
+		app_display_lock_bike();
+	}
+	else
+	{
+		app_display_unlock_bike(false);
+	}
 }
 
 static void auto_lock_process()
 {
-	if(user_config->auto_lock && !display.display_on && !*bike_locked && !*ble_authenticated)
+	if(user_config->auto_lock && !display.display_on && !*bike_locked && !*ble_authenticated && !display_unlock_hold)
 	{
 		if(millis()-display.off_tick > user_config->auto_lock_delay)
 		{
 			info("auto lock\n");
-			app_info_update_lock_state(true);
-			app_display_set_mode(DISPLAY_ANTI_THEFT_MODE);
+			app_display_lock_bike();
 		}
 	}
 }
@@ -219,13 +255,13 @@ void app_display_console_handle(char *result)
 		}
 		else error("Params error\n");
 	}
-	else if(__check_cmd("set mode "))
+	else if(__check_cmd("lock"))
 	{
-		int mode;
-		if(sscanf(__param_pos("set mode "), "%d", &mode) ==1)
-		{
-			app_display_set_mode((mode==1)?DISPLAY_ANTI_THEFT_MODE:DISPLAY_NORMAL_MODE);
-		}
+		app_display_lock_bike();
+	}
+	else if(__check_cmd("unlock"))
+	{
+		app_display_unlock_bike(false);
 	}
 	else if(__check_cmd("set charge "))
 	{

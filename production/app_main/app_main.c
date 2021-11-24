@@ -80,6 +80,8 @@ void fota_start_process(uint8_t source, void *params)
 	{
 		serial_transport_init(uart_transport);
 		transport = &serial_transport;
+		eva_m8_bsp_uart_deinit();
+		uart_ui_comm_init(true);
 	}
 	else if (source == FOTA_OVER_LTE)
 	{
@@ -133,7 +135,7 @@ void main_mail_process()
 	}
 }
 
-static __IO bool config_mode=false;
+ __IO bool config_mode=false;
 void app_main_enter_config_mode()
 {
 	config_mode=true;
@@ -142,7 +144,7 @@ void app_main_enter_config_mode()
 void uart_ui_process()
 {
 	uint32_t tick=millis();
-	uart_ui_comm_init(true);
+	uart_ui_comm_init(false);
 	if(host_app_upgrade_check())
 	{
 		uart_ui_comm_command_send(UART_UI_RES_HOST_DFU, 1);
@@ -157,8 +159,14 @@ void uart_ui_process()
 		uart_ui_comm_polling();
 		delay(5);
 	}
-	if(!config_mode)
+	if(config_mode)
+	{
+		debug("enter config mode\n");
+	}
+	else
+	{
 		bsp_ui_comm_deinit();
+	}
 }
 
 void app_main(void)
@@ -181,7 +189,13 @@ void app_main(void)
 
 #ifdef DISPLAY_ENABLE
 	uart_ui_process();
-	if(!config_mode)
+	if(config_mode)
+	{
+		light_control_init();
+		lockpin_live_test_init();
+		buzzer_beepbeep(3, 200, true);
+	}
+	else
 	{
 		app_display_init();
 	}
@@ -204,8 +218,7 @@ void app_main(void)
 #endif
 
 #ifdef GPS_ENABLE
-	if(!config_mode)
-		app_gps_init();
+	app_gps_init();
 #endif
 
 #ifdef REPORT_ENABLE
@@ -216,15 +229,18 @@ void app_main(void)
 	while (1)
 	{
 #ifdef DISPLAY_ENABLE
-		if(!config_mode)
-			app_display_process();
-		else
+		if(config_mode)
+		{
 			uart_ui_comm_polling();
+			light_control_process();
+			lockpin_live_test_process();
+		}
+		else
+			app_display_process();
 #endif
 
 #ifdef GPS_ENABLE
-		if(!config_mode)
-			app_gps_process();
+		app_gps_process();
 #endif
 #ifdef PUBLISH_ENABLE
 		publish_scheduler_process();

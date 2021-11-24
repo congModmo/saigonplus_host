@@ -257,7 +257,17 @@ bool lara_r2_init_info(char * imei, int imei_len, char* ccid, int ccid_len){
 	return true;
 }
 
-bool lara_r2_get_network_info(char *carrier, int carrier_len, int *csq)
+bool lara_r2_get_network_csq(int *csq)
+{
+	char *response;
+	ASSERT_RET(gsm_send_at_command("AT+CSQ\r\n", "+CSQ: ", 1000, 2, &response), false, "AT+CSQ?");
+	response=strstr(response, "+CSQ: ")+strlen("+CSQ: ");
+	ASSERT_RET(sscanf(response, "%d,", csq)==1, false, "Sscanf");
+	debug("csq: %s\n", *csq);
+	return true;
+}
+
+bool lara_r2_get_network_info(char *carrier, int carrier_len, network_type_t *type)
 {
 	char *response;
 	ASSERT_RET(gsm_send_at_command("AT+COPS?\r\n", "OK", 1000, 2, &response), false, "AT+COPS?");
@@ -266,10 +276,22 @@ bool lara_r2_get_network_info(char *carrier, int carrier_len, int *csq)
 	ASSERT_RET(strlen(_carrier)>0 && strlen(_carrier)<carrier_len, false, "Carrier len");
 	strcpy(carrier, _carrier);
 	debug("Carrier: %s\n", carrier);
-	ASSERT_RET(gsm_send_at_command("AT+CSQ\r\n", "+CSQ: ", 1000, 2, &response), false, "AT+CSQ?");
-	response=strstr(response, "+CSQ: ")+strlen("+CSQ: ");
-	ASSERT_RET(sscanf(response, "%d,", csq)==1, false, "Sscanf");
-	debug("csq: %s\n", *csq);
+	_carrier=strtok(NULL, "\"");
+	ASSERT_RET(_carrier!=NULL, false, "Network type null");
+	_carrier ++;
+	if(*_carrier=='3')
+	{
+		*type=NETWORK_TYPE_2G;
+	}
+	else if(*_carrier=='7')
+	{
+		*type=NETWORK_TYPE_4G;
+	}
+	else
+	{
+		error("unknown network type\n");
+		return false;
+	}
 	return true;
 }
 

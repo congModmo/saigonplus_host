@@ -322,11 +322,12 @@ void app_ble_init(void)
 	#endif
 }
 
+extern __IO bool config_mode;
 void app_ble_task(void)
 {
 	nina_b1_polling(packet_switch_callback);
 #ifndef JIGTEST
-	if(ble_auth.connected && !ble_auth.auth)
+	if(ble_auth.connected && !ble_auth.auth && !config_mode)
 	{
 		if(millis()-ble_auth.connect_tick>5000)
 		{

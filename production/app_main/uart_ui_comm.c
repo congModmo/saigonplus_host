@@ -164,42 +164,63 @@ static void uart_ui_command_handle(uint8_t *frame, size_t size)
 			uart_ui_comm_send(UART_UI_FOTA_DATA, data, 2);
 		}
 		break;
-	case UART_UI_CMD_READ_MAC:
+	case UART_UI_CMD_READ_BLE_INFO:
+		info("Ble info cmd\n");
 		if(strlen(ble_mac)>0)
 		{
 			uart_ui_comm_send(UART_UI_RES_BLE_MAC, (uint8_t *)ble_mac, strlen(ble_mac));
+//			uart_ui_comm_command_send(UART_UI_CMD_READ_BLE_INFO, UART_UI_RES_OK);
 		}
 		break;
-	case UART_UI_CMD_READ_CCID:
+	case UART_UI_CMD_READ_LTE_INFO:
+		info("lte info cmd\n");
 		if(strlen(lteCcid)>0)
 		{
 			uart_ui_comm_send(UART_UI_RES_LTE_SIM_CCID, (uint8_t *)lteCcid, strlen(lteCcid));
 		}
-		break;
-	case UART_UI_CMD_READ_IMEI:
 		if(strlen(lteImei)>0)
 		{
-			uart_ui_comm_send(UART_UI_RES_LTE_IMEI, (uint8_t *)lteImei, strlen(lteImei));
+			uart_ui_comm_send(UART_UI_RES_LTE_IMEI, (uint8_t *)"352953084192693", strlen("352953084192693"));
 		}
+		if(strlen(lteCarrier)>0)
+		{
+			uart_ui_comm_send(UART_UI_RES_LTE_CARRIER, (uint8_t *)lteCarrier, strlen(lteCarrier));
+		}
+		if(*network_type==NETWORK_TYPE_2G)
+		{
+			uart_ui_comm_command_send(UART_UI_RES_LTE_2G, 1);
+		}
+		else if(*network_type==NETWORK_TYPE_4G)
+		{
+			uart_ui_comm_command_send(UART_UI_RES_LTE_4G, 1);
+		}
+		uart_ui_comm_send(UART_UI_RES_LTE_RSSI, (uint8_t *)lteRssi, sizeof(int));
+		uart_ui_comm_command_send(UART_UI_CMD_READ_LTE_INFO, UART_UI_RES_OK);
 		break;
 	case UART_UI_CMD_READ_SN:
+		info("get sn cmd\n");
 		uart_ui_comm_send(UART_UI_RES_SN, serial_number, strlen(serial_number));
-	break;
+		break;
 	case UART_UI_CMD_SET_SN:
+		info("set sn cmd\n");
 		frame[size]=0;
 		app_info_update_serial_number(frame+1);
 		nina_b1_reset();
 		uart_ui_comm_command_send(UART_UI_CMD_SET_SN, UART_UI_RES_OK);
-	break;
-	case UART_UI_CMD_READ_GPS:
+		break;
+	case UART_UI_CMD_READ_GPS_INFO:
+		info("Gps info cmd\n");
 		if(gps_data->hdop > 0)
 		{
 			uart_ui_comm_send(UART_UI_RES_GPS_HDOP, (uint8_t *)&gps_data->hdop, sizeof(float));
 			uart_ui_comm_command_send(UART_UI_RES_GPS_POSITION, 1);
 		}
+		uart_ui_comm_command_send(UART_UI_CMD_READ_GPS_INFO, UART_UI_RES_OK);
 		break;
 	case UART_UI_CMD_TEST_LED:
+		info("test light\n");
 		light_control_test_start();
+		uart_ui_comm_command_send(UART_UI_CMD_TEST_LED, UART_UI_RES_OK);
 		break;
 	default:
 		break;

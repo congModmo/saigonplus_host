@@ -81,6 +81,7 @@ int main(void)
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   system_vector_remap();
+
   HAL_Init();
 
   /* USER CODE BEGIN Init */

@@ -29,8 +29,9 @@ static char _carrier[32];
 static int rssi=0;
 static network_type_t type=NETWORK_TYPE_NONE;
 const int *const lteRssi= &rssi;
-const char *const lteImei= &_imei;
-const char *const lteCcid= &_ccid;
+const char *const lteImei= _imei;
+const char *const lteCcid= _ccid;
+const char *const lteCarrier=_carrier;
 const network_type_t * const network_type =&type;
 static __IO bool network_ready=false;
 
@@ -167,19 +168,10 @@ static bool lte_mail_process(){
 #ifdef JIGTEST
 #include "jigtest.h"
 
-void jigtest_report_network_info()
+void jigtest_network_report()
 {
-	if(!lara_r2_get_network_info(_carrier, sizeof(_carrier)-1, &rssi))
-	{
-		error("get network info\n");
-		return;
-	}
 	jigtest_report(UART_UI_RES_LTE_CARRIER,(uint8_t *)_carrier, strlen(_carrier));
 	jigtest_report(UART_UI_RES_LTE_RSSI, (uint8_t *)&rssi, sizeof(int));
-}
-
-void jigtest_network_ready_report()
-{
 	if(*network_type==NETWORK_TYPE_2G)
 	{
 		jigtest_direct_report(UART_UI_RES_LTE_2G, 1);
@@ -188,11 +180,32 @@ void jigtest_network_ready_report()
 	{
 		jigtest_direct_report(UART_UI_RES_LTE_4G, 1);
 	}
-	jigtest_report_network_info();
 }
 #endif
 
-void lte_task(){
+void network_info_init()
+{
+	if(!lara_r2_get_network_info(_carrier, sizeof(_carrier)-1, &type))
+	{
+		error("get network info\n");
+		return;
+	}
+	lara_r2_get_network_csq(&rssi);
+#ifdef JIGTEST
+	jigtest_network_report();
+#endif
+}
+
+void lte_rssi_handle()
+{
+	static uint32_t tick=0;
+	if(millis()-tick < 60000)
+		return;
+	tick=millis();
+	lara_r2_get_network_csq(&rssi);
+}
+void lte_task()
+{
 #ifdef LTE_ENABLE
 	while(!system_is_ready()){
 		delay(5);
@@ -229,13 +242,12 @@ void lte_task(){
 	lte_init_rtc();
 	lara_r2_socket_close_all();
 	network_security_init();
-	if(type==NETWORK_TYPE_NONE)
-		type=NETWORK_TYPE_2G;
+	network_info_init();
+	lara_r2_get_network_csq(&rssi);
 	network_ready=true;
-#ifdef JIGTEST
-	jigtest_network_ready_report();
-#endif
-	while(true){
+	while(true)
+	{
+		lte_rssi_handle();
 		lte_async_response_handle();
 		lara_r2_socket_process();
 		lte_mail_process();

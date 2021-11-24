@@ -227,6 +227,24 @@ static void auto_lock_process()
 	}
 }
 
+void lockpin_live_test_init()
+{
+	Bounce3_Init(&lockPinDebounce, 100, lock_pin_get_state);
+}
+void lockpin_live_test_process()
+{
+	if (Bounce3_Update(&lockPinDebounce))
+	{
+		if(Bounce3_Read(&lockPinDebounce))
+		{
+			buzzer_beepbeep(1, 300);
+		}
+		else
+		{
+			buzzer_beepbeep(2, 100);
+		}
+	}
+}
 void app_display_process()
 {
 	light_control_process();

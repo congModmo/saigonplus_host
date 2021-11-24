@@ -14,6 +14,12 @@ typedef struct {
 	size_t n;
 } GSM_AT_Resp_t;
 
+typedef enum{
+	NETWORK_TYPE_NONE,
+	NETWORK_TYPE_2G,
+	NETWORK_TYPE_4G
+}network_type_t;
+
 extern const char aws_trust_ca[];
 
 #define MAX_MODEM_SOCKET 6

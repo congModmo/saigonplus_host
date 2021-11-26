@@ -40,6 +40,7 @@ extern const bool *const ble_authenticated;
 #define REQ_CONF_AUTO_LOCK	"CFG_AUTO_LOCK"
 #define REQ_CHECK_ID 		"CHECK_ID"
 #define REQ_AUTO_LOCK		"AUTO_LOCK"
+#define REQ_TEST_LED		"TEST_LED"
 
 void app_ble_init(void);
 void app_ble_task(void);

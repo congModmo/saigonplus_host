@@ -47,6 +47,7 @@ void set_bluelight(int value)
 void light_off()
 {
 	light_status.light_on=false;
+	light_status.test=false;
 	set_headlight(0);
 	set_redlight(0);
 	set_greenlight(0);

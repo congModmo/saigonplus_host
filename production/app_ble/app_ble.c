@@ -230,6 +230,11 @@ static void app_ble_handle_ui_string_cmd(char * result)
 			ble_bool_response(REQ_CONF_MSS, false, &response);
 		}
 	}
+	else if(__check_cmd(REQ_TEST_LED))
+	{
+		light_control_test_start();
+		ble_bool_response(REQ_TEST_LED, true, &response);
+	}
 	__exit:
 	if(response!=NULL)
 	{

@@ -78,7 +78,7 @@ void light_control(bool on)
 	if(on && light_status.light_on!=true){
 		light_on();
 	}
-	else if(!on && light_status.light_on ){
+	else if(!on && (light_status.light_on || light_status.test) ){
 		light_off();
 	}
 }

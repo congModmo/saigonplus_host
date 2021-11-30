@@ -180,7 +180,7 @@ static void uart_ui_command_handle(uint8_t *frame, size_t size)
 		}
 		if(strlen(lteImei)>0)
 		{
-			uart_ui_comm_send(UART_UI_RES_LTE_IMEI, (uint8_t *)"352953084192693", strlen("352953084192693"));
+			uart_ui_comm_send(UART_UI_RES_LTE_IMEI, (uint8_t *)lteImei, strlen(lteImei));
 		}
 		if(strlen(lteCarrier)>0)
 		{

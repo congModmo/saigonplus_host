@@ -165,6 +165,7 @@ void app_info_update_serial_number(char *sn)
 	else
 	{
 		strcpy(app_setting.serial_number, sn);
+		strcpy(_host_ble_info.serial, app_setting.serial_number);
 		app_info_update_setting();
 	}
 }

@@ -56,6 +56,7 @@
 									<listOptionValue builtIn="false" value="../../FW_libraries/coremqtt/source/include"/>
 									<listOptionValue builtIn="false" value="../../FW_libraries/crc"/>
 									<listOptionValue builtIn="false" value="../../../modmo_saigonplus_ble/common"/>
+									<listOptionValue builtIn="false" value="../../factory"/>
 									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/FreeRTOS/Source/include"/>
 									<listOptionValue builtIn="false" value="../Drivers/STM32F0xx_HAL_Driver/Inc"/>
 									<listOptionValue builtIn="false" value="../Drivers/CMSIS/Include"/>
@@ -64,7 +65,6 @@
 									<listOptionValue builtIn="false" value="../Drivers/CMSIS/Device/ST/STM32F0xx/Include"/>
 									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2"/>
 									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM0"/>
-									<listOptionValue builtIn="false" value="../../factory"/>
 								</option>
 								<inputType id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c.1946549291" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c"/>
 							</tool>
@@ -93,15 +93,15 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="app_main/wcb_gsm_main.c|app_lte/wcb_gsm_thingstream.c|app_fota/uart_transport.c" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="App"/>
 						<entry excluding="Src/stm32f0xx_it.c|Src/usart.c|Src/freertos.c|Src/_usart.c|Src/main.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="Drivers"/>
-						<entry excluding="coremqtt/test|cJSON/tests|coreMQTT/test|cJSON/test.c|Thingstream_app/Src|cJSON/library_config|slip/test.c|cJSON/fuzzing|coreMQTT/tools|slip/slip.c|coreMQTT/docs" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="FW_libraries"/>
 						<entry excluding="kxtj3/kxtj3 - Copy.c" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="HW_drivers"/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Middlewares"/>
+						<entry excluding="app_main/wcb_gsm_main.c|app_lte/wcb_gsm_thingstream.c|app_fota/uart_transport.c" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="App"/>
+						<entry excluding="coremqtt/test|cJSON/tests|coreMQTT/test|cJSON/test.c|Thingstream_app/Src|cJSON/library_config|slip/test.c|cJSON/fuzzing|coreMQTT/tools|slip/slip.c|coreMQTT/docs" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="FW_libraries"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="common"/>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="f030_bsp"/>
 						<entry excluding="app_main/factory_config.c" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="production"/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="f030_bsp"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Middlewares"/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="Drivers"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -161,6 +161,7 @@
 									<listOptionValue builtIn="false" value="../../FW_libraries/coremqtt/source/include"/>
 									<listOptionValue builtIn="false" value="../../../modmo_saigonplus_ble/common"/>
 									<listOptionValue builtIn="false" value="../../FW_libraries/crc"/>
+									<listOptionValue builtIn="false" value="../../factory"/>
 									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/FreeRTOS/Source/include"/>
 									<listOptionValue builtIn="false" value="../Drivers/STM32F0xx_HAL_Driver/Inc"/>
 									<listOptionValue builtIn="false" value="../Drivers/CMSIS/Include"/>
@@ -169,7 +170,6 @@
 									<listOptionValue builtIn="false" value="../Drivers/CMSIS/Device/ST/STM32F0xx/Include"/>
 									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2"/>
 									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM0"/>
-									<listOptionValue builtIn="false" value="../../factory"/>
 								</option>
 								<inputType id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c.1819657848" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c"/>
 							</tool>
@@ -198,16 +198,16 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="app_main/wcb_gsm_main.c|app_fota" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="App"/>
-						<entry excluding="uart_transport.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="App/app_fota"/>
 						<entry excluding="Src/stm32f0xx_it.c|Src/usart.c|Src/freertos.c|Src/_usart.c|Src/main.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
-						<entry excluding="coremqtt/test|cJSON/tests|coreMQTT/test|cJSON/test.c|cJSON/library_config|slip/test.c|cJSON/fuzzing|coreMQTT/tools|slip/slip.c|coreMQTT/docs" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="FW_libraries"/>
 						<entry excluding="kxtj3/kxtj3 - Copy.c" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="HW_drivers"/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Middlewares"/>
+						<entry excluding="coremqtt/test|cJSON/tests|coreMQTT/test|cJSON/test.c|cJSON/library_config|slip/test.c|cJSON/fuzzing|coreMQTT/tools|slip/slip.c|coreMQTT/docs" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="FW_libraries"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="common"/>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="f030_bsp"/>
+						<entry excluding="app_main/wcb_gsm_main.c|app_fota" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="App"/>
 						<entry excluding="app_main/factory_config.c" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="production"/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="f030_bsp"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Middlewares"/>
+						<entry excluding="uart_transport.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="App/app_fota"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

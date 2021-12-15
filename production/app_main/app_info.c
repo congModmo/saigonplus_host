@@ -123,6 +123,7 @@ void app_info_update_host_version(uint16_t hostApp)
 	if(hostApp>0)
 	{
 		app_setting.firmware_version.hostApp=hostApp;
+		_host_ble_info.hostVersion=hostApp;
 	}
 	app_info_update_setting();
 }
@@ -132,6 +133,7 @@ void app_info_update_ble_version(uint16_t bleApp)
 	if(bleApp>0)
 	{
 		app_setting.firmware_version.bleApp=bleApp;
+		_host_ble_info.bleVersion=bleApp;
 	}
 	app_info_update_setting();
 }

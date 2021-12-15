@@ -88,10 +88,9 @@ int main(void)
 #ifdef DEBUG
 	MX_USART5_UART_Init();
 	RetargetInit(&huart5);
-#else
-	MX_IWDG_Init();
 #endif
 
+	MX_IWDG_Init();
 	debug("***************************\n");
 	debug("*  Hello 1st bootloader  *\n");
 	debug("***************************\n");

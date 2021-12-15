@@ -8,6 +8,7 @@
 #include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
+#include "host_ble_comm.h"
 
 #define STDIN_FILENO  0
 #define STDOUT_FILENO 1
@@ -30,16 +31,17 @@ int _isatty(int fd) {
   errno = EBADF;
   return 0;
 }
-
+extern __IO bool bleConnected;
+extern __IO bool fotaProcessing;
 int _write(int fd, char* ptr, int len) {
   HAL_StatusTypeDef hstatus;
 
   if (fd == STDOUT_FILENO || fd == STDERR_FILENO) {
+	  if(bleConnected && !fotaProcessing)
+		  nina_b1_send1(HOST_COMM_UI_MSG, ptr, len);
     hstatus = HAL_UART_Transmit(gHuart, (uint8_t *) ptr, len, HAL_MAX_DELAY);
-    if (hstatus == HAL_OK)
       return len;
-    else
-      return EIO;
+
   }
   errno = EBADF;
   return -1;

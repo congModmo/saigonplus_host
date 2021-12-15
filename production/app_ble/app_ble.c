@@ -35,6 +35,7 @@ static char ble_resp[256]={0};
 #ifdef JIGTEST
 bool host_ble_info_sync=false;
 #endif
+__IO bool bleConnected=false;
 
 static struct{
 	bool connected;
@@ -274,6 +275,7 @@ void host_comm_ble_msg_handle(uint8_t *msg, size_t len)
 		ble_auth.auth=false;
 		ble_auth.connected=true;
 		ble_auth.connect_tick=millis();
+		bleConnected=true;
 	}
 	else if(msg[0]==BLE_CMD_SYNC_INFO)
 	{
@@ -288,6 +290,7 @@ void host_comm_ble_msg_handle(uint8_t *msg, size_t len)
 		debug("Ble disconnected\n");
 		ble_auth.connected=false;
 		ble_auth.auth=false;
+		bleConnected=false;
 	}
 }
 
@@ -332,15 +335,15 @@ void app_ble_task(void)
 {
 	nina_b1_polling(packet_switch_callback);
 #ifndef JIGTEST
-	if(ble_auth.connected && !ble_auth.auth && !config_mode)
-	{
-		if(millis()-ble_auth.connect_tick>5000)
-		{
-			ble_request_cmd(HOST_CMD_DISCONNECT);
-			ble_auth.connected=false;
-			info("Reject timeout connection\n");
-		}
-	}
+//	if(ble_auth.connected && !ble_auth.auth && !config_mode)
+//	{
+//		if(millis()-ble_auth.connect_tick>5000)
+//		{
+//			ble_request_cmd(HOST_CMD_DISCONNECT);
+//			ble_auth.connected=false;
+//			info("Reject timeout connection\n");
+//		}
+//	}
 #endif
 }
 

@@ -12,6 +12,7 @@
 #include "usart.h"
 #include "ext_flash/GD25Q16.h"
 #include "ringbuf/ringbuf.h"
+#include "iwdg.h"
 /*
  * System bsp
  */
@@ -21,12 +22,7 @@
 
 extern RINGBUF uartRingbuf;
 void bsp_uart_fota_init();
-#ifdef DEBUG
-#define WDT_FEED()
-#else
-#include "iwdg.h"
 #define WDT_FEED() HAL_IWDG_Refresh(&hiwdg)
-#endif
 
 
 #endif /* BSP_H_ */

@@ -73,6 +73,7 @@ void fota_callback(uint8_t source, fota_status_t host_fota, fota_status_t ble_fo
 	}
 }
 
+__IO bool fotaProcessing=false;
 void fota_start_process(uint8_t source, void *params)
 {
 	const fota_transport_t *transport;
@@ -99,10 +100,12 @@ void fota_start_process(uint8_t source, void *params)
 		delay(5);
 		WATCHDOG_FEED();
 	}
+	fotaProcessing=false;
 }
 
 bool serial_fota_request_handle(serial_fota_request_info_t *request, uint8_t source)
 {
+	fotaProcessing=true;
 	json_info.crc=request->info_crc;
 	json_info.len=request->info_len;
 	json_info.flash_addr= EX_FLASH_FOTA_FILES_START;

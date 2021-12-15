@@ -101,6 +101,9 @@ int main(void)
   MX_USART3_UART_Init();
 #ifdef DEBUG
   MX_USART5_UART_Init();
+#if WATCHDOG==1
+  MX_IWDG_Init();
+#endif
 #else
   MX_IWDG_Init();
 #endif

@@ -204,6 +204,17 @@ void lte_rssi_handle()
 	tick=millis();
 	lara_r2_get_network_csq(&rssi);
 }
+
+void lte_rtc_handle()
+{
+	static uint32_t tick=0;
+	if(millis()-tick>3600000)
+	{
+		tick=millis();
+		lte_init_rtc();
+	}
+}
+
 void lte_task()
 {
 #ifdef LTE_ENABLE
@@ -247,6 +258,7 @@ void lte_task()
 	network_ready=true;
 	while(true)
 	{
+		lte_rtc_handle();
 		lte_rssi_handle();
 		lte_async_response_handle();
 		lara_r2_socket_process();

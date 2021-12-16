@@ -28,6 +28,12 @@ extern const bool *const ble_authenticated;
  	uint32_t auto_lock_delay;
  }user_config_t;
 
+typedef struct{
+	bool connected;
+	uint32_t connect_tick;
+	bool auth;
+}ble_auth_t;
+
 #define REQ_GET_IMEI_MAC 	"GET_IMEI_MAC"
 #define REQ_SYS_INFO  		"SYS_INFO"
 #define REQ_SYS_RESET  		"SYS_RESET"

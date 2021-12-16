@@ -37,11 +37,7 @@ bool host_ble_info_sync=false;
 #endif
 __IO bool bleConnected=false;
 
-static struct{
-	bool connected;
-	uint32_t connect_tick;
-	bool auth;
-}ble_auth;
+__IO ble_auth_t ble_auth;
 
 const bool *const ble_authenticated=&ble_auth.auth;
 

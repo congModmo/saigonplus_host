@@ -34,7 +34,7 @@ extern "C" {
 			printf(__VA_ARGS__);\
 			DEBUG_UNLOCK();}while(0)
 
-#define _printf_format(header, fmt, ...) _printf("[%s] %s - Line: %d: " fmt, header, __FILENAME_ONLY__, __LINE__,## __VA_ARGS__)
+#define _printf_format(header, fmt, ...) _printf("[%s] " fmt, header,## __VA_ARGS__)
 #if __DEBUG__>0
 #undef error
 #define error(fmt, ...) _printf_format("ERROR", fmt, ## __VA_ARGS__)

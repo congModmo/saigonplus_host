@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "host_ble_comm.h"
+#include "app_ble/app_ble.h"
 
 #define STDIN_FILENO  0
 #define STDOUT_FILENO 1
@@ -31,17 +32,29 @@ int _isatty(int fd) {
   errno = EBADF;
   return 0;
 }
-extern __IO bool bleConnected;
+extern __IO ble_auth_t ble_auth;
 extern __IO bool fotaProcessing;
+#define buff_len 128
+static char buff[buff_len];
+static int count=0;
 int _write(int fd, char* ptr, int len) {
-  HAL_StatusTypeDef hstatus;
 
   if (fd == STDOUT_FILENO || fd == STDERR_FILENO) {
-	  if(bleConnected && !fotaProcessing)
-		  nina_b1_send1(HOST_COMM_UI_MSG, ptr, len);
-    hstatus = HAL_UART_Transmit(gHuart, (uint8_t *) ptr, len, HAL_MAX_DELAY);
+	  if(ble_auth.connected && !ble_auth.auth && !fotaProcessing)
+	  {
+		  for(int i=0; i<len; i++)
+		  {
+			  buff[count]=ptr[i];
+			  count++;
+			  if(count==buff_len || ptr[i]=='\n')
+			  {
+				  nina_b1_send1(HOST_COMM_UI_MSG, buff, count);
+				  count=0;
+			  }
+		  }
+	  }
+	HAL_UART_Transmit(gHuart, (uint8_t *) ptr, len, HAL_MAX_DELAY);
       return len;
-
   }
   errno = EBADF;
   return -1;

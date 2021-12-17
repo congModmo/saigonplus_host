@@ -101,10 +101,8 @@ int main(void)
   MX_USART3_UART_Init();
 #ifdef DEBUG
   MX_USART5_UART_Init();
-#if WATCHDOG==1
-  MX_IWDG_Init();
 #endif
-#else
+#if defined(RELEASE)|| defined(JIGTEST)||WATCHDOG==1
   MX_IWDG_Init();
 #endif
   MX_SPI1_Init();

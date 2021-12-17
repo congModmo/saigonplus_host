@@ -183,7 +183,7 @@ static BaseType_t prvMQTTSubscribe( char *topic)
     BaseType_t xFailedSubscribeToTopic = pdFALSE;
     int retry=3;
     BaseType_t xStatus = pdFAIL;
-    xMQTTSubscription.qos = MQTTQoS1;
+    xMQTTSubscription.qos = MQTTQoS0;
     xMQTTSubscription.pTopicFilter = topic;
     xMQTTSubscription.topicFilterLength = ( uint16_t ) strlen( topic );
     mqtt.topic.pcTopicFilter=topic;
@@ -261,7 +261,7 @@ static void prvMQTTProcessResponse( MQTTPacketInfo_t * pxIncomingPacket,
         case MQTT_PACKET_TYPE_PUBACK:
             info ( "PUBACK received for packet Id %u.\n", usPacketId ) ;
             /* Make sure ACK packet identifier matches with Request packet identifier. */
-            configASSERT( usPublishPacketIdentifier == usPacketId );
+//            configASSERT( usPublishPacketIdentifier == usPacketId );
             break;
 
         case MQTT_PACKET_TYPE_SUBACK:
@@ -359,8 +359,8 @@ static MQTTStatus_t prvWaitForPacket( MQTTContext_t * pxMQTTContext,
            ( xMQTTStatus == MQTTSuccess )  && ((millis()-tick) <MQTT_PROCESS_LOOP_TIMEOUT_MS))
     {
         /* Event callback will set #usPacketTypeReceived when receiving appropriate packet. This
-         * will wait for at most MQTT_PROCESS_LOOP_TIMEOUT_MS. */
-        xMQTTStatus = MQTT_ProcessLoop( pxMQTTContext, 0 );
+         * will wait for at most . */
+        xMQTTStatus = MQTT_ProcessLoop( pxMQTTContext, MQTT_PROCESS_LOOP_TIMEOUT_MS );
         delay(5);
     }
 

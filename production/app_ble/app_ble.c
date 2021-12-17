@@ -334,7 +334,7 @@ void app_ble_task(void)
 #ifndef JIGTEST
 	if(ble_auth.connected && !ble_auth.auth && !config_mode)
 	{
-		if(millis()-ble_auth.connect_tick>5000)
+		if(millis()-ble_auth.connect_tick>10000)
 		{
 			ble_request_cmd(HOST_CMD_DISCONNECT);
 			ble_auth.connected=false;

@@ -61,6 +61,34 @@ static bool network_security_init()
     return true;
 }
 
+static bool try_to_register_lte()
+{
+    uint32_t tick;
+    info("Try to register to lte\n");
+    ASSERT_GO(gsm_send_at_command("AT+CFUN=0\r\n", "OK", 2000, 3, NULL), false, "AT+CFUN=0");
+    ASSERT_GO(gsm_send_at_command("AT+URAT=3\r\n", "OK", 1000, 2, NULL), false, "AT+URAT=3");
+    ASSERT_GO(gsm_send_at_command("AT+CFUN=1\r\n", "OK", 1000, 2, NULL), false, "AT+CFUN=1");
+    ASSERT_GO(gsm_send_at_command("AT+CFUN=16\r\n", "OK", 1000, 2, NULL), false, "AT+CFUN=16");
+    tick=millis();
+    do{
+		lara_r2_get_network_info(_carrier, sizeof(_carrier)-1, &type);
+		if(type==NETWORK_TYPE_4G)
+		{
+			info("Success connect to 4G");
+			break;
+		}
+		delay(2000);
+    }
+    while(millis()-tick<120000);
+
+    __exit:
+    ASSERT_RET(gsm_send_at_command("AT+CFUN=0\r\n", "OK", 1000, 2, NULL), false, "AT+USECPRF=0");
+    ASSERT_RET(gsm_send_at_command("AT+URAT=5,3\r\n", "OK", 1000, 2, NULL), false, "AT+USECPRF=0");
+    ASSERT_RET(gsm_send_at_command("AT+CFUN=1\r\n", "OK", 1000, 2, NULL), false, "AT+USECPRF=0");
+    ASSERT_RET(gsm_send_at_command("AT+CFUN=16\r\n", "OK", 1000, 2, NULL), false, "AT+USECPRF=0");
+    return true;
+}
+
 bool network_connect_init(void)
 {
 	ASSERT_RET(gsm_send_at_command("AT+CMEE=2\r\n", "OK", 500, 2, NULL), false, "AT+CMEE=2");
@@ -190,6 +218,7 @@ void network_info_init()
 		error("get network info\n");
 		return;
 	}
+
 	lara_r2_get_network_csq(&rssi);
 #ifdef JIGTEST
 	jigtest_network_report();
@@ -222,11 +251,12 @@ void lte_task()
 		delay(5);
 	}
 	info("LTE task start\n");
-
+	bool lte_attempt=false;
 	lara_r2_bsp_init();
 
 	if(lara_r2_socket_check()){
 		lara_r2_init_info(_imei, 32, _ccid, 32);
+		network_info_init();
 		goto __network_ready;
 	}
 	__network_start:
@@ -241,8 +271,18 @@ void lte_task()
 		if(!lara_r2_software_init()){
 			goto __init_wait;
 		}
-		if(network_connect_init()){
-			break;
+		if(network_connect_init())
+		{
+			if(type==NETWORK_TYPE_2G && !lte_attempt)
+			{
+				lte_attempt=true;
+				try_to_register_lte();
+				goto __network_start;
+			}
+			else
+			{
+				break;
+			}
 		}
 		__init_wait:
 		delay(60000);

@@ -1,5 +1,5 @@
 
-#define __DEBUG__ 3
+#define __DEBUG__ 4
 
 #include <lte/lara_r2.h>
 #include "bsp.h"
@@ -275,22 +275,24 @@ bool lara_r2_get_network_info(char *carrier, int carrier_len, network_type_t *ty
 	_carrier=strtok(NULL, "\"");
 	ASSERT_RET(strlen(_carrier)>0 && strlen(_carrier)<carrier_len, false, "Carrier len");
 	strcpy(carrier, _carrier);
-	debug("Carrier: %s\n", carrier);
+	info("Carrier: %s\n", carrier);
 	_carrier=strtok(NULL, "\"");
 	ASSERT_RET(_carrier!=NULL, false, "Network type null");
 	_carrier ++;
 	if(*_carrier=='3')
 	{
 		*type=NETWORK_TYPE_2G;
+		info("type 2G\n");
 	}
 	else if(*_carrier=='7')
 	{
 		*type=NETWORK_TYPE_4G;
+		info("type 4G\n");
 	}
 	else
 	{
 		error("unknown network type\n");
-		return false;
+		*type=NETWORK_TYPE_NONE;
 	}
 	return true;
 }

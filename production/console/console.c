@@ -181,5 +181,11 @@ void console_task(void)
     	{
     		app_ble_console_handle(__param_pos("ble "));
     	}
+    	else if(__check_cmd("at "))
+    	{
+    		debug("Send command: %s\n", __param_pos("at "));
+    		gsm_send_string(__param_pos("at "));
+    		gsm_send_string("\r\n");
+    	}
     }
 }

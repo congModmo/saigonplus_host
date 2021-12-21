@@ -79,13 +79,13 @@ static bool try_to_register_lte()
 		}
 		delay(2000);
     }
-    while(millis()-tick<120000);
+    while(millis()-tick<180000);
 
     __exit:
-    ASSERT_RET(gsm_send_at_command("AT+CFUN=0\r\n", "OK", 1000, 2, NULL), false, "AT+USECPRF=0");
-    ASSERT_RET(gsm_send_at_command("AT+URAT=5,3\r\n", "OK", 1000, 2, NULL), false, "AT+USECPRF=0");
-    ASSERT_RET(gsm_send_at_command("AT+CFUN=1\r\n", "OK", 1000, 2, NULL), false, "AT+USECPRF=0");
-    ASSERT_RET(gsm_send_at_command("AT+CFUN=16\r\n", "OK", 1000, 2, NULL), false, "AT+USECPRF=0");
+    ASSERT_RET(gsm_send_at_command("AT+CFUN=0\r\n", "OK", 2000, 2, NULL), false, "AT+USECPRF=0");
+    ASSERT_RET(gsm_send_at_command("AT+URAT=5,3\r\n", "OK", 1000, 2, NULL), false, "AT+URAT=5,3");
+    ASSERT_RET(gsm_send_at_command("AT+CFUN=1\r\n", "OK", 1000, 2, NULL), false, "AT+CFUN=1");
+    ASSERT_RET(gsm_send_at_command("AT+CFUN=16\r\n", "OK", 1000, 2, NULL), false, "AT+CFUN=16");
     return true;
 }
 

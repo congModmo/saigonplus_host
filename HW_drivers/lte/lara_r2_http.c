@@ -1,4 +1,4 @@
-#define __DEBUG__ 3
+#define __DEBUG__ 4
 #include <stdio.h>
 #include <string.h>
 #include "main.h"
@@ -197,7 +197,7 @@ static bool fota_save_file_to_flash(fota_file_info_t *file)
         file_offset += sector_len;
     }
     ASSERT_RET(GD25Q16_Crc32_check(file->flash_addr, file->len, file->crc), false, "crc check");
-    debug("All block read OK");
+    debug("All block read OK\n");
     return true;
 }
 
@@ -258,7 +258,7 @@ static bool download_short_file(fota_file_info_t *file, uint32_t timeout){
 	ASSERT_GO(fota_save_file_to_flash(file), "Save file");
 	status=true;
 	__exit:
-	//delete_lte_file(file->file_name);
+	delete_lte_file(file->file_name);
 	return status;
 }
 
@@ -288,10 +288,10 @@ bool lara_r2_http_get_file(char *link, fota_file_info_t *file, uint32_t timeout)
 		error("Parse link\n");
 		return false;
 	}
-	if(file->len <=FLASH_FOTA_SECTOR_SZ){
+//	if(file->len <=FLASH_FOTA_SECTOR_SZ){
 		return download_short_file(file, timeout);
-	 }
-	else{
-		return download_long_file(file, timeout);
-	}
+//	 }
+//	else{
+//		return download_long_file(file, timeout);
+//	}
 }

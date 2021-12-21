@@ -183,9 +183,11 @@ void console_task(void)
     	}
     	else if(__check_cmd("at "))
     	{
+#ifdef LTE_ENABLE
     		debug("Send command: %s\n", __param_pos("at "));
     		gsm_send_string(__param_pos("at "));
     		gsm_send_string("\r\n");
+#endif
     	}
     }
 }

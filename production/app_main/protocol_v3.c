@@ -121,7 +121,7 @@ static void send_keep_alive_msg(gps_data_t *gps)
 	msg.lte_signal=(uint8_t)(*lteRssi);
 	if(*network_type==NETWORK_TYPE_4G)
 	{
-		msg.lte_signal |= 1<<8;
+		msg.lte_signal |= 1<<7;
 	}
 #endif
 	msg.gps_signal=(uint8_t)((gps->hdop < 20.0)?(gps->hdop*10):0);
@@ -135,6 +135,7 @@ static void send_keep_alive_msg(gps_data_t *gps)
 
 void send_theft_msg()
 {
+
 }
 
 void send_fall_msg(uint8_t fall)
@@ -171,9 +172,8 @@ void lock_cmd_handler(uint8_t *cmd, uint8_t id)
 
 void fota_cmd_handler(uint8_t *cmd, uint8_t id)
 {
-	char *link =(char *)cmd;
-	debug("fota from link: %s\n", link);
-	send_ack_message(CMD_TOPIC_FOTA, id, 1);
+	fota_cmd_t *fota_cmd =(fota_cmd_t *)cmd;
+	send_ack_message(CMD_TOPIC_FOTA, id, lte_fota_request_handle(fota_cmd));
 }
 
 void imu_cmd_handler(uint8_t *cmd)

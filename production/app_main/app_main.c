@@ -57,6 +57,10 @@ void uart_ui_callback(uint8_t type, fota_file_info_t *file)
 void fota_callback(uint8_t source, fota_status_t host_fota, fota_status_t ble_fota)
 {
 	fota_finish = true;
+	if(host_fota==FOTA_NONE && ble_fota==FOTA_DONE && source==FOTA_OVER_LTE)
+	{
+		publish_device_info_message();
+	}
 	if(ble_fota!=FOTA_NONE)
 	{
 		 uart_ui_comm_command_send(UART_UI_RES_BLE_DFU, (ble_fota==FOTA_DONE)?1:0);
@@ -114,6 +118,24 @@ bool serial_fota_request_handle(serial_fota_request_info_t *request, uint8_t sou
 	fota_finish=false;
 	fota_source= source;
 	fota_params=NULL;
+	return true;
+}
+
+bool lte_fota_request_handle(fota_cmd_t *cmd)
+{
+	json_info.crc=cmd->file_crc;
+	json_info.len=cmd->file_len;
+	json_info.flash_addr=EX_FLASH_FOTA_FILES_START;
+	strcpy(json_info.file_name, "info.json");
+	fota_params=malloc(strlen(&cmd->link)+1);
+	ASSERT_RET(fota_params!=NULL, false, "fota malloc");
+	strcpy(fota_params, &cmd->link);
+	debug("Info len: %d\n", json_info.len);
+	debug("Info crc: %u\n", json_info.crc);
+	debug("Fota from link: %s\n", &cmd->link);
+	fota_start=true;
+	fota_finish=false;
+	fota_source= FOTA_OVER_LTE;
 	return true;
 }
 
@@ -183,10 +205,6 @@ void app_main(void)
 	debug("Host app version: %d\n", firmware_version->hostApp);
 	debug("Ble app version: %d\n", firmware_version->bleApp);
 
-#ifdef BLE_ENABLE
-	app_ble_init();
-#endif
-
 #ifdef DISPLAY_ENABLE
 	uart_ui_process();
 	if(config_mode)
@@ -199,6 +217,10 @@ void app_main(void)
 	{
 		app_display_init();
 	}
+#endif
+
+#ifdef BLE_ENABLE
+	app_ble_init();
 #endif
 
 #ifdef PUBLISH_ENABLE

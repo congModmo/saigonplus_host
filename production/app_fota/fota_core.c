@@ -372,6 +372,7 @@ void fota_core_process()
 				fota.result=false;
 				goto __exit;
 			}
+			info("ble fota done\n");
 			fota.ble_status=FOTA_DONE;
 			app_info_update_ble_version(fota.ble_app_version);
 #else

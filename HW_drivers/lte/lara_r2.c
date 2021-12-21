@@ -1,5 +1,5 @@
 
-#define __DEBUG__ 4
+#define __DEBUG__ 3
 
 #include <lte/lara_r2.h>
 #include "bsp.h"
@@ -263,7 +263,7 @@ bool lara_r2_get_network_csq(int *csq)
 	ASSERT_RET(gsm_send_at_command("AT+CSQ\r\n", "+CSQ: ", 1000, 2, &response), false, "AT+CSQ?");
 	response=strstr(response, "+CSQ: ")+strlen("+CSQ: ");
 	ASSERT_RET(sscanf(response, "%d,", csq)==1, false, "Sscanf");
-	debug("csq: %s\n", *csq);
+	debug("csq: %d\n", *csq);
 	return true;
 }
 

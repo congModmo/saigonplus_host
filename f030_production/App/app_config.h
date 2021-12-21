@@ -8,7 +8,7 @@
 
 	#define BLE_ENABLE
 
-	#define LTE_ENABLE
+//	#define LTE_ENABLE
 
 	#define DISPLAY_ENABLE
 
@@ -16,7 +16,7 @@
 
 	#define PUBLISH_ENABLE
 
-//	#define MQTT_ENABLE
+	#define MQTT_ENABLE
 #else
 
 	#define ALARM_ENABLE

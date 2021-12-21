@@ -103,6 +103,12 @@ typedef struct __packed{
 }lock_cmd_t;
 
 typedef struct __packed{
+	int file_len;
+	uint32_t file_crc;
+	char link;
+}fota_cmd_t;
+
+typedef struct __packed{
 	uint8_t value;
 }imu_cmd_t;
 

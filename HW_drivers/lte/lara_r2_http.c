@@ -251,7 +251,7 @@ static void delete_lte_file(char  *name){
 }
 
 static bool download_short_file(fota_file_info_t *file, uint32_t timeout){
-	bool status;
+	bool status =false;
 	sprintf(get_file.fullPath, "%s%s", get_file.path, file->file_name);
 	debug("file: %s\n", get_file.fullPath);
 	ASSERT_RET(download_http_file(get_file.host, get_file.port, get_file.secure, get_file.fullPath, file->file_name, timeout), false, "downloade file");

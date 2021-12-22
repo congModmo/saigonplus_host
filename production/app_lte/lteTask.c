@@ -211,27 +211,22 @@ void jigtest_network_report()
 }
 #endif
 
-void network_info_init()
+static void get_network_info()
 {
-	if(!lara_r2_get_network_info(_carrier, sizeof(_carrier)-1, &type))
-	{
-		error("get network info\n");
-		return;
-	}
-
+	lara_r2_get_network_info(_carrier, sizeof(_carrier)-1, &type);
 	lara_r2_get_network_csq(&rssi);
 #ifdef JIGTEST
 	jigtest_network_report();
 #endif
 }
 
-void lte_rssi_handle()
+void lte_network_info_handle()
 {
 	static uint32_t tick=0;
 	if(millis()-tick < 60000)
 		return;
 	tick=millis();
-	lara_r2_get_network_csq(&rssi);
+	get_network_info();
 }
 
 void lte_rtc_handle()
@@ -256,7 +251,7 @@ void lte_task()
 
 	if(lara_r2_socket_check()){
 		lara_r2_init_info(_imei, 32, _ccid, 32);
-		network_info_init();
+		get_network_info();
 		goto __network_ready;
 	}
 	__network_start:
@@ -293,13 +288,12 @@ void lte_task()
 	lte_init_rtc();
 	lara_r2_socket_close_all();
 	network_security_init();
-	network_info_init();
-	lara_r2_get_network_csq(&rssi);
+	get_network_info();
 	network_ready=true;
 	while(true)
 	{
 		lte_rtc_handle();
-		lte_rssi_handle();
+		lte_network_info_handle();
 		lte_async_response_handle();
 		lara_r2_socket_process();
 		lte_mail_process();

@@ -8,7 +8,7 @@
 
 	#define BLE_ENABLE
 
-//	#define LTE_ENABLE
+	#define LTE_ENABLE
 
 	#define DISPLAY_ENABLE
 

@@ -5,6 +5,8 @@
 #include "bsp.h"
 #include "esp_host_comm.h"
 #include "bsp.h"
+#include "protothread/pt.h"
+
 typedef struct
 {
 	RINGBUF rb;
@@ -15,7 +17,9 @@ typedef struct
 	bool completed;
 } esp_tester_t;
 
+static task_complete_cb_t callback;
 static esp_tester_t esp_tester;
+static struct pt esp_pt, block_pt;
 
 void esp_uart_polling(frame_handler handler)
 {
@@ -41,26 +45,32 @@ void block_test_cb(uint8_t *data, uint16_t len)
 	esp_tester.completed=true;
 }
 
-bool uart_esp_block_test(){
-	memset(esp_tester.inBuffer, 0, 128);
-	RINGBUF_Flush(&esp_tester.rb);
-	slip_send(&esp_tester.slip, esp_tester.outBuffer, 32, SLIP_FRAME_COMPLETE);
-	uint32_t tick=millis();
-	esp_tester.completed=false;
-	while(millis()-tick<100 && !esp_tester.completed){
-		esp_uart_polling(block_test_cb);
-		delay(5);
-	}
-	return esp_tester.completed;
-}
-
-void jigtest_uart_esp_init(){
+void jigtest_uart_esp_init()
+{
 	bsp_uart5_init(&esp_tester.rb);
 	slip_init(&esp_tester.slip, true, esp_tester.inBuffer, 128, bsp_uart5_send_byte);
 }
 
-bool jigtest_test_uart_esp()
+static int uart_esp_block_test(struct pt *pt)
 {
+	PT_BEGIN(pt);
+	memset(esp_tester.inBuffer, 0, 128);
+	RINGBUF_Flush(&esp_tester.rb);
+	slip_send(&esp_tester.slip, esp_tester.outBuffer, 32, SLIP_FRAME_COMPLETE);
+	static uint32_t tick;
+	tick=millis();
+	esp_tester.completed=false;
+	while(millis()-tick<100 && !esp_tester.completed)
+	{
+		esp_uart_polling(block_test_cb);
+		PT_YIELD(pt);
+	}
+	PT_END(pt);
+}
+
+static int esp_test_uart_thread(struct pt *pt)
+{
+	PT_BEGIN(pt);
 	for (uint8_t i = 1; i < 32; i++)
 	{
 		esp_tester.outBuffer[i] = i;
@@ -69,13 +79,27 @@ bool jigtest_test_uart_esp()
 	esp_tester.crc = crc32_compute(esp_tester.outBuffer, 32, NULL);
 	for (uint8_t i = 0; i < 3; i++)
 	{
-		if (uart_esp_block_test())
+		PT_SPAWN(pt, &block_pt, uart_esp_block_test(&block_pt));
+		if(esp_tester.completed)
 		{
 			jigtest_direct_report(UART_UI_RES_ESP_ADAPTOR, 1);
-			return true;
+			break;
 		}
 	}
-	return false;
+	callback();
+	PT_END(pt);
+}
+
+void jigtest_esp_test_init(task_complete_cb_t cb)
+{
+	callback=cb;
+	jigtest_uart_esp_init();
+	PT_INIT(&esp_pt)
+}
+
+void jigtest_esp_test_process()
+{
+	esp_test_uart_thread(&esp_pt);
 }
 
 void uart_esp_send_cmd(uint8_t cmd){
@@ -91,12 +115,12 @@ void jigtest_esp_console_handle(char *result)
 {
 	if(__check_cmd("test esp"))
 	{
-		if(jigtest_test_uart_esp())
-		{
-			debug("test esp ok\n");
-		}
-		else{
-			debug("test esp error\n");
-		}
+//		if(jigtest_test_uart_esp())
+//		{
+//			debug("test esp ok\n");
+//		}
+//		else{
+//			debug("test esp error\n");
+//		}
 	}
 }

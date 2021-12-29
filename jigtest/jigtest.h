@@ -10,6 +10,15 @@
 #include "bsp.h"
 #include "app_main/uart_ui_comm.h"
 
+enum{
+	JIGTEST_IDLE=0,
+	JIGTEST_TESTING_HARDWARE,
+	JIGTEST_TESTING_FUNCTION,
+};
+
+typedef void (* task_complete_cb_t)(void);
+typedef void (* task_init_t)(task_complete_cb_t cb);
+typedef void (* task_process_t)(void);
 
 void testkit_report(uint8_t type, uint8_t *data, uint8_t len);
 void testkit_console_handle(char *result);

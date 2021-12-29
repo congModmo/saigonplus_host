@@ -87,6 +87,18 @@ const osThreadAttr_t mqttTask_attributes = {
   .stack_size = sizeof(mqttTaskBuffer),
   .priority = (osPriority_t) osPriorityNormal,
 };
+/* Definitions for jigtestTask */
+osThreadId_t jigtestTaskHandle;
+uint32_t jigtestTaskBuffer[ 256 ];
+osStaticThreadDef_t jigtestTaskControlBlock;
+const osThreadAttr_t jigtestTask_attributes = {
+  .name = "jigtestTask",
+  .cb_mem = &jigtestTaskControlBlock,
+  .cb_size = sizeof(jigtestTaskControlBlock),
+  .stack_mem = &jigtestTaskBuffer[0],
+  .stack_size = sizeof(jigtestTaskBuffer),
+  .priority = (osPriority_t) osPriorityNormal,
+};
 /* Definitions for mainMail */
 osMessageQueueId_t mainMailHandle;
 uint8_t mainMailBuffer[ 5 * sizeof( mail_t ) ];
@@ -119,6 +131,17 @@ const osMessageQueueAttr_t mqttMail_attributes = {
   .cb_size = sizeof(mqttMailControlBlock),
   .mq_mem = &mqttMailBuffer,
   .mq_size = sizeof(mqttMailBuffer)
+};
+/* Definitions for jigTestMail */
+osMessageQueueId_t jigTestMailHandle;
+uint8_t jigTestMailBuffer[ 5 * sizeof( jigtest_mail_t ) ];
+osStaticMessageQDef_t jigTestMailControlBlock;
+const osMessageQueueAttr_t jigTestMail_attributes = {
+  .name = "jigTestMail",
+  .cb_mem = &jigTestMailControlBlock,
+  .cb_size = sizeof(jigTestMailControlBlock),
+  .mq_mem = &jigTestMailBuffer,
+  .mq_size = sizeof(jigTestMailBuffer)
 };
 /* Definitions for appResource */
 osMutexId_t appResourceHandle;
@@ -177,6 +200,7 @@ const osMutexAttr_t jigtestMutex_attributes = {
 void StartMainTask(void *argument);
 void LteTaskStart(void *argument);
 void MqttTaskStart(void *argument);
+void StartJigtestTask(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -230,6 +254,9 @@ void MX_FREERTOS_Init(void) {
   /* creation of mqttMail */
   mqttMailHandle = osMessageQueueNew (5, sizeof(mail_t), &mqttMail_attributes);
 
+  /* creation of jigTestMail */
+  jigTestMailHandle = osMessageQueueNew (5, sizeof(jigtest_mail_t), &jigTestMail_attributes);
+
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
   /* USER CODE END RTOS_QUEUES */
@@ -243,6 +270,9 @@ void MX_FREERTOS_Init(void) {
 
   /* creation of mqttTask */
   mqttTaskHandle = osThreadNew(MqttTaskStart, NULL, &mqttTask_attributes);
+
+  /* creation of jigtestTask */
+  jigtestTaskHandle = osThreadNew(StartJigtestTask, NULL, &jigtestTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* USER CODE END RTOS_THREADS */
@@ -308,6 +338,24 @@ void MqttTaskStart(void *argument)
     osDelay(5);
   }
   /* USER CODE END MqttTaskStart */
+}
+
+/* USER CODE BEGIN Header_StartJigtestTask */
+/**
+* @brief Function implementing the jigtestTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartJigtestTask */
+void StartJigtestTask(void *argument)
+{
+  /* USER CODE BEGIN StartJigtestTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END StartJigtestTask */
 }
 
 /* Private application code --------------------------------------------------*/

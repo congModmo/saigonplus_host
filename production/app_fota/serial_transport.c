@@ -5,7 +5,7 @@
  *      Author: thanhcong
  */
 
-#define __DEBUG__ 3
+#define __DEBUG__ 4
 #include <string.h>
 #include "fota_core.h"
 #include <app_fota/serial_transport.h>

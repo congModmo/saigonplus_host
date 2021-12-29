@@ -158,6 +158,11 @@ void host_upgrade_check()
 	}
 }
 
+void lte_fota_request_handle(fota_cmd_t *fota_cmd)
+{
+
+}
+
 void app_main(void)
 {
 	retarget_init();
@@ -169,9 +174,11 @@ void app_main(void)
 	app_gps_init();
 	lara_r2_bsp_init();
 	app_info_init();
-	ioctl_beep(100);
+	buzzer_beep(100);
+	jigtest_init();
 	while (1)
 	{
+		jigtest_process();
 		uart_ui_comm_polling();
 		if (fota_start)
 		{

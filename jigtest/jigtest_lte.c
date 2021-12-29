@@ -203,7 +203,7 @@ void jigtest_lte_console_handle(char *result)
 	}
 	else if(__check_cmd("get network info"))
 	{
-		jigtest_report_network_info();
+//		jigtest_report_network_info();
 	}
 	else debug("Unknown cmd\n");
 }

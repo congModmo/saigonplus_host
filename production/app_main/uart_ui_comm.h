@@ -37,6 +37,8 @@ typedef enum{
 	UART_UI_LTE_CERT			=153,
 	UART_UI_LTE_KEY				=154,
 	UART_UI_CMD_IMPORT_KEY 		=155,
+    UART_UI_CMD_STOP			=156,
+    UART_UI_CMD_POLLING			=157,
 
 	UART_UI_RES_LTE_IMEI		=160,
 	UART_UI_RES_LTE_SIM_CCID	=161,
@@ -84,6 +86,7 @@ typedef enum{
     UART_UI_RES_ERR   			=223,
 	UART_UI_CMD_DUMMY			=224,
 	UART_UI_RES_SN				=225,
+	UART_UI_RES_RESULT_COUNT	=226,
 }ui_comm_cmd_t;
 
 enum{

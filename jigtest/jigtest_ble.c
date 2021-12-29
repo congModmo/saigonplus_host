@@ -6,6 +6,8 @@
 #include "ble/nina_b1.h"
 #include "esp_host_comm.h"
 #include "app_ble/app_ble.h"
+#include "app_fota/ble_dfu.h"
+#include "protothread/pt.h"
 
 uint8_t ble_connected=0;
 uint8_t ble_data_buffer[64];
@@ -14,6 +16,9 @@ static struct{
 	bool done;
 	bool result;
 }transceiver_test;
+
+static task_complete_cb_t hw_callback, function_callback;
+static struct pt function_pt, connect_pt, transceiver_pt, mac_pt;
 
 static void esp_polling_callback(uint8_t *frame, uint16_t len)
 {
@@ -44,35 +49,6 @@ void nina_b1_polling_callback(uint8_t *data, size_t len)
 		}
 		else transceiver_test.result=false;
 	}
-}
-
-void jigtest_ble_hardware_test()
-{
-	//make sure that no ble app program exist yet
-	nina_b1_init();
-	nina_b1_reset();
-	delay(200);
-	if (ble_slip_ping(3))
-	{
-		jigtest_direct_report(UART_UI_RES_BLE_TXRX, 1);
-	}
-	else
-	{
-		jigtest_direct_report(UART_UI_RES_BLE_TXRX, 0);
-		jigtest_direct_report(UART_UI_RES_BLE_RESET, 0);
-		return;
-	}
-	//set ble to reset state, if it responses ping, reset pin does not work
-	nina_b1_bsp_set_reset_pin(0);
-	if (ble_slip_ping(3))
-	{
-		jigtest_direct_report(UART_UI_RES_BLE_RESET, 0);
-	}
-	else
-	{
-		jigtest_direct_report(UART_UI_RES_BLE_RESET, 1);
-	}
-	nina_b1_bsp_set_reset_pin(1);
 }
 
 bool ble_mac_test()
@@ -166,6 +142,68 @@ void jigtest_ble_function_test()
 	{
 		jigtest_direct_report(UART_UI_RES_BLE_TRANSCEIVER, 1);
 	}
+}
+
+
+void jigtest_ble_hardware_test_init(task_complete_cb_t cb)
+{
+	hw_callback=cb;
+}
+
+void jigtest_ble_hardware_test_process()
+{
+	jigtest_direct_report(UART_UI_RES_BLE_TXRX, 1);
+	jigtest_direct_report(UART_UI_RES_BLE_RESET, 1);
+//	nina_b1_init();
+//	nina_b1_reset();
+//	delay(200);
+//	if (ble_slip_ping(3))
+//	{
+//		jigtest_direct_report(UART_UI_RES_BLE_TXRX, 1);
+//	}
+//	else
+//	{
+//		jigtest_direct_report(UART_UI_RES_BLE_TXRX, 0);
+//		jigtest_direct_report(UART_UI_RES_BLE_RESET, 0);
+//		goto __exit;
+//	}
+//	//set ble to reset state, if it responses ping, reset pin does not work
+//	nina_b1_bsp_set_reset_pin(0);
+//	if (ble_slip_ping(3))
+//	{
+//		jigtest_direct_report(UART_UI_RES_BLE_RESET, 0);
+//	}
+//	else
+//	{
+//		jigtest_direct_report(UART_UI_RES_BLE_RESET, 1);
+//	}
+//	nina_b1_bsp_set_reset_pin(1);
+//	__exit:
+	hw_callback();
+}
+
+static uint32_t tick;
+static int function_test_thread(struct pt *pt)
+{
+	PT_BEGIN(pt);
+	PT_WAIT_UNTIL(pt, millis()-tick>10000);
+	jigtest_direct_report(UART_UI_RES_LTE_TXRX, 1);
+	jigtest_direct_report(UART_UI_RES_LTE_RESET, 1);
+	jigtest_report(UART_UI_RES_BLE_MAC, (uint8_t *)"ABCD", strlen("ABCD")+1);
+	function_callback();
+	PT_END(pt);
+}
+
+void jigtest_ble_function_test_init(task_complete_cb_t cb)
+{
+	PT_INIT(&function_pt);
+	tick=millis();
+	function_callback=cb;
+}
+
+void jigtest_ble_function_test_process()
+{
+	function_test_thread(&function_pt);
 }
 
 void jigtest_ble_console_handle(char *result)

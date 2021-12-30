@@ -21,7 +21,7 @@ static task_complete_cb_t callback;
 static esp_tester_t esp_tester;
 static struct pt esp_pt, block_pt;
 
-void esp_uart_polling(frame_handler handler)
+void jigtest_esp_uart_polling(frame_handler handler)
 {
 	while (RINGBUF_Available(&esp_tester.rb))
 	{
@@ -36,7 +36,7 @@ void esp_uart_polling(frame_handler handler)
 	}
 }
 
-void block_test_cb(uint8_t *data, uint16_t len)
+void block_test_cb(uint8_t *data, size_t len)
 {
 	if (crc32_compute(esp_tester.inBuffer, 32, NULL) != esp_tester.crc)
 	{
@@ -62,7 +62,7 @@ static int uart_esp_block_test(struct pt *pt)
 	esp_tester.completed=false;
 	while(millis()-tick<100 && !esp_tester.completed)
 	{
-		esp_uart_polling(block_test_cb);
+		jigtest_esp_uart_polling(block_test_cb);
 		PT_YIELD(pt);
 	}
 	PT_END(pt);
@@ -109,6 +109,75 @@ void uart_esp_send_cmd(uint8_t cmd){
 void uart_esp_send(uint8_t cmd, uint8_t *data, uint8_t len){
 	slip_send(&esp_tester.slip, &cmd, 1, SLIP_FRAME_BEGIN);
 	slip_send(&esp_tester.slip, data, len, SLIP_FRAME_END);
+}
+
+void uart_esp_send0(uint8_t *data, uint8_t len)
+{
+	slip_send(&esp_tester.slip, data, len, SLIP_FRAME_COMPLETE);
+}
+
+/*************************************************************************
+ * Retry command
+ ************************************************************************/
+
+static struct{
+	uint8_t cmd[32];
+	uint8_t cmd_len;
+	uint8_t response_header;
+	int retry;
+	uint32_t interval;
+	uint32_t tick;
+	bool success;
+}ble_cmd;
+
+void jigtest_esp_create_cmd(uint8_t cmd, uint8_t expected, uint32_t interval, int retry)
+{
+	ble_cmd.cmd[0]=cmd;
+	ble_cmd.cmd_len=1;
+	ble_cmd.response_header=expected;
+	ble_cmd.interval=interval;
+	ble_cmd.retry=retry;
+}
+
+void jigtest_esp_create_cmd1(uint8_t cmd, char *params, uint8_t expected, uint32_t interval, int retry)
+{
+	ble_cmd.cmd[0]=cmd;
+	memcpy(ble_cmd.cmd +1, params, strlen(params));
+	ble_cmd.cmd_len=1+strlen(params);;
+	ble_cmd.response_header=expected;
+	ble_cmd.interval=interval;
+	ble_cmd.retry=retry;
+}
+
+static void esp_uart_cmd_polling_callback(uint8_t *frame, size_t len)
+{
+	if(frame[0]==ble_cmd.response_header)
+	{
+		ble_cmd.success=true;
+	}
+}
+
+int jigtest_esp_cmd_thread(struct pt *pt, bool *result, uint8_t **response)
+{
+	PT_BEGIN(pt);
+	ble_cmd.success=false;
+	*result=false;
+	do{
+		uart_esp_send0(ble_cmd.cmd, ble_cmd.cmd_len);
+		ble_cmd.tick=millis();
+		while(millis()-ble_cmd.tick < ble_cmd.interval && !ble_cmd.success)
+		{
+			jigtest_esp_uart_polling(esp_uart_cmd_polling_callback);
+			PT_YIELD(pt);
+		}
+	}while(ble_cmd.retry-- && !ble_cmd.success);
+	if(ble_cmd.success)
+	{
+		*result=true;
+		if(response!=NULL)
+			*response=esp_tester.inBuffer;
+	}
+	PT_END(pt);
 }
 
 void jigtest_esp_console_handle(char *result)

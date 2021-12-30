@@ -32,9 +32,6 @@ static frame_handler transport_handler = NULL;
 static char mac[32];
 const char * const ble_mac=mac;
 static char ble_resp[256]={0};
-#ifdef JIGTEST
-bool host_ble_info_sync=false;
-#endif
 
 static struct{
 	bool connected;
@@ -44,7 +41,7 @@ static struct{
 
 const bool *const ble_authenticated=&ble_auth.auth;
 
-static void ble_request_cmd(uint8_t type)
+void ble_request_cmd(uint8_t type)
 {
 	uint8_t cmd[2]={HOST_COMM_BLE_MSG, type};
 	nina_b1_send0(cmd, 2);
@@ -279,9 +276,6 @@ void host_comm_ble_msg_handle(uint8_t *msg, size_t len)
 	{
 		nina_b1_send1(HOST_BLE_RES_INFO, (uint8_t *)host_ble_info, sizeof(host_ble_info_t));
 		debug("response to ble sync cmd\n");
-#ifdef JIGTEST
-		host_ble_info_sync=true;
-#endif
 	}
 	else if(msg[0]==BLE_STATE_DISCONNECTED)
 	{
@@ -322,9 +316,6 @@ void app_ble_init(void)
 {
 	nina_b1_init();
 	ble_request_cmd(HOST_CMD_SYNC_INFO);
-	#ifdef JIGTEST
-	host_ble_info_sync=false;
-	#endif
 }
 
 extern __IO bool config_mode;

@@ -41,11 +41,11 @@ static struct {
 	uint8_t gprs_register;
 	uint8_t lte_register;
 	uint8_t mqtt_test;
-	int lte_csq;
+	uint8_t lte_csq;
 	char lte_carrier[32];
 	uint8_t lte_key;
 	char ble_mac[32];
-	int8_t ble_rssi;
+	uint8_t ble_rssi;
 	uint8_t ble_fota;
 	uint8_t gps_position;
 	uint8_t gps_hdop;
@@ -160,14 +160,6 @@ void jigtest_direct_report(uint8_t type, uint8_t status) {
 	JIGTEST_UNLOCK();
 }
 
-bool mail_direct_command(uint8_t command, osMessageQueueId_t mailBox) {
-	mail_t mail = { .type = command, .data = 0, .len = 0 };
-	if (osMessageQueuePut(mailBox, &mail, 0, 10) != osOK) {
-		error("Mail put failed");
-		return false;
-	}
-	return true;
-}
 void imu_motion_detected(void)
 {
 //	if(!checklist.imu_trigger.reported)
@@ -175,19 +167,6 @@ void imu_motion_detected(void)
 }
 
 
-
-void jigtest_test_all_function() {
-//	jigtest_ble_function_test();
-//	jigtest_lte_function_test();
-////	int timeout = 120000 - checklist.tick;
-////	if (timeout < 10000)
-////		timeout = 10000;
-////	jigtest_gps_function_test(timeout);
-//	jigtest_direct_report(UART_UI_RES_GPS_POSITION, 1);
-//	float hdop_value=1;
-//	jigtest_report(UART_UI_RES_GPS_HDOP, (uint8_t *)&hdop_value, sizeof(float));
-//	jigtest_direct_report(UART_UI_CMD_TEST_FUNCTION, UART_UI_RES_OK);
-}
 
 typedef struct{
 	task_init_t init;
@@ -197,6 +176,10 @@ typedef struct{
 static task_t hardware_check_list[]={
 		{.init=jigtest_ble_hardware_test_init, .process=jigtest_ble_hardware_test_process},
 		{.init=jigtest_esp_test_init, .process=jigtest_esp_test_process},
+};
+
+static task_t function_check_list[]={
+		{.init=jigtest_ble_function_test_init, .process=jigtest_ble_function_test_process},
 };
 
 static struct{
@@ -241,6 +224,39 @@ void jigtest_process()
 void jigtest_command_response(uint8_t cmd, uint8_t status)
 {
 	uart_ui_comm_send(cmd, &status, 1);
+}
+
+void jigtest_test_all_function()
+{
+	if(task.status==JIGTEST_IDLE)
+	{
+		jigtest_init();
+		task.status=JIGTEST_TESTING_FUNCTION;
+		task.task=function_check_list;
+		task.count=sizeof(function_check_list)/sizeof(task_t);
+		task.idx=0;
+		task.complete=false;
+		task.task[0].init(task_complete_callback);
+		jigtest_command_response(UART_UI_CMD_TEST_FUNCTION, UART_UI_RES_OK);
+	}
+	else if(task.status==JIGTEST_TESTING_HARDWARE)
+	{
+		jigtest_command_response(UART_UI_CMD_TEST_FUNCTION, UART_UI_RES_OK);
+	}
+	else
+	{
+		jigtest_command_response(UART_UI_CMD_TEST_FUNCTION, UART_UI_RES_ERR);
+	}
+//	jigtest_ble_function_test();
+//	jigtest_lte_function_test();
+////	int timeout = 120000 - checklist.tick;
+////	if (timeout < 10000)
+////		timeout = 10000;
+////	jigtest_gps_function_test(timeout);
+//	jigtest_direct_report(UART_UI_RES_GPS_POSITION, 1);
+//	float hdop_value=1;
+//	jigtest_report(UART_UI_RES_GPS_HDOP, (uint8_t *)&hdop_value, sizeof(float));
+//	jigtest_direct_report(UART_UI_CMD_TEST_FUNCTION, UART_UI_RES_OK);
 }
 
 void jigtest_test_all_hardware()
@@ -323,18 +339,38 @@ void hardware_response_handle()
 	uart_ui_comm_send( UART_UI_RES_EXTERNAL_FLASH,	&jigtest_result.external_flash, 1); count++;
 	if(strlen(jigtest_result.lte_imei)>0)
 	{
-		uart_ui_comm_send(UART_UI_RES_LTE_IMEI, jigtest_result.lte_imei, strlen(jigtest_result.lte_imei)); count++;
+		uart_ui_comm_send(UART_UI_RES_LTE_IMEI, (uint8_t *)jigtest_result.lte_imei, strlen(jigtest_result.lte_imei)); count++;
 	}
 	if(strlen(jigtest_result.lte_ccid)>0)
 	{
-		uart_ui_comm_send(UART_UI_RES_LTE_SIM_CCID, jigtest_result.lte_ccid, strlen(jigtest_result.lte_ccid)); count++;
+		uart_ui_comm_send(UART_UI_RES_LTE_SIM_CCID, (uint8_t *)jigtest_result.lte_ccid, strlen(jigtest_result.lte_ccid)); count++;
 	}
  	jigtest_command_response(UART_UI_RES_RESULT_COUNT, count);
 }
 
 void function_response_handle()
 {
-
+	uint8_t count=0;
+	uart_ui_comm_send( UART_UI_RES_LTE_2G, &jigtest_result.gprs_register, 1); count++;
+	uart_ui_comm_send( UART_UI_RES_LTE_4G, &jigtest_result.lte_register, 1); count++;
+	uart_ui_comm_send( UART_UI_RES_MQTT_TEST, &jigtest_result.mqtt_test, 1); count++;
+	uart_ui_comm_send( UART_UI_RES_LTE_RSSI, &jigtest_result.lte_csq, 1); count++;
+	if(strlen(jigtest_result.lte_carrier)>0)
+	{
+		uart_ui_comm_send( UART_UI_RES_LTE_CARRIER, (uint8_t *)jigtest_result.lte_carrier, 1); count++;
+	}
+	uart_ui_comm_send( UART_UI_RES_LTE_KEY, &jigtest_result.lte_key, 1); count++;
+	if(strlen(jigtest_result.ble_mac)>0)
+	{
+		uart_ui_comm_send(UART_UI_RES_BLE_MAC, (uint8_t *)jigtest_result.ble_mac, strlen(jigtest_result.ble_mac)); count++;
+	}
+	uart_ui_comm_send( UART_UI_RES_BLE_TRANSCEIVER, &jigtest_result.ble_transceiver, 1); count++;
+	uart_ui_comm_send( UART_UI_RES_BLE_CONNECT, &jigtest_result.ble_connect, 1); count++;
+	uart_ui_comm_send( UART_UI_RES_BLE_RSSI, &jigtest_result.ble_rssi, 1); count++;
+	uart_ui_comm_send( UART_UI_RES_BLE_DFU, &jigtest_result.ble_fota, 1); count++;
+	uart_ui_comm_send( UART_UI_RES_GPS_POSITION, &jigtest_result.gps_position, 1); count++;
+	uart_ui_comm_send( UART_UI_RES_GPS_HDOP, &jigtest_result.gps_hdop, 1); count++;
+ 	jigtest_command_response(UART_UI_RES_RESULT_COUNT, count);
 }
 
 void jigtest_cmd_polling_handle(uint8_t type)
@@ -390,20 +426,20 @@ void jigtest_cmd_handle(uint8_t *frame, size_t size)
 }
 
 void jigtest_console_handle(char *result) {
-	if (__check_cmd("ble ")) {
-		jigtest_ble_console_handle(__param_pos("ble "));
-	} else if (__check_cmd("gps ")) {
-		jigtest_gps_console_handle(__param_pos("gps "));
-	} else if (__check_cmd("lte ")) {
-		jigtest_lte_console_handle(__param_pos("lte "));
-	} else if (__check_cmd("io ")) {
-		jigtest_io_console_handle(__param_pos("io "));
-	} else if (__check_cmd("esp ")) {
-		jigtest_esp_console_handle(__param_pos("esp "));
-	} else if (__check_cmd("info ")) {
-		app_info_console_handle(__param_pos("info "));
-	} else if (__check_cmd("other")) {
-		//jigtest_test_ext_flash();
+//	if (__check_cmd("ble ")) {
+//		jigtest_ble_console_handle(__param_pos("ble "));
+//	} else if (__check_cmd("gps ")) {
+//		jigtest_gps_console_handle(__param_pos("gps "));
+//	} else if (__check_cmd("lte ")) {
+//		jigtest_lte_console_handle(__param_pos("lte "));
+//	} else if (__check_cmd("io ")) {
+//		jigtest_io_console_handle(__param_pos("io "));
+//	} else if (__check_cmd("esp ")) {
+//		jigtest_esp_console_handle(__param_pos("esp "));
+//	} else if (__check_cmd("info ")) {
+//		app_info_console_handle(__param_pos("info "));
+//	} else if (__check_cmd("other")) {
+//		//jigtest_test_ext_flash();
 //		jigtest_test_uart_display();
-	}
+//	}
 }

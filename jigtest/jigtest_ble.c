@@ -198,7 +198,7 @@ static int function_test_thread(struct pt *pt)
 	PT_END(pt);
 }
 
-void jigtest_ble_function_test_init(task_complete_cb_t cb)
+void jigtest_ble_function_test_init(task_complete_cb_t cb, void *params)
 {
 	PT_INIT(&function_pt);
 	function_callback=cb;
@@ -215,7 +215,7 @@ void jigtest_ble_function_test_process()
 
 static task_complete_cb_t hw_callback;
 
-void jigtest_ble_hardware_test_init(task_complete_cb_t cb)
+void jigtest_ble_hardware_test_init(task_complete_cb_t cb, void *params)
 {
 	hw_callback=cb;
 }

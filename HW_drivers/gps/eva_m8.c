@@ -130,6 +130,26 @@ void eva_m8_init(eva_m8_data_callback_t cb)
 	eva_m8_bsp_init();
 }
 
+int eva_m8_init_proto(struct pt *pt, eva_m8_data_callback_t cb)
+{
+	PT_BEGIN(pt);
+	static uint32_t tick;
+	callback=cb;
+	eva_m8_bsp_init();
+	PT_DELAY(pt, tick, 500);
+	eva_m8_bsp_send_data(GSA_MSG, 11);
+	PT_DELAY(pt, tick, 500);
+	eva_m8_bsp_send_data(GLL_MSG, 11);
+	PT_DELAY(pt, tick, 500);
+	eva_m8_bsp_send_data(VTG_MSG, 11);
+	PT_DELAY(pt, tick, 500);
+	eva_m8_bsp_send_data(GSV_MSG, 11);
+	PT_DELAY(pt, tick, 500);
+	eva_m8_bsp_send_data(RMC_MSG, 11);
+	PT_DELAY(pt, tick, 500);
+	PT_END(pt);
+}
+
 void eva_m8_process()
 {
 	static char *frame;

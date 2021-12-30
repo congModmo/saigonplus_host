@@ -16,8 +16,13 @@ enum{
 	JIGTEST_TESTING_FUNCTION,
 };
 
+typedef struct{
+	uint32_t timeout;
+	uint32_t tick;
+}jigtest_timer_t;
+
 typedef void (* task_complete_cb_t)(void);
-typedef void (* task_init_t)(task_complete_cb_t cb);
+typedef void (* task_init_t)(task_complete_cb_t cb, void *params);
 typedef void (* task_process_t)(void);
 
 void testkit_report(uint8_t type, uint8_t *data, uint8_t len);

@@ -90,7 +90,7 @@ static int esp_test_uart_thread(struct pt *pt)
 	PT_END(pt);
 }
 
-void jigtest_esp_test_init(task_complete_cb_t cb)
+void jigtest_esp_test_init(task_complete_cb_t cb, void *params)
 {
 	callback=cb;
 	jigtest_uart_esp_init();

@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "ringbuf/ringbuf.h"
+#include "protothread/pt.h"
 
 extern uint8_t GLL_MSG[];
 extern uint8_t GSA_MSG[];
@@ -36,6 +37,8 @@ char *eva_m8_ringbuf_polling();
 bool gps_frame_checksum(char *frame);
 void parse_gga(char *frame);
 
+void eva_m8_buffer_reset();
+int eva_m8_init_proto(struct pt *pt, eva_m8_data_callback_t cb);
 #ifdef __cplusplus
 }
 #endif

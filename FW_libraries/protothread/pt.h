@@ -317,6 +317,20 @@ struct pt {
   } while(0)
 
 /** @} */
+/**
+ * \brief      delay.
+ * \param pt   A pointer to the protothread control structure.
+ * \param tick Tick (static variable).
+ * \param delay Amount of delay (ms).
+ *
+ *
+ * \hideinitializer
+ */
+#define PT_DELAY(pt, tick, delay)\
+	do{\
+		tick=millis();\
+		PT_WAIT_UNTIL(pt, millis()-tick > delay);\
+	}while(0)
 
 #endif /* __PT_H__ */
 

@@ -337,3 +337,21 @@ bool lara_r2_import_key(char *key, char *name, int type ){
 	debug("Import cert ok\n");
 	return true;
 }
+
+bool lara_r2_check_key()
+{
+	char *response;
+	ASSERT_RET(gsm_send_at_command("AT+USECMNG=3\r\n", "OK", 500, 2, &response), false, "AT+USECMNG");
+	ASSERT_RET(strstr(response, "TrustCA")!=NULL, false, "TrustCA");
+	ASSERT_RET(strstr(response, "DeviceCert")!=NULL, false, "DeviceCert");
+	ASSERT_RET(strstr(response, "DeviceKey")!=NULL, false, "DeviceKey");
+	return true;
+}
+
+bool lara_r2_remove_key()
+{
+	ASSERT_RET(gsm_send_at_command("AT+USECMNG=2,0,\"TrustCA\"\r\n", "OK", 500, 2, NULL), false, "Remove trustCa");
+	ASSERT_RET(gsm_send_at_command("AT+USECMNG=2,1,\"DeviceCert\"\r\n", "OK", 500, 2, NULL), false, "Remove cert");
+	ASSERT_RET(gsm_send_at_command("AT+USECMNG=2,2,\"DeviceKey\"\r\n", "OK", 500, 2, NULL), false, "Remove key");
+	return true;
+}

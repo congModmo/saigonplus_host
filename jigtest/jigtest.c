@@ -93,6 +93,9 @@ void jigtest_direct_report(uint8_t type, uint8_t status) {
 	case UART_UI_RES_LTE_TXRX:
 	jigtest_result.lte_tx_rx=status;
 		break;
+	case UART_UI_RES_LTE_KEY:
+	jigtest_result.lte_key=status;
+		break;
 	case UART_UI_RES_ESP_ADAPTOR:
 	jigtest_result.esp_adaptor=status;
 		break;
@@ -133,9 +136,7 @@ void jigtest_direct_report(uint8_t type, uint8_t status) {
 	case UART_UI_RES_LTE_RSSI:
 	jigtest_result.lte_csq=status;
 		break;
-	case UART_UI_RES_LTE_KEY:
-	jigtest_result.lte_key=status;
-		break;
+
 	case UART_UI_RES_BLE_RSSI:
 	jigtest_result.ble_rssi=status;
 		break;
@@ -175,14 +176,16 @@ typedef struct{
 static jigtest_timer_t jigtest_timer;
 
 static task_t hardware_check_list[]={
-		{.init=jigtest_ble_hardware_test_init, .process=jigtest_ble_hardware_test_process, .params=NULL},
-		{.init=jigtest_esp_test_init, .process=jigtest_esp_test_process, .params=NULL},
-		{.init=jigtest_gps_hardware_init, .process=jigtest_gps_hardware_process, .params=NULL},
+//		{.init=jigtest_ble_hardware_test_init, .process=jigtest_ble_hardware_test_process, .params=NULL},
+//		{.init=jigtest_esp_test_init, .process=jigtest_esp_test_process, .params=NULL},
+//		{.init=jigtest_gps_hardware_init, .process=jigtest_gps_hardware_process, .params=NULL},
+		{.init=jigtest_lte_hardware_init, .process=jigtest_lte_hardware_process, .params=NULL},
 };
 
 static task_t function_check_list[]={
 //		{.init=jigtest_ble_function_test_init, .process=jigtest_ble_function_test_process, .params=NULL},
-		{.init=jigtest_gps_function_init, .process=jigtest_gps_function_process, .params=&jigtest_timer},
+		{.init=jigtest_lte_function_init, .process=jigtest_lte_function_process, .params=&jigtest_timer},
+//		{.init=jigtest_gps_function_init, .process=jigtest_gps_function_process, .params=&jigtest_timer},
 };
 
 static struct{
@@ -343,6 +346,7 @@ void hardware_response_handle()
 	uart_ui_comm_send( UART_UI_RES_IMU_TEST,	&jigtest_result.imu_test, 1); count++;
 	uart_ui_comm_send( UART_UI_RES_IMU_TRIGGER,	&jigtest_result.imu_trigger, 1); count++;
 	uart_ui_comm_send( UART_UI_RES_EXTERNAL_FLASH,	&jigtest_result.external_flash, 1); count++;
+	uart_ui_comm_send( UART_UI_RES_LTE_KEY, &jigtest_result.lte_key, 1); count++;
 	if(strlen(jigtest_result.lte_imei)>0)
 	{
 		uart_ui_comm_send(UART_UI_RES_LTE_IMEI, (uint8_t *)jigtest_result.lte_imei, strlen(jigtest_result.lte_imei)); count++;
@@ -363,9 +367,8 @@ void function_response_handle()
 	uart_ui_comm_send( UART_UI_RES_LTE_RSSI, &jigtest_result.lte_csq, 1); count++;
 	if(strlen(jigtest_result.lte_carrier)>0)
 	{
-		uart_ui_comm_send( UART_UI_RES_LTE_CARRIER, (uint8_t *)jigtest_result.lte_carrier, 1); count++;
+		uart_ui_comm_send( UART_UI_RES_LTE_CARRIER, (uint8_t *)jigtest_result.lte_carrier, strlen(jigtest_result.lte_carrier)); count++;
 	}
-	uart_ui_comm_send( UART_UI_RES_LTE_KEY, &jigtest_result.lte_key, 1); count++;
 	if(strlen(jigtest_result.ble_mac)>0)
 	{
 		uart_ui_comm_send(UART_UI_RES_BLE_MAC, (uint8_t *)jigtest_result.ble_mac, strlen(jigtest_result.ble_mac)); count++;
@@ -420,15 +423,24 @@ void jigtest_cmd_handle(uint8_t *frame, size_t size)
 	// frame[1]:idx
 	//data len: size-2;
 	case UART_UI_LTE_CERT:
-		lte_cert_handle(UART_UI_LTE_CERT, frame[1], frame +2, size-2);
+		jigtest_lte_cert_handle(UART_UI_LTE_CERT, frame[1], frame +2, size-2);
 		break;
 	case UART_UI_LTE_KEY:
-		lte_cert_handle(UART_UI_LTE_KEY, frame[1], frame+2, size-2);
+		jigtest_lte_cert_handle(UART_UI_LTE_KEY, frame[1], frame+2, size-2);
 		break;
 	case UART_UI_CMD_IMPORT_KEY:
-		cmd_import_key_handle();
+		jigtest_lte_import_key_handle();
 		break;
 	}
+}
+
+bool jigtest_mail_direct_command(uint8_t command, osMessageQueueId_t mailBox) {
+	mail_t mail = { .type = command, .data = 0, .len = 0 };
+	if (osMessageQueuePut(mailBox, &mail, 0, 10) != osOK) {
+		error("Mail put failed");
+		return false;
+	}
+	return true;
 }
 
 void jigtest_console_handle(char *result) {

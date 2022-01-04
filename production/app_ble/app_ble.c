@@ -79,11 +79,11 @@ static void app_ble_handle_ui_string_cmd(char * result)
 			return;
 		}
 		result+=strlen(REQ_CHECK_ID)+1;
-		if(strlen(lteImei)>0 && strlen(lteCcid)>0 && 0==strcmp(lteImei, result))
+		if(strlen(lte_info->imei)>0 && strlen(lte_info->ccid)>0 && 0==strcmp(lte_info->imei, result))
 		{
 			ble_auth.auth=true;
 			info("ble authentcated\n");
-			sprintf(ble_resp, "%s OK %s", REQ_CHECK_ID, lteCcid);
+			sprintf(ble_resp, "%s OK %s", REQ_CHECK_ID, lte_info->ccid);
 			if(*bike_locked)
 			{
 				info("unlock bike\n");

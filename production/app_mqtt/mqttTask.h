@@ -15,4 +15,5 @@ extern __IO bool mqtt_test_done;
 extern __IO bool mqtt_test_result;
 #endif
 
+void app_mqtt();
 #endif /* APP_LTE_MQTTTASK_H_ */

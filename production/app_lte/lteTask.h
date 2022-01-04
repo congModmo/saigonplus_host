@@ -16,9 +16,20 @@ struct NetworkContext
     lara_r2_socket_t *socket;
 };
 
-extern const network_type_t * const network_type;
-extern const char *const lteImei;
-extern const int *const lteRssi;
-extern const char *const lteCcid;
-extern const char *const lteCarrier;
+typedef struct{
+	char imei[32];
+	char ccid[32];
+	char carrier[32];
+	uint8_t rssi;
+	network_type_t type;
+	bool hardware_init;
+	bool key;
+	bool ready;
+}lte_info_t;
+
+extern __IO const lte_info_t *const lte_info;
+
+void lte_task(void);
+void jigtest_lte_task(void);
+
 #endif /* APP_LTE_LTETASK_H_ */

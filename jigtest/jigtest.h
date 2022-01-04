@@ -42,4 +42,6 @@ void testkit_test_io();
 
 void jigtest_direct_report(uint8_t type, uint8_t status);
 void jigtest_report(uint8_t type, uint8_t *data, uint8_t len);
+bool jigtest_mail_direct_command(uint8_t command, osMessageQueueId_t mailBox);
+
 #endif /* TESTKIT_TESTKIT_H_ */

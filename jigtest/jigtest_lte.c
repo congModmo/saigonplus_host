@@ -8,9 +8,13 @@
 #include "lte/lara_r2.h"
 #include "bsp.h"
 #include "app_lte/lteTask.h"
+#include "app_main/app_main.h"
 #include "jigtest_lte.h"
 #include "jigtest.h"
 #include "app_mqtt/mqttTask.h"
+#include "crc/crc32.h"
+#include "protothread/pt.h"
+
 enum{
 	TRUST_CA=0,
 	DEVICE_CERT=1,
@@ -43,26 +47,6 @@ bool jigtest_lte_import_trustca()
 	return true;
 }
 
-bool jigtest_lte_check_key()
-{
-	char *response;
-	ASSERT_RET(gsm_send_at_command("AT+USECMNG=3\r\n", "OK", 500, 2, &response), false, "AT+USECMNG");
-	ASSERT_RET(strstr(response, "TrustCA")!=NULL, false, "TrustCA");
-	ASSERT_RET(strstr(response, "DeviceCert")!=NULL, false, "DeviceCert");
-	ASSERT_RET(strstr(response, "DeviceKey")!=NULL, false, "DeviceKey");
-	jigtest_direct_report(UART_UI_RES_LTE_KEY, 1);
-	return true;
-}
-
-bool jigtest_lte_remove_key()
-{
-	ASSERT_RET(gsm_send_at_command("AT+USECMNG=2,0,\"TrustCA\"\r\n", "OK", 500, 2, NULL), false, "Remove trustCa");
-	ASSERT_RET(gsm_send_at_command("AT+USECMNG=2,1,\"DeviceCert\"\r\n", "OK", 500, 2, NULL), false, "Remove cert");
-	ASSERT_RET(gsm_send_at_command("AT+USECMNG=2,2,\"DeviceKey\"\r\n", "OK", 500, 2, NULL), false, "Remove key");
-	jigtest_direct_report(UART_UI_RES_LTE_KEY, 0);
-	return true;
-}
-
 bool jigtest_lte_get_info()
 {
 	if( lara_r2_init_info(jigtest_lte_imei, 32, jigtest_lte_ccid, 32))
@@ -81,19 +65,92 @@ bool jigtest_lte_test_network()
 	return network_connect_init();
 }
 
-bool jigtest_lte_function_test()
+/****************************************************************************************
+ * HARDWARE TEST
+ ***************************************************************************************/
+static struct pt hardware_pt;
+static task_complete_cb_t hardware_cb;
+static void hardware_test_thread(struct pt *pt)
 {
-	extern __IO bool system_ready;
-	system_ready=true;
-	mqtt_test_done=false;
-	uint32_t tick=millis();
-	while(millis() -tick <180000 &&!mqtt_test_done)
+	PT_BEGIN(pt);
+	static uint32_t tick;
+	jigtest_mail_direct_command(MAIL_LTE_INIT_HARDWARE, lteMailHandle);
+	PT_DELAY(pt, tick, 1000);
+	tick=millis();
+	PT_WAIT_UNTIL(pt, millis()-tick >30000 || lte_info->hardware_init);
+	if(lte_info->hardware_init)
 	{
-		delay(100);
+		jigtest_direct_report(UART_UI_RES_LTE_TXRX, 1);
+		jigtest_direct_report(UART_UI_RES_LTE_RESET, 1);
+		jigtest_report(UART_UI_RES_LTE_IMEI, (uint8_t *)lte_info->imei, strlen((char *)lte_info->imei)+1);
+		jigtest_report(UART_UI_RES_LTE_SIM_CCID, (uint8_t *)lte_info->ccid, strlen((char *)lte_info->ccid)+1);
+		jigtest_direct_report(UART_UI_RES_LTE_KEY, lte_info->key);
 	}
-	return true;
+	hardware_cb();
+	PT_END(pt);
 }
-void lte_cert_handle(uint8_t type, uint8_t idx, uint8_t *data, uint8_t data_len){
+
+void jigtest_lte_hardware_init(task_complete_cb_t cb, void *params)
+{
+	PT_INIT(&hardware_pt);
+	hardware_cb=cb;
+}
+
+void jigtest_lte_hardware_process()
+{
+	hardware_test_thread(&hardware_pt);
+}
+/****************************************************************************************
+ * FUNCTION TEST
+ ***************************************************************************************/
+
+static struct pt function_pt;
+static jigtest_timer_t *timer;
+task_complete_cb_t function_callback;
+
+static void function_test_thread(struct pt *pt)
+{
+	PT_BEGIN(pt);
+	static uint32_t tick;
+	jigtest_mail_direct_command(MAIL_LTE_INIT_NETWORK, lteMailHandle);
+	PT_DELAY(pt, tick, 1000);
+	tick=millis();
+	PT_WAIT_UNTIL(pt, millis()-tick > 60000 || lte_info->ready);
+	if(!lte_info->ready)
+	{
+		goto __exit;
+	}
+	jigtest_report(UART_UI_RES_LTE_CARRIER, lte_info->carrier, strlen(lte_info->carrier) +1);
+	jigtest_direct_report((lte_info->type==NETWORK_TYPE_2G)?UART_UI_RES_LTE_2G:UART_UI_RES_LTE_4G, 1);
+	jigtest_direct_report(UART_UI_RES_LTE_RSSI, lte_info->rssi);
+	tick=millis();
+	PT_WAIT_UNTIL(pt, millis()-tick > 60000 || mqtt_test_done);
+	if(!mqtt_test_done)
+	{
+		goto __exit;
+	}
+	jigtest_direct_report(UART_UI_RES_MQTT_TEST, mqtt_test_result?1:0);
+	__exit:
+	function_callback();
+	PT_END(pt);
+}
+
+void jigtest_lte_function_init(task_complete_cb_t cb, void *params)
+{
+	timer=(jigtest_timer_t *)params;
+	function_callback=cb;
+	PT_INIT(&function_pt);
+}
+
+void jigtest_lte_function_process()
+{
+	function_test_thread(&function_pt);
+}
+/****************************************************************************************
+ * CERT KEY
+ ***************************************************************************************/
+
+void jigtest_lte_cert_handle(uint8_t type, uint8_t idx, uint8_t *data, uint8_t data_len){
 	uint8_t *des;
 	if(type==UART_UI_LTE_CERT){
 		des=fotaCoreBuff;
@@ -107,26 +164,26 @@ void lte_cert_handle(uint8_t type, uint8_t idx, uint8_t *data, uint8_t data_len)
 	}
 }
 
-void cmd_import_key_handle()
+void jigtest_lte_import_key_handle(void)
 {
 	uint8_t *des=fotaCoreBuff;
-	if(!crc32_verify(des+4, strlen(des+4), *((uint32_t *)des))){
+	if(!crc32_verify(des+4, strlen((char *)des+4), *((uint32_t *)des))){
 		jigtest_direct_report(UART_UI_CMD_IMPORT_KEY, 0);
 		debug("Key crc failed\n");
 		return;
 	}
 	des=fotaCoreBuff+2048;
-	if(!crc32_verify(des+4, strlen(des+4), *((uint32_t *)des))){
+	if(!crc32_verify(des+4, strlen((char *)des+4), *((uint32_t *)des))){
 		jigtest_direct_report(UART_UI_CMD_IMPORT_KEY, 0);
 		debug("Key crc failed\n");
 		return;
 	}
-	if(!jigtest_lte_import_keys(fotaCoreBuff+4, fotaCoreBuff+4+2048)){
+	if(!jigtest_lte_import_keys((char *)fotaCoreBuff+4, (char *)fotaCoreBuff+4+2048)){
 		jigtest_direct_report(UART_UI_CMD_IMPORT_KEY, 0);
 		debug("import failed\n");
 		return;
 	}
-	if(!jigtest_lte_check_key()){
+	if(!lara_r2_check_key()){
 		jigtest_direct_report(UART_UI_CMD_IMPORT_KEY, 0);
 		debug("Verify failed\n");
 		return;

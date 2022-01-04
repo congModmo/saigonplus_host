@@ -15,7 +15,7 @@ typedef struct {
 } GSM_AT_Resp_t;
 
 typedef enum{
-	NETWORK_TYPE_NONE,
+	NETWORK_TYPE_NONE =0,
 	NETWORK_TYPE_2G,
 	NETWORK_TYPE_4G
 }network_type_t;
@@ -32,6 +32,13 @@ bool lara_r2_software_init(void);
 bool gsm_send_at_command(char *atCommand, const char *resOk, int timeout, int retry, char **resp);
 bool gsm_send_at_command2(char **atCommand, size_t sz, const char *resOk, int timeout, int retry, char **resp);
 bool gsm_at_poll_msg(char **resp);
+bool lara_r2_get_network_csq(int *csq);
+bool lara_r2_init_info(char * imei, int imei_len, char* ccid, int ccid_len);
+void lara_r2_socket_close_all();
+bool lara_r2_check_key();
+bool lara_r2_remove_key();
+bool lara_r2_import_key(char *key, char *name, int type );
+bool lara_r2_get_network_info(char *carrier, int carrier_len, network_type_t *type);
 #ifdef __cplusplus
 }
 #endif

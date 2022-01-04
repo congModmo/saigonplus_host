@@ -98,11 +98,7 @@ void send_riding_status_msg(display_data_t *display, gps_data_t *gps )
 #ifdef PROTOCOL_V3_UNIT_TEST
 	msg.lte_signal=10;
 #else
-	msg.lte_signal=(uint8_t)(*lteRssi);
-	if(*network_type==NETWORK_TYPE_4G)
-	{
-		msg.lte_signal |= 1<<7;
-	}
+	msg.lte_signal=(lte_info->rssi);
 #endif
 	msg.gps_signal=(uint8_t)((gps->hdop < 20.0)?(gps->hdop*10):0);
 	msg.longitude=gps->longitude;
@@ -118,11 +114,7 @@ static void send_keep_alive_msg(gps_data_t *gps)
 	msg.report_disabled=1;
 	msg.bike_lock=0;
 #else
-	msg.lte_signal=(uint8_t)(*lteRssi);
-	if(*network_type==NETWORK_TYPE_4G)
-	{
-		msg.lte_signal |= 1<<7;
-	}
+	msg.lte_signal=lte_info->rssi;
 #endif
 	msg.gps_signal=(uint8_t)((gps->hdop < 20.0)?(gps->hdop*10):0);
 	msg.longitude=gps->longitude;

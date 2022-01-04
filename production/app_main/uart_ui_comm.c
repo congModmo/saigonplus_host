@@ -174,27 +174,27 @@ static void uart_ui_command_handle(uint8_t *frame, size_t size)
 		break;
 	case UART_UI_CMD_READ_LTE_INFO:
 		info("lte info cmd\n");
-		if(strlen(lteCcid)>0)
+		if(strlen(lte_info->ccid)>0)
 		{
-			uart_ui_comm_send(UART_UI_RES_LTE_SIM_CCID, (uint8_t *)lteCcid, strlen(lteCcid));
+			uart_ui_comm_send(UART_UI_RES_LTE_SIM_CCID, (uint8_t *)lte_info->ccid, strlen(lte_info->ccid));
 		}
-		if(strlen(lteImei)>0)
+		if(strlen(lte_info->imei)>0)
 		{
-			uart_ui_comm_send(UART_UI_RES_LTE_IMEI, (uint8_t *)lteImei, strlen(lteImei));
+			uart_ui_comm_send(UART_UI_RES_LTE_IMEI, (uint8_t *)lte_info->imei, strlen(lte_info->imei));
 		}
-		if(strlen(lteCarrier)>0)
+		if(strlen(lte_info->carrier)>0)
 		{
-			uart_ui_comm_send(UART_UI_RES_LTE_CARRIER, (uint8_t *)lteCarrier, strlen(lteCarrier));
+			uart_ui_comm_send(UART_UI_RES_LTE_CARRIER, (uint8_t *)lte_info->carrier, strlen(lte_info->carrier));
 		}
-		if(*network_type==NETWORK_TYPE_2G)
+		if(lte_info->type==NETWORK_TYPE_2G)
 		{
 			uart_ui_comm_command_send(UART_UI_RES_LTE_2G, 1);
 		}
-		else if(*network_type==NETWORK_TYPE_4G)
+		else if(lte_info->type==NETWORK_TYPE_4G)
 		{
 			uart_ui_comm_command_send(UART_UI_RES_LTE_4G, 1);
 		}
-		uart_ui_comm_send(UART_UI_RES_LTE_RSSI, (uint8_t *)lteRssi, sizeof(int));
+		uart_ui_comm_send(UART_UI_RES_LTE_RSSI, (uint8_t *)lte_info->rssi, sizeof(int));
 		uart_ui_comm_command_send(UART_UI_CMD_READ_LTE_INFO, UART_UI_RES_OK);
 		break;
 	case UART_UI_CMD_READ_SN:

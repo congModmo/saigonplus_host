@@ -25,6 +25,9 @@
 #include "cmsis_os.h"
 #include "app_main/app_main.h"
 #include "app_config.h"
+#include "app_lte/lteTask.h"
+#include "app_mqtt/mqttTask.h"
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -283,7 +286,11 @@ void LteTaskStart(void *argument)
 {
   /* USER CODE BEGIN LteTaskStart */
   /* Infinite loop */
+#ifdef JIGTEST
+	jigtest_lte_task();
+#else
 	lte_task();
+#endif
   for(;;)
   {
     osDelay(5);

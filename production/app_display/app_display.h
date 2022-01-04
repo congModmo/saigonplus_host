@@ -52,5 +52,6 @@ void app_display_process();
 bool app_display_add_lock_change_cb(lock_change_cb_t cb);
 void app_display_set_mode(display_mode_t mode);
 void app_display_reset_data();
+bool lock_pin_get_state(void);
 
 #endif /* APP_APP_DISPLAY_APP_DISPLAY_H_ */

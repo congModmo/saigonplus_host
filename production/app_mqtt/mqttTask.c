@@ -468,12 +468,12 @@ bool mqtt_init( ){
 	lara_r2_socket_init(&mqtt.socket, SOCKET_TCP);
 	mqtt.NetworkContext.socket=&mqtt.socket;
 	configASSERT(mqtt.NetworkContext.socket!=NULL);
-	sprintf(client_id, "%s%s", CLIENT_IDENTIFIER_PREFIX, lteImei);
-	sprintf(status_topic, "%s%s", STATUS_TOPIC_PREFIX, lteImei);
-	sprintf(cmd_topic, "%s%s", CMD_TOPIC_PREFIX, lteImei);
-	sprintf(ack_topic, "%s%s", ACK_TOPIC_PREFIX, lteImei);
+	sprintf(client_id, "%s%s", CLIENT_IDENTIFIER_PREFIX, lte_info->imei);
+	sprintf(status_topic, "%s%s", STATUS_TOPIC_PREFIX, lte_info->imei);
+	sprintf(cmd_topic, "%s%s", CMD_TOPIC_PREFIX, lte_info->imei);
+	sprintf(ack_topic, "%s%s", ACK_TOPIC_PREFIX, lte_info->imei);
 #ifdef JIGTEST
-	sprintf(test_topic, "%s%s", TEST_TOPIC_PREFIX, lteImei);
+	sprintf(test_topic, "%s%s", TEST_TOPIC_PREFIX, lte_info->imei);
 #endif
 }
 
@@ -575,16 +575,8 @@ void app_mqtt()
 			mqtt_ready=true;
 			break;
 		}
-		count++;
-		if(count==3){
-			mail_t mail={.type=MAIL_LTE_NETWORK_RESTART, .data=NULL, .len=0};
-			osMessageQueuePut(lteMailHandle, &mail, 0, 10);
-			count=0;
-		}
-		delay(10000);
 	}
 	while(true){
-
 		if(mqtt.NetworkContext.socket->state!=SOCKET_CONNECTED){
 			debug("Socket disconnected\n");
 			mqtt_ready=false;

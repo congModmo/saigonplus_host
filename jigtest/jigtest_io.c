@@ -37,19 +37,19 @@ void io_test_cb(uint8_t *data, size_t len)
 		light_test.done=true;
 		if(light_test.on)
 		{
-			if(_adc->front_light <2500 && _adc->front_light >2400)
+			if(_adc->front_light <2500 && _adc->front_light >2300)
 			{
 				light_test.head++;
 			}
-			if(_adc->led_red <2500 && _adc->led_red >2400)
+			if(_adc->led_red <2500 && _adc->led_red >2300)
 			{
 				light_test.red++;
 			}
-			if(_adc->led_green <2500 && _adc->led_green >2400)
+			if(_adc->led_green <2500 && _adc->led_green >2300)
 			{
 				light_test.green++;
 			}
-			if(_adc->led_blue <2500 && _adc->led_blue >2400)
+			if(_adc->led_blue <2500 && _adc->led_blue >2300)
 			{
 				light_test.blue++;
 			}
@@ -128,10 +128,10 @@ static int light_blink_test(struct pt *pt, bool *test_result)
 	if(light_test.green>=test_num){
 		test_io_result.green=true;
 	}
-	if(light_test.blue>=test_num*2){
+	if(light_test.blue>=test_num){
 		test_io_result.blue=true;
 	}
-	if(light_test.head>=test_num*2){
+	if(light_test.head>=test_num){
 		test_io_result.head=true;
 	}
 	if(test_io_result.red && test_io_result.green && test_io_result.blue && test_io_result.head)
@@ -219,7 +219,7 @@ static int io_testing_thread(struct pt *pt)
 	PT_END(pt);
 }
 
-void jigtest_io_init(task_complete_cb_t cb)
+void jigtest_io_init(task_complete_cb_t cb, void *params)
 {
 	memset(&test_io_result, 0, sizeof(jigtest_io_result_t));
 	PT_INIT(&io_pt);

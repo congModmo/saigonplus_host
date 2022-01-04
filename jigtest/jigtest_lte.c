@@ -193,54 +193,54 @@ void jigtest_lte_import_key_handle(void)
 
 void jigtest_lte_console_handle(char *result)
 {
-	if(__check_cmd("test hardware"))
+//	if(__check_cmd("test hardware"))
+//	{
+//		if(jigtest_lte_test_hardware()){
+//			debug("Test hardware ok\n");
+//		}
+//		else{
+//			debug("Test hardware error\n");
+//		}
+//	}
+//	else if(__check_cmd("test function"))
+//	{
+////		if(jigtest_lte_function_test()){
+////			debug("Test function ok\n");
+////		}
+////		else{
+////			debug("Test function error\n");
+////		}
+//	}
+//	else if(__check_cmd("get info"))
+//	{
+//		if(jigtest_lte_get_info()){
+//			debug("get info ok\n");
+//		}
+//		else{
+//			debug("get info error\n");
+//		}
+//	}
+//	else if(__check_cmd("test network"))
+//	{
+//		if(jigtest_lte_test_network()){
+//			debug("Test network ok\n");
+//		}
+//		else{
+//			debug("Test network error");
+//		}
+//	}
+//	else if(__check_cmd("test key"))
+//	{
+////		if(jigtest_lte_check_key()){
+////			debug("Key ok\n");
+////		}
+////		else{
+////			debug("Key invalid\n");
+////		}
+//	}
+	if(__check_cmd("remove key"))
 	{
-		if(jigtest_lte_test_hardware()){
-			debug("Test hardware ok\n");
-		}
-		else{
-			debug("Test hardware error\n");
-		}
-	}
-	else if(__check_cmd("test function"))
-	{
-		if(jigtest_lte_function_test()){
-			debug("Test function ok\n");
-		}
-		else{
-			debug("Test function error\n");
-		}
-	}
-	else if(__check_cmd("get info"))
-	{
-		if(jigtest_lte_get_info()){
-			debug("get info ok\n");
-		}
-		else{
-			debug("get info error\n");
-		}
-	}
-	else if(__check_cmd("test network"))
-	{
-		if(jigtest_lte_test_network()){
-			debug("Test network ok\n");
-		}
-		else{
-			debug("Test network error");
-		}
-	}
-	else if(__check_cmd("test key"))
-	{
-		if(jigtest_lte_check_key()){
-			debug("Key ok\n");
-		}
-		else{
-			debug("Key invalid\n");
-		}
-	}
-	else if(__check_cmd("remove key"))
-	{
-		if(jigtest_lte_remove_key())
+		if(lara_r2_remove_key())
 		{
 			debug("Key removed\n");
 		}
@@ -248,19 +248,19 @@ void jigtest_lte_console_handle(char *result)
 			error("Key remove error\n");
 		}
 	}
-	else if(__check_cmd("import trustca"))
-	{
-		if(jigtest_lte_import_trustca())
-		{
-			debug("Import ok\n");
-		}
-		else{
-			debug("import error\n");
-		}
-	}
-	else if(__check_cmd("get network info"))
-	{
-//		jigtest_report_network_info();
-	}
+//	else if(__check_cmd("import trustca"))
+//	{
+//		if(jigtest_lte_import_trustca())
+//		{
+//			debug("Import ok\n");
+//		}
+//		else{
+//			debug("import error\n");
+//		}
+//	}
+//	else if(__check_cmd("get network info"))
+//	{
+////		jigtest_report_network_info();
+//	}
 	else debug("Unknown cmd\n");
 }

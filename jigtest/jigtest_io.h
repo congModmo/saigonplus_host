@@ -22,7 +22,9 @@ typedef struct{
 	bool lock;
 }jigtest_io_result_t;
 
-void jigtest_test_io();
+
+void jigtest_io_init(task_complete_cb_t cb, void *params);
+void jigtest_io_process();
 
 #ifdef __cplusplus
 }

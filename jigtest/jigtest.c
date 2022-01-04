@@ -179,7 +179,8 @@ static task_t hardware_check_list[]={
 //		{.init=jigtest_ble_hardware_test_init, .process=jigtest_ble_hardware_test_process, .params=NULL},
 //		{.init=jigtest_esp_test_init, .process=jigtest_esp_test_process, .params=NULL},
 //		{.init=jigtest_gps_hardware_init, .process=jigtest_gps_hardware_process, .params=NULL},
-		{.init=jigtest_lte_hardware_init, .process=jigtest_lte_hardware_process, .params=NULL},
+//		{.init=jigtest_lte_hardware_init, .process=jigtest_lte_hardware_process, .params=NULL},
+		{.init=jigtest_io_init, .process=jigtest_io_process, .params=NULL},
 };
 
 static task_t function_check_list[]={
@@ -444,20 +445,20 @@ bool jigtest_mail_direct_command(uint8_t command, osMessageQueueId_t mailBox) {
 }
 
 void jigtest_console_handle(char *result) {
-//	if (__check_cmd("ble ")) {
-//		jigtest_ble_console_handle(__param_pos("ble "));
-//	} else if (__check_cmd("gps ")) {
-//		jigtest_gps_console_handle(__param_pos("gps "));
-//	} else if (__check_cmd("lte ")) {
-//		jigtest_lte_console_handle(__param_pos("lte "));
-//	} else if (__check_cmd("io ")) {
-//		jigtest_io_console_handle(__param_pos("io "));
-//	} else if (__check_cmd("esp ")) {
-//		jigtest_esp_console_handle(__param_pos("esp "));
-//	} else if (__check_cmd("info ")) {
-//		app_info_console_handle(__param_pos("info "));
-//	} else if (__check_cmd("other")) {
-//		//jigtest_test_ext_flash();
+	if (__check_cmd("ble ")) {
+		jigtest_ble_console_handle(__param_pos("ble "));
+	} else if (__check_cmd("gps ")) {
+		jigtest_gps_console_handle(__param_pos("gps "));
+	} else if (__check_cmd("lte ")) {
+		jigtest_lte_console_handle(__param_pos("lte "));
+	} else if (__check_cmd("io ")) {
+		jigtest_io_console_handle(__param_pos("io "));
+	} else if (__check_cmd("esp ")) {
+		jigtest_esp_console_handle(__param_pos("esp "));
+	} else if (__check_cmd("info ")) {
+		app_info_console_handle(__param_pos("info "));
+	} else if (__check_cmd("other")) {
+		//jigtest_test_ext_flash();
 //		jigtest_test_uart_display();
-//	}
+	}
 }

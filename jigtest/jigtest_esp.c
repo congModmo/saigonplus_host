@@ -71,13 +71,14 @@ static int uart_esp_block_test(struct pt *pt)
 static int esp_test_uart_thread(struct pt *pt)
 {
 	PT_BEGIN(pt);
-	for (uint8_t i = 1; i < 32; i++)
+	static uint8_t i;
+	for (i = 1; i < 32; i++)
 	{
 		esp_tester.outBuffer[i] = i;
 	}
 	esp_tester.outBuffer[0] = ESP_BLE_HOST_ECHO;
 	esp_tester.crc = crc32_compute(esp_tester.outBuffer, 32, NULL);
-	for (uint8_t i = 0; i < 3; i++)
+	for (i = 0; i < 3; i++)
 	{
 		PT_SPAWN(pt, &block_pt, uart_esp_block_test(&block_pt));
 		if(esp_tester.completed)

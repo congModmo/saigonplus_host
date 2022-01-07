@@ -170,11 +170,11 @@ typedef struct{
 static jigtest_timer_t jigtest_timer;
 
 static task_t hardware_check_list[]={
-//		{.init=jigtest_ble_hardware_test_init, .process=jigtest_ble_hardware_test_process, .params=NULL},
-//		{.init=jigtest_esp_test_init, .process=jigtest_esp_test_process, .params=NULL},
-//		{.init=jigtest_gps_hardware_init, .process=jigtest_gps_hardware_process, .params=NULL},
-//		{.init=jigtest_lte_hardware_init, .process=jigtest_lte_hardware_process, .params=NULL},
+		{.init=jigtest_esp_test_init, .process=jigtest_esp_test_process, .params=NULL},
 		{.init=jigtest_io_init, .process=jigtest_io_process, .params=NULL},
+		{.init=jigtest_ble_hardware_test_init, .process=jigtest_ble_hardware_test_process, .params=NULL},
+		{.init=jigtest_gps_hardware_init, .process=jigtest_gps_hardware_process, .params=NULL},
+		{.init=jigtest_lte_hardware_init, .process=jigtest_lte_hardware_process, .params=NULL},
 };
 
 static task_t function_check_list[]={

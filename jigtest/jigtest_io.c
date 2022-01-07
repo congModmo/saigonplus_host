@@ -8,6 +8,9 @@
 #include "app_display/app_display.h"
 #include "tim.h"
 #include "protothread/pt.h"
+#include "app_imu/app_imu.h"
+#include "app_common/wcb_ioctl.h"
+#include "app_main/app_info.h"
 
 static task_complete_cb_t callback;
 
@@ -210,11 +213,53 @@ static int lockpin_testing(struct pt *pt)
 	PT_END(pt);
 }
 
+/*****************************************************************************
+ * MISC TEST
+ ****************************************************************************/
+
+static bool motion_detected=false;
+void imu_motion_detected(void)
+{
+	motion_detected=true;
+	jigtest_direct_report(UART_UI_RES_IMU_TRIGGER, 1);
+}
+
+static struct pt misc_pt;
+
+static int misc_io_test(struct pt *pt)
+{
+	PT_BEGIN(pt);
+	static uint32_t tick;
+	motion_detected=false;
+	if (jigtest_app_imu_init(5))
+	{
+		jigtest_direct_report(UART_UI_RES_IMU_TEST, 1);
+		app_imu_register_callback(imu_motion_detected);
+	}
+	buzzer_beepbeep(3, 100, true);
+	tick=millis();
+	while(millis() - tick < 1000 && !motion_detected )
+	{
+		app_imu_process();
+		PT_YIELD(pt);
+	}
+	bool flash_test=GD25Q16_test(fotaCoreBuff, 4096);
+	if(flash_test)
+	{
+		jigtest_direct_report(UART_UI_RES_EXTERNAL_FLASH, 1);
+		app_config_factory_reset();
+	}
+	PT_END(pt);
+}
+/*****************************************************************************
+ * MAIN TEST
+ ****************************************************************************/
 static int io_testing_thread(struct pt *pt)
 {
 	PT_BEGIN(pt);
 	PT_SPAWN(pt, &led_pt, led_testing(&led_pt));
 	PT_SPAWN(pt, &lockpin_pt, lockpin_testing(&lockpin_pt));
+	PT_SPAWN(pt, &misc_pt, misc_io_test(&misc_pt));
 	callback();
 	PT_END(pt);
 }

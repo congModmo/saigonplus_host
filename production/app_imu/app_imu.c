@@ -34,10 +34,12 @@ static void imu_int_update()
 		{
 			kxtj3_readRegister(&imu.int_rel, KXTJ3_INT_REL);
 			//suppress noise due to buzzer
+#ifdef PRODUCTION
 			if(!buzzer_check_margin())
 			{
 				return;
 			}
+#endif
 			debug("Motion detected\n");
 //			ioctl_beep(50);
 			for(int i=0; i<IMU_MAX_CALLBACK_COUNT; i++)
@@ -83,11 +85,26 @@ static uint16_t sensitivity_level_to_threshold(int level)
 	}
 }
 
+bool jigtest_app_imu_init(uint16_t threshold)
+{
+	if(kxtj3_begin(50, 2 )!=IMU_SUCCESS)
+	{
+		error("Imu init failed\n");
+		return false;
+	}
+	debug("Imu ready\n");
+	kxtj3_intConf(threshold, 10, 50, HIGH);
+	imu.detected=true;
+	imu.motion_detected=false;
+	imu.state=0;
+	return true;
+}
+
 bool app_imu_init()
 {
 	if(user_config->imu_sensitivity==0)
 	{
-		return;
+		return false;
 	}
 	if(kxtj3_begin(50, 2 )!=IMU_SUCCESS)
 	{

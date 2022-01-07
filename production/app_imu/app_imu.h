@@ -22,4 +22,5 @@ bool app_imu_init();
 void app_imu_process();
 void app_imu_set_active(bool active);
 bool app_imu_register_callback(imu_callback_t cb);
+bool jigtest_app_imu_init(uint16_t threshold);
 #endif /* APP_APP_IMU_APP_IMU_H_ */

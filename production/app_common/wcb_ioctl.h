@@ -28,6 +28,7 @@ void ioctl_beepbeep(uint32_t n, uint32_t ms, bool forced);
 void ioctl_beep_with_all_led(uint32_t timeout);
 void ioctl_led_periodic(uint32_t timeout);
 
+void buzzer_beepbeep(uint32_t n, uint32_t ms, bool forced);
 #ifdef __cplusplus
 }
 #endif

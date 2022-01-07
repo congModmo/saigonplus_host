@@ -161,12 +161,6 @@ void jigtest_direct_report(uint8_t type, uint8_t status) {
 	JIGTEST_UNLOCK();
 }
 
-void imu_motion_detected(void)
-{
-//	if(!checklist.imu_trigger.reported)
-//		jigtest_direct_report(UART_UI_RES_IMU_TRIGGER, 1);
-}
-
 typedef struct{
 	task_init_t init;
 	task_process_t process;

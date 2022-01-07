@@ -49,4 +49,5 @@ void app_info_update_headlight(int hl);
 void app_info_update_sidelight(int red, int green, int blue);
 void app_info_update_beep_sound(bool beep);
 void app_info_update_imu(int bss);
+void app_config_factory_reset();
 #endif

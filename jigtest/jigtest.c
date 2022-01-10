@@ -250,16 +250,6 @@ void jigtest_test_all_function()
 	{
 		jigtest_command_response(UART_UI_CMD_TEST_FUNCTION, UART_UI_RES_ERR);
 	}
-//	jigtest_ble_function_test();
-//	jigtest_lte_function_test();
-////	int timeout = 120000 - checklist.tick;
-////	if (timeout < 10000)
-////		timeout = 10000;
-////	jigtest_gps_function_test(timeout);
-//	jigtest_direct_report(UART_UI_RES_GPS_POSITION, 1);
-//	float hdop_value=1;
-//	jigtest_report(UART_UI_RES_GPS_HDOP, (uint8_t *)&hdop_value, sizeof(float));
-//	jigtest_direct_report(UART_UI_CMD_TEST_FUNCTION, UART_UI_RES_OK);
 }
 
 void jigtest_test_all_hardware()
@@ -283,43 +273,6 @@ void jigtest_test_all_hardware()
 	{
 		jigtest_command_response(UART_UI_CMD_TEST_ALL_HW, UART_UI_RES_ERR);
 	}
-//	if (app_imu_init(5))
-//	{
-//		jigtest_direct_report(UART_UI_RES_IMU_TEST, 1);
-//		app_imu_register_callback(imu_motion_detected);
-//	}
-//	buzzer_beepbeep(3, 100, true);
-////	memset(&checklist, 0, sizeof(jigtest_checklist_t));
-//	jigtest_direct_report(UART_UI_RES_EXTERNAL_FLASH,
-//			GD25Q16_test(fotaCoreBuff, 4096));
-//	if (jigtest_test_uart_esp())
-//	{
-//		jigtest_test_io();
-//	}
-//	else
-//	{
-//		jigtest_direct_report(UART_UI_RES_ESP_ADAPTOR, 0);
-//	}
-//	{
-//		bool txrx, reset;
-//		testkit_gps_test_hardware(&txrx, &reset);
-//		jigtest_direct_report(UART_UI_RES_GPS_TXRX, txrx);
-//		jigtest_direct_report(UART_UI_RES_GPS_RESET, reset);
-//	}
-//	{
-//		jigtest_ble_hardware_test();
-//	}
-//	if (jigtest_lte_test_hardware()) {
-//		jigtest_lte_check_key();
-//		jigtest_lte_get_info();
-//	}
-//	uint32_t tick=millis();
-//	while(millis()-tick<2000  && !checklist.imu_trigger.reported)
-//	{
-//		app_imu_process();
-//		delay(10);
-//	}
-//	jigtest_direct_report(UART_UI_CMD_TEST_ALL_HW, UART_UI_RES_OK);
 }
 
 
@@ -424,7 +377,9 @@ void jigtest_cmd_handle(uint8_t *frame, size_t size)
 		jigtest_lte_cert_handle(UART_UI_LTE_KEY, frame[1], frame+2, size-2);
 		break;
 	case UART_UI_CMD_IMPORT_KEY:
-		jigtest_lte_import_key_handle();
+		if(jigtest_result.lte_key==0)
+			jigtest_lte_import_key_handle();
+		uart_ui_comm_send(UART_UI_CMD_IMPORT_KEY , &jigtest_result.lte_key, 1);
 		break;
 	}
 }

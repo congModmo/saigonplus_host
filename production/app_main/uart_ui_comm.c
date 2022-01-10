@@ -145,7 +145,7 @@ static void uart_ui_command_handle(uint8_t *frame, size_t size)
 	case UART_UI_CMD_PING:
 		//for production config ui
 		uart_ui_comm_command_send(UART_UI_CMD_PING, UART_UI_RES_OK);
-#ifndef JIGTEST
+#ifdef PRODUCTION
 		app_main_enter_config_mode();
 #endif
 		break;

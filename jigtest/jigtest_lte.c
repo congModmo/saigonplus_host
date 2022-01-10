@@ -168,27 +168,27 @@ void jigtest_lte_import_key_handle(void)
 {
 	uint8_t *des=fotaCoreBuff;
 	if(!crc32_verify(des+4, strlen((char *)des+4), *((uint32_t *)des))){
-		jigtest_direct_report(UART_UI_CMD_IMPORT_KEY, 0);
+		jigtest_direct_report(UART_UI_RES_LTE_KEY, 0);
 		debug("Key crc failed\n");
 		return;
 	}
 	des=fotaCoreBuff+2048;
 	if(!crc32_verify(des+4, strlen((char *)des+4), *((uint32_t *)des))){
-		jigtest_direct_report(UART_UI_CMD_IMPORT_KEY, 0);
+		jigtest_direct_report(UART_UI_RES_LTE_KEY, 0);
 		debug("Key crc failed\n");
 		return;
 	}
 	if(!jigtest_lte_import_keys((char *)fotaCoreBuff+4, (char *)fotaCoreBuff+4+2048)){
-		jigtest_direct_report(UART_UI_CMD_IMPORT_KEY, 0);
+		jigtest_direct_report(UART_UI_RES_LTE_KEY, 0);
 		debug("import failed\n");
 		return;
 	}
 	if(!lara_r2_check_key()){
-		jigtest_direct_report(UART_UI_CMD_IMPORT_KEY, 0);
+		jigtest_direct_report(UART_UI_RES_LTE_KEY, 0);
 		debug("Verify failed\n");
 		return;
 	}
-	jigtest_direct_report(UART_UI_CMD_IMPORT_KEY, 1);
+	jigtest_direct_report(UART_UI_RES_LTE_KEY, 1);
 }
 
 void jigtest_lte_console_handle(char *result)

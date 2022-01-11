@@ -46,7 +46,7 @@ static struct {
 	uint8_t lte_key;
 	char ble_mac[32];
 	uint8_t ble_rssi;
-	uint8_t ble_fota;
+	uint8_t ble_dfu;
 	uint8_t gps_position;
 	uint8_t gps_hdop;
 	uint8_t ble_transceiver;
@@ -80,6 +80,9 @@ void jigtest_direct_report(uint8_t type, uint8_t status) {
 		break;
 	case UART_UI_RES_BLE_TXRX:
 	jigtest_result.ble_tx_rx=status;
+		break;
+	case UART_UI_RES_BLE_DFU:
+	jigtest_result.ble_dfu=status;
 		break;
 	case UART_UI_RES_GPS_RESET:
 	jigtest_result.gps_reset=status;
@@ -139,9 +142,6 @@ void jigtest_direct_report(uint8_t type, uint8_t status) {
 
 	case UART_UI_RES_BLE_RSSI:
 	jigtest_result.ble_rssi=status;
-		break;
-	case UART_UI_RES_BLE_DFU:
-	jigtest_result.ble_fota=status;
 		break;
 	case UART_UI_RES_GPS_POSITION:
 	jigtest_result.gps_position=status;
@@ -324,7 +324,7 @@ void function_response_handle()
 	uart_ui_comm_send( UART_UI_RES_BLE_TRANSCEIVER, &jigtest_result.ble_transceiver, 1); count++;
 	uart_ui_comm_send( UART_UI_RES_BLE_CONNECT, &jigtest_result.ble_connect, 1); count++;
 	uart_ui_comm_send( UART_UI_RES_BLE_RSSI, &jigtest_result.ble_rssi, 1); count++;
-	uart_ui_comm_send( UART_UI_RES_BLE_DFU, &jigtest_result.ble_fota, 1); count++;
+	uart_ui_comm_send( UART_UI_RES_BLE_DFU, &jigtest_result.ble_dfu, 1); count++;
 	uart_ui_comm_send( UART_UI_RES_GPS_POSITION, &jigtest_result.gps_position, 1); count++;
 	uart_ui_comm_send( UART_UI_RES_GPS_HDOP, &jigtest_result.gps_hdop, 1); count++;
  	jigtest_command_response(UART_UI_RES_RESULT_COUNT, count);
@@ -332,17 +332,25 @@ void function_response_handle()
 
 void jigtest_cmd_polling_handle(uint8_t type)
 {
-	if(task.status!=JIGTEST_IDLE)
+
+	if(type==UART_UI_CMD_TEST_ALL_HW || type==UART_UI_CMD_TEST_FUNCTION)
 	{
-		jigtest_command_response(UART_UI_RES_RESULT_COUNT, 0);
+		if(task.status!=JIGTEST_IDLE)
+		{
+			jigtest_command_response(UART_UI_RES_RESULT_COUNT, 0);
+		}
+		else if(type==UART_UI_CMD_TEST_ALL_HW)
+		{
+			hardware_response_handle();
+		}
+		else if(type==UART_UI_CMD_TEST_FUNCTION)
+		{
+			function_response_handle();
+		}
 	}
-	else if(type==UART_UI_CMD_TEST_ALL_HW)
+	else if(UART_UI_RES_BLE_DFU)
 	{
-		hardware_response_handle();
-	}
-	else if(type==UART_UI_CMD_TEST_FUNCTION)
-	{
-		function_response_handle();
+		uart_ui_comm_send( UART_UI_RES_BLE_DFU, &jigtest_result.ble_dfu, 1);
 	}
 }
 
@@ -366,7 +374,6 @@ void jigtest_cmd_handle(uint8_t *frame, size_t size)
 	case UART_UI_CMD_PING:
 		uart_ui_comm_command_send(UART_UI_RES_PING, UART_UI_RES_OK);
 		break;
-
 	// to import lte cert + key, both length < 2048 byte, first half fotaCoreBuff for cert, second half for key
 	// frame[1]:idx
 	//data len: size-2;

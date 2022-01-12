@@ -178,9 +178,9 @@ static task_t hardware_check_list[]={
 };
 
 static task_t function_check_list[]={
-//		{.init=jigtest_ble_function_test_init, .process=jigtest_ble_function_test_process, .params=NULL},
+		{.init=jigtest_ble_function_test_init, .process=jigtest_ble_function_test_process, .params=NULL},
 		{.init=jigtest_lte_function_init, .process=jigtest_lte_function_process, .params=&jigtest_timer},
-//		{.init=jigtest_gps_function_init, .process=jigtest_gps_function_process, .params=&jigtest_timer},
+		{.init=jigtest_gps_function_init, .process=jigtest_gps_function_process, .params=&jigtest_timer},
 };
 
 static struct{
@@ -276,7 +276,7 @@ void jigtest_test_all_hardware()
 }
 
 
-void hardware_response_handle()
+uint8_t hardware_response_handle()
 {
 	uint8_t count=0;
 	uart_ui_comm_send( UART_UI_RES_BLE_RESET, &jigtest_result.ble_reset, 1); count++;
@@ -303,10 +303,10 @@ void hardware_response_handle()
 	{
 		uart_ui_comm_send(UART_UI_RES_LTE_SIM_CCID, (uint8_t *)jigtest_result.lte_ccid, strlen(jigtest_result.lte_ccid)); count++;
 	}
- 	jigtest_command_response(UART_UI_RES_RESULT_COUNT, count);
+	return count;
 }
 
-void function_response_handle()
+uint8_t function_response_handle()
 {
 	uint8_t count=0;
 	uart_ui_comm_send( UART_UI_RES_LTE_2G, &jigtest_result.gprs_register, 1); count++;
@@ -324,29 +324,28 @@ void function_response_handle()
 	uart_ui_comm_send( UART_UI_RES_BLE_TRANSCEIVER, &jigtest_result.ble_transceiver, 1); count++;
 	uart_ui_comm_send( UART_UI_RES_BLE_CONNECT, &jigtest_result.ble_connect, 1); count++;
 	uart_ui_comm_send( UART_UI_RES_BLE_RSSI, &jigtest_result.ble_rssi, 1); count++;
-	uart_ui_comm_send( UART_UI_RES_BLE_DFU, &jigtest_result.ble_dfu, 1); count++;
 	uart_ui_comm_send( UART_UI_RES_GPS_POSITION, &jigtest_result.gps_position, 1); count++;
 	uart_ui_comm_send( UART_UI_RES_GPS_HDOP, &jigtest_result.gps_hdop, 1); count++;
- 	jigtest_command_response(UART_UI_RES_RESULT_COUNT, count);
+	return count;
+}
+
+void report_process_status(uint8_t item_count, uint8_t process_name, uint8_t process_status)
+{
+	uint8_t msg[3]={item_count, process_name, process_status};
+	uart_ui_comm_send(UART_UI_RES_RESULT_COUNT, msg, sizeof(msg));
 }
 
 void jigtest_cmd_polling_handle(uint8_t type)
 {
-
-	if(type==UART_UI_CMD_TEST_ALL_HW || type==UART_UI_CMD_TEST_FUNCTION)
+	if(type==UART_UI_CMD_TEST_ALL_HW)
 	{
-		if(task.status!=JIGTEST_IDLE)
-		{
-			jigtest_command_response(UART_UI_RES_RESULT_COUNT, 0);
-		}
-		else if(type==UART_UI_CMD_TEST_ALL_HW)
-		{
-			hardware_response_handle();
-		}
-		else if(type==UART_UI_CMD_TEST_FUNCTION)
-		{
-			function_response_handle();
-		}
+		uint8_t count=hardware_response_handle();
+		report_process_status(count, type, task.status);
+	}
+	else if(type==UART_UI_CMD_TEST_FUNCTION)
+	{
+		uint8_t count =function_response_handle();
+		report_process_status(count, type, task.status);
 	}
 	else if(UART_UI_RES_BLE_DFU)
 	{

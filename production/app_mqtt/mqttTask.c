@@ -391,11 +391,7 @@ static void jigtest_mqtt_test_result()
 	mqtt_test_done=true;
 	if(test_success > test_num/2)
 	{
-		jigtest_direct_report(UART_UI_RES_MQTT_TEST, 1);
-	}
-	else
-	{
-		jigtest_direct_report(UART_UI_RES_MQTT_TEST, 0);
+		mqtt_test_result=true;
 	}
 }
 

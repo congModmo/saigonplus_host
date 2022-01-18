@@ -18,6 +18,7 @@ void jigtest_esp_test_process();
 void jigtest_esp_create_cmd(uint8_t cmd, uint8_t expected, uint32_t interval, int retry);
 void jigtest_esp_create_cmd1(uint8_t cmd, char *params, uint8_t expected, uint32_t interval, int retry);
 int jigtest_esp_cmd_thread(struct pt *pt, bool *result, uint8_t **response);
+void jigtest_esp_buffer_reset();
 #ifdef __cplusplus
 }
 #endif

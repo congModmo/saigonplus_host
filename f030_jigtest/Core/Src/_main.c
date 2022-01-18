@@ -102,7 +102,7 @@ int main(void)
   MX_SPI1_Init();
   MX_USART2_UART_Init();
   MX_I2C1_Init();
-#ifdef RELEASE
+#if defined(RELEASE) || WATCHDOG==1
   MX_IWDG_Init();
 #endif
   MX_RTC_Init();

@@ -18,12 +18,12 @@ static task_complete_cb_t callback;
  * TEST LED
  *****************************************************************/
 static struct{
-	bool on;
-	int red;
-	int green;
-	int blue;
-	int head;
-	bool done;
+	__IO bool on;
+	__IO int red;
+	__IO int green;
+	__IO int blue;
+	__IO int head;
+	__IO bool done;
 }light_test;
 
 static jigtest_io_result_t test_io_result;
@@ -34,44 +34,45 @@ static struct pt io_pt, led_pt, blink_pt, check_io_pt, lockpin_pt;
 
 void io_test_cb(uint8_t *data, size_t len)
 {
-	if(data[0]==ESP_BLE_HOST_ADC_VALUE)
+	if(data[0]==ESP_BLE_HOST_ADC_VALUE && len ==(sizeof(host_adc_value_t)+1))
 	{
-		host_adc_value_t *_adc=(host_adc_value_t *) (data +1);
+		host_adc_value_t _adc;
+		memcpy(&_adc, data +1, sizeof(host_adc_value_t));
 		light_test.done=true;
 		if(light_test.on)
 		{
-			if(_adc->front_light <2500 && _adc->front_light >2300)
+			if(_adc.front_light <2500 && _adc.front_light >2000)
 			{
 				light_test.head++;
 			}
-			if(_adc->led_red <2500 && _adc->led_red >2300)
+			if(_adc.led_red <2500 && _adc.led_red >2000)
 			{
 				light_test.red++;
 			}
-			if(_adc->led_green <2500 && _adc->led_green >2300)
+			if(_adc.led_green <2500 && _adc.led_green >2000)
 			{
 				light_test.green++;
 			}
-			if(_adc->led_blue <2500 && _adc->led_blue >2300)
+			if(_adc.led_blue <2500 && _adc.led_blue >2000)
 			{
 				light_test.blue++;
 			}
 		}
 		else
 		{
-			if(_adc->front_light <100)
+			if(_adc.front_light <100)
 			{
 				light_test.head++;
 			}
-			if(_adc->led_red <100)
+			if(_adc.led_red <100)
 			{
 				light_test.red++;
 			}
-			if(_adc->led_green <100)
+			if(_adc.led_green <100)
 			{
 				light_test.green++;
 			}
-			if(_adc->led_blue <100)
+			if(_adc.led_blue <100)
 			{
 				light_test.blue++;
 			}
@@ -83,10 +84,12 @@ void io_test_cb(uint8_t *data, size_t len)
 static int check_io_match(struct pt *pt)
 {
 	PT_BEGIN(pt);
-	uint32_t tick=millis();
+	static uint32_t tick;
 	light_test.done=false;
+	jigtest_esp_buffer_reset();
 	uart_esp_send_cmd(ESP_BLE_HOST_ADC_VALUE);
-	while(millis()-tick<100 && !light_test.done)
+	tick=millis();
+	while(millis()-tick<300 && !light_test.done)
 	{
 		jigtest_esp_uart_polling(io_test_cb);
 		PT_YIELD(pt);
@@ -111,16 +114,14 @@ static int light_blink_test(struct pt *pt, bool *test_result)
 		__HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_4, 255);
 		__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_3, 255);
 		__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2, 255);
-		tick=millis();
-		PT_WAIT_UNTIL(pt, millis()-tick>100);
+		PT_DELAY(pt, tick, 200);
 		PT_SPAWN(pt, &check_io_pt, check_io_match(&check_io_pt));
 		light_test.on=false;
 		__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, 0);
 		__HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_4, 0);
 		__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_3, 0);
 		__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2, 0);
-		tick=millis();
-		PT_WAIT_UNTIL(pt, millis()-tick>100);
+		PT_DELAY(pt, tick, 200);
 		PT_SPAWN(pt, &check_io_pt, check_io_match(&check_io_pt));
 		test_count++;
 	}

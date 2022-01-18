@@ -124,22 +124,35 @@ bool network_connect_init(void)
 }
 
 //hanlde urc and unexpected reponse
-int lte_async_response_handle(){
+int lte_async_response_handle()
+{
 	static char *response;
-	if(gsm_at_poll_msg(&response)){
-		debug("msg: %s\n", response);
-		if(strstr(response,"+UUSOCL")){
+	if(gsm_at_poll_msg(&response))
+	{
+		debug("URC: %s\n", response);
+		if(strstr(response,"+UUSOCL"))
+		{
 			debug("handle socket close\n");
 			lara_r2_socket_urc_handle(response);
 		}
-		if(strstr(response, "+UUSORD")){
+		if(strstr(response, "+UUSORD"))
+		{
 			debug("handle socket data\n");
 			lara_r2_socket_urc_handle(response);
 		}
-		if(strstr(response, "+UUPSDD")){
+		if(strstr(response, "+UUPSDD"))
+		{
 			debug("handle network close\n");
 			lara_r2_socket_urc_handle(response);
 			network_ready=false;
+		}
+		if(strstr(response, "+CEREG: 5"))
+		{
+			info.type=NETWORK_TYPE_4G;
+		}
+		if(strstr(response, "+CGREG: 5"))
+		{
+			info.type=NETWORK_TYPE_2G;
 		}
 	}
 	return 1;

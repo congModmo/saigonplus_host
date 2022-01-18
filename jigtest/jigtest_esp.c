@@ -117,6 +117,12 @@ void uart_esp_send0(uint8_t *data, uint8_t len)
 	slip_send(&esp_tester.slip, data, len, SLIP_FRAME_COMPLETE);
 }
 
+void jigtest_esp_buffer_reset()
+{
+	RINGBUF_Flush(&esp_tester.rb);
+	slip_reset(&esp_tester.slip);
+}
+
 /*************************************************************************
  * Retry command
  ************************************************************************/

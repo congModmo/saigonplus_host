@@ -116,7 +116,7 @@ static int ble_connection_test(struct pt *pt, bool *test_result)
 	static uint32_t tick;
 	static int retry;
 	*test_result=false;
-	jigtest_esp_create_cmd1(ESP_BLE_HOST_MAC, (char *)ble_mac, ESP_BLE_HOST_MAC, 1000, 2);
+	jigtest_esp_create_cmd1(ESP_BLE_HOST_MAC, ble_info->mac, ESP_BLE_HOST_MAC, 1000, 2);
 	PT_SPAWN(pt, &command_pt, jigtest_esp_cmd_thread(&command_pt, &result, NULL));
 	if(!result)
 		goto __exit;
@@ -159,7 +159,7 @@ static int ble_mac_test(struct pt *pt, bool *test_result)
 	*test_result=false;
 	count=0;
 	tick=millis();
-	while(strlen(ble_mac)==0 && count < 5)
+	while(strlen(ble_info->mac)==0 && count < 5)
 	{
 		if(millis()- tick > 1000)
 		{
@@ -170,9 +170,9 @@ static int ble_mac_test(struct pt *pt, bool *test_result)
 		app_ble_task();
 		PT_YIELD(pt);
 	}
-	if(strlen(ble_mac)>0)
+	if(strlen(ble_info->mac)>0)
 	{
-		jigtest_report(UART_UI_RES_BLE_MAC, (uint8_t *)ble_mac, strlen(ble_mac)+1);
+		jigtest_report(UART_UI_RES_BLE_MAC, (uint8_t *)ble_info->mac, strlen(ble_info->mac)+1);
 		*test_result=true;
 	}
 	PT_END(pt);

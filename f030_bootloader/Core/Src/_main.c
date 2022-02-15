@@ -47,6 +47,8 @@ void program_jump(uint32_t addr)
     HAL_Delay(100);
 #ifdef DEBUG
     HAL_UART_DeInit(&huart5);
+#else
+
 #endif
     HAL_SPI_DeInit(&hspi1);
     HAL_DeInit();

@@ -115,7 +115,7 @@ static void function_test_thread(struct pt *pt)
 	jigtest_mail_direct_command(MAIL_LTE_INIT_NETWORK, lteMailHandle);
 	PT_DELAY(pt, tick, 1000);
 	tick=millis();
-	PT_WAIT_UNTIL(pt, millis()-tick > 60000 || lte_info->ready);
+	PT_WAIT_UNTIL(pt, millis()-tick > 90000 || lte_info->ready);
 	if(!lte_info->ready)
 	{
 		goto __exit;

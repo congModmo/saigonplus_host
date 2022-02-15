@@ -177,6 +177,7 @@ static void get_network_info()
 	int temp;
 	lara_r2_get_network_csq(&temp);
 	info.rssi=(uint8_t)temp;
+	debug("rssi: %d\n", temp);
 	if(info.type==NETWORK_TYPE_4G)
 	{
 		info.rssi |= 1<<7;
@@ -186,7 +187,7 @@ static void get_network_info()
 void lte_network_info_handle()
 {
 	static uint32_t tick=0;
-	if(millis()-tick < 60000)
+	if(millis()-tick < 5000)
 		return;
 	tick=millis();
 	get_network_info();
@@ -368,5 +369,17 @@ void lte_task(void)
 			goto __network_start;
 		}
 		delay(5);
+	}
+}
+
+void app_lte_console_handle(char *result)
+{
+	if(__check_cmd("?"))
+	{
+		debug("app lte\n");
+	}
+	else
+	{
+		debug("unknown cmd\n");
 	}
 }

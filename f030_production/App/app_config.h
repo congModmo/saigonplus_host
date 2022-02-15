@@ -2,6 +2,7 @@
 #define APP_CONFIG_H_
 
 #ifndef RELEASE
+
 	#define GPS_ENABLE
 
 	#define ALARM_ENABLE
@@ -17,6 +18,10 @@
 	#define PUBLISH_ENABLE
 
 	#define MQTT_ENABLE
+
+//	#define BLE_DEBUG
+#define USE_WATCHDOG
+
 #else
 
 	#define ALARM_ENABLE

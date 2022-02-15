@@ -166,9 +166,9 @@ static void uart_ui_command_handle(uint8_t *frame, size_t size)
 		break;
 	case UART_UI_CMD_READ_BLE_INFO:
 		info("Ble info cmd\n");
-		if(strlen(ble_mac)>0)
+		if(strlen(ble_info->mac)>0)
 		{
-			uart_ui_comm_send(UART_UI_RES_BLE_MAC, (uint8_t *)ble_mac, strlen(ble_mac));
+			uart_ui_comm_send(UART_UI_RES_BLE_MAC, (uint8_t *)ble_info->mac, strlen(ble_info->mac));
 //			uart_ui_comm_command_send(UART_UI_CMD_READ_BLE_INFO, UART_UI_RES_OK);
 		}
 		break;

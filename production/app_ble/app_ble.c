@@ -29,9 +29,10 @@
 
 static frame_handler transport_handler = NULL;
 #define APP_BLE_CHECK_CMD(cmd2) (strncmp(cmd, cmd2, strlen(cmd2)) == 0)
-static char mac[32];
-const char * const ble_mac=mac;
 static char ble_resp[256]={0};
+
+static ble_info_t info={0};
+const ble_info_t * const ble_info=&info;
 
 static struct{
 	bool connected;
@@ -247,15 +248,15 @@ static void app_ble_handle_ui_string_cmd(char * result)
 
 static void app_ble_handle_set_mac(uint8_t *data, uint16_t len)
 {
-	if(len >= sizeof(mac))
+	if(len >= sizeof(info.mac))
 	{
 		error("Mac len");
 	}
 	else
 	{
-		memcpy(mac, data, len);
-		mac[len]=0;
-		debug("Ble mac: %s\n", mac);
+		memcpy(info.mac, data, len);
+		info.mac[len]=0;
+		debug("Ble mac: %s\n", info.mac);
 	}
 }
 
@@ -310,6 +311,10 @@ static void packet_switch_callback(uint8_t *packet, size_t len)
 	{
 		host_comm_ui_msg_handle(packet+1, len-1);
 	}
+	else if(packet[0]==HOST_COMM_DEBUG_MSG)
+	{
+		console_message_handle(packet+1);
+	}
 }
 
 void app_ble_init(void)
@@ -322,7 +327,7 @@ extern __IO bool config_mode;
 void app_ble_task(void)
 {
 	nina_b1_polling(packet_switch_callback);
-#ifndef JIGTEST
+#if defined(PRODUCTION) && !defined(BLE_DEBUG)
 	if(ble_auth.connected && !ble_auth.auth && !config_mode)
 	{
 		if(millis()-ble_auth.connect_tick>10000)

@@ -102,7 +102,7 @@ int main(void)
 #ifdef DEBUG
   MX_USART5_UART_Init();
 #endif
-#if defined(RELEASE)|| defined(JIGTEST)||WATCHDOG==1
+#if defined(RELEASE)|| defined(JIGTEST)|| defined(USE_WATCHDOG)
   MX_IWDG_Init();
 #endif
   MX_SPI1_Init();

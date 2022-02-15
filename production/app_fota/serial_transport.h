@@ -57,4 +57,5 @@ typedef struct{
 
 extern const fota_transport_t serial_transport;
 void serial_transport_init(serial_interface_t serial);
+bool TEST_len_to_block_len();
 #endif /* APP_FOTA_BLE_TRANSPORT_H_ */

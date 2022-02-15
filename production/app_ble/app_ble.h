@@ -10,8 +10,14 @@ extern "C" {
 #include "app_fota/serial_transport.h"
 
 extern const serial_interface_t ble_serial;
-extern const char *const ble_mac;
-extern const bool *const ble_authenticated;
+
+typedef struct{
+	char mac[32];
+	bool connected;
+	bool authenticated;
+}ble_info_t;
+
+extern const ble_info_t * const ble_info;
 
  typedef struct{
  	int red;
@@ -50,6 +56,7 @@ bool app_ble_update_time(char *s);
 void app_ble_send_notify(void);
 void app_ble_comm_reset(void);
 void ble_request_cmd(uint8_t type);
+void app_ble_console_handle(char *result);
 
 #ifdef JIGTEST
 extern bool host_ble_info_sync;

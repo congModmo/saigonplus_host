@@ -217,7 +217,7 @@ void app_display_init()
 
 static void auto_lock_process()
 {
-	if(user_config->auto_lock && !display.display_on && !*bike_locked && !*ble_authenticated && !display_unlock_hold)
+	if(user_config->auto_lock && !display.display_on && !*bike_locked && !ble_info->authenticated && !display_unlock_hold)
 	{
 		if(millis()-display.off_tick > user_config->auto_lock_delay)
 		{

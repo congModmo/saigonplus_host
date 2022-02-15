@@ -18,6 +18,7 @@
 #include "kxtj3/kxtj3.h"
 #include "fota_comm.h"
 #include "log_sys.h"
+#include "app_config.h"
 
 #define ASSERT_RET(cond, errRet, ...) \
     if (!(cond))                      \

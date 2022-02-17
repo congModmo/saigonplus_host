@@ -89,33 +89,16 @@ extern osThreadId_t mainTaskHandle;
 extern osThreadId_t lteTaskHandle;
 extern osMessageQueueId_t mainMailHandle;
 
+static uint32_t wmMain=1024, wmLte=1024, wmMqtt=1024;
+
 void console_init()
 {
 	bsp_uart_console_init(&debugRingbuf);
 }
 
-void console_task(void)
+void console_message_handle(char *result)
 {
-    char *result;
-    uint32_t u;
-    blink_process();
-    static uint32_t tick=0;
-    static uint32_t wmMain=1024, wmLte=1024, wmMqtt=1024;
-
-    if(millis()-tick>1000){
-    	tick=millis();
-    	if(wmMain > uxTaskGetStackHighWaterMark(mainTaskHandle)){
-    		wmMain=uxTaskGetStackHighWaterMark(mainTaskHandle);
-    	}
-    	if(wmLte > uxTaskGetStackHighWaterMark(lteTaskHandle)){
-    		wmLte = uxTaskGetStackHighWaterMark(lteTaskHandle);
-    	}
-    	if(wmMqtt > uxTaskGetStackHighWaterMark(mqttTaskHandle)){
-    		wmMqtt = uxTaskGetStackHighWaterMark(mqttTaskHandle);
-    	}
-    }
-    if (console_read(&result) > 0){
-    	if(__check_cmd("hello"))
+	    if(__check_cmd("hello"))
     	{
     		debug("Hi there\n");
     	}
@@ -189,5 +172,28 @@ void console_task(void)
     		gsm_send_string("\r\n");
 #endif
     	}
+}
+
+void console_task(void)
+{
+    char *result;
+    uint32_t u;
+    static uint32_t tick=0;
+
+    if(millis()-tick>1000){
+    	tick=millis();
+    	if(wmMain > uxTaskGetStackHighWaterMark(mainTaskHandle)){
+    		wmMain=uxTaskGetStackHighWaterMark(mainTaskHandle);
+    	}
+    	if(wmLte > uxTaskGetStackHighWaterMark(lteTaskHandle)){
+    		wmLte = uxTaskGetStackHighWaterMark(lteTaskHandle);
+    	}
+    	if(wmMqtt > uxTaskGetStackHighWaterMark(mqttTaskHandle)){
+    		wmMqtt = uxTaskGetStackHighWaterMark(mqttTaskHandle);
+    	}
+    }
+    if (console_read(&result) > 0)
+    {
+    	console_message_handle(result);
     }
 }

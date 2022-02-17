@@ -12,6 +12,7 @@ extern "C" {
 extern const serial_interface_t ble_serial;
 extern const char *const ble_mac;
 extern const bool *const ble_authenticated;
+extern const bool *const ble_connected;
 
  typedef struct{
  	int red;

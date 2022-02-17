@@ -17,6 +17,8 @@
 	#define PUBLISH_ENABLE
 
 	#define MQTT_ENABLE
+
+	#define BLE_DEBUG
 #else
 
 	#define ALARM_ENABLE

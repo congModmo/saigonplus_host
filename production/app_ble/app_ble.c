@@ -43,6 +43,7 @@ static struct{
 }ble_auth;
 
 const bool *const ble_authenticated=&ble_auth.auth;
+const bool *const ble_connected=&ble_auth.connected;
 
 static void ble_request_cmd(uint8_t type)
 {
@@ -316,6 +317,11 @@ static void packet_switch_callback(uint8_t *packet, size_t len)
 	{
 		host_comm_ui_msg_handle(packet+1, len-1);
 	}
+	else if(packet[0]==HOST_COMM_DEBUG_MSG)
+	{
+		packet[len]=0;
+		console_message_handle(packet+1);
+	}
 }
 
 void app_ble_init(void)
@@ -331,7 +337,7 @@ extern __IO bool config_mode;
 void app_ble_task(void)
 {
 	nina_b1_polling(packet_switch_callback);
-#ifndef JIGTEST
+#ifdef PRODUCTION
 	if(ble_auth.connected && !ble_auth.auth && !config_mode)
 	{
 		if(millis()-ble_auth.connect_tick>10000)

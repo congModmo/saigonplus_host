@@ -32,6 +32,7 @@ bool lara_r2_software_init(void);
 bool gsm_send_at_command(char *atCommand, const char *resOk, int timeout, int retry, char **resp);
 bool gsm_send_at_command2(char **atCommand, size_t sz, const char *resOk, int timeout, int retry, char **resp);
 bool gsm_at_poll_msg(char **resp);
+bool lara_r2_get_network_csq(int *csq);
 #ifdef __cplusplus
 }
 #endif

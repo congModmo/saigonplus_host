@@ -481,6 +481,7 @@ bool mqtt_start(){
 	info("MQTT start connect\n");
 	if( !lara_r2_socket_connect(mqtt.NetworkContext.socket, factory_config->broker.endpoint, factory_config->broker.port, factory_config->broker.secure ))
 	{
+		error("Failed to create socket\n");
 		return false;
 	}
 	info ( "Creating an MQTT connection to %s.\n", factory_config->broker.endpoint ) ;
@@ -578,7 +579,9 @@ void app_mqtt()
 		count++;
 		if(count==3){
 			mail_t mail={.type=MAIL_LTE_NETWORK_RESTART, .data=NULL, .len=0};
-			osMessageQueuePut(lteMailHandle, &mail, 0, 10);
+			if(osMessageQueuePut(lteMailHandle, &mail, 0, 10)!=osOK){
+				error("mail put failed\n");
+			}
 			count=0;
 		}
 		delay(10000);

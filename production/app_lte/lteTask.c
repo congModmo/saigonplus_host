@@ -211,22 +211,38 @@ void jigtest_network_report()
 }
 #endif
 
-static void get_network_info()
+static bool get_network_info()
 {
-	lara_r2_get_network_info(_carrier, sizeof(_carrier)-1, &type);
-	lara_r2_get_network_csq(&rssi);
+	ASSERT_RET(lara_r2_get_network_info(_carrier, sizeof(_carrier)-1, &type), false, "Get network info");
+	ASSERT_RET(lara_r2_get_network_csq(&rssi), false, "Get rssi");
 #ifdef JIGTEST
 	jigtest_network_report();
 #endif
+	return true;
 }
 
 void lte_network_info_handle()
 {
 	static uint32_t tick=0;
+	static uint8_t fail_count=0;
 	if(millis()-tick < 60000)
 		return;
 	tick=millis();
-	get_network_info();
+	if(!get_network_info())
+	{
+		error("Network get info failed\n");
+		fail_count++;
+		if(fail_count>=5)
+		{
+			network_ready=false;
+			fail_count=0;
+			debug("Restart network\n");
+		}
+	}
+	else
+	{
+		fail_count=0;
+	}
 }
 
 void lte_rtc_handle()

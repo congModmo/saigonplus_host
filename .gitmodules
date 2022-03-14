@@ -19,3 +19,6 @@
 [submodule "HW_drivers/ext_flash"]
 	path = HW_drivers/ext_flash
 	url = git@gitlab.com:thanhcong1431995/ext_flash.git
+[submodule "FW_libraries/Unity"]
+	path = FW_libraries/Unity
+	url = https://github.com/ThrowTheSwitch/Unity.git

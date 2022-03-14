@@ -196,7 +196,6 @@ void app_main(void)
 
 #ifdef DEBUG
 	console_init();
-	RetargetInit(&huart5);
 	info("Hello modmo\n");
 
 	/* File read buffer */

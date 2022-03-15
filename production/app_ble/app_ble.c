@@ -420,4 +420,4 @@ static void transport_init()
 	delay(200); //delay to let ble update connection params
 }
 
-const serial_interface_t ble_serial = {.mtu = 200, .init=transport_init, .polling = transport_polling, .send = transport_send};
+const serial_interface_t ble_serial = {.mtu = 180, .init=transport_init, .polling = transport_polling, .send = transport_send};

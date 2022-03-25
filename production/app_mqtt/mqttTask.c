@@ -567,16 +567,16 @@ void app_mqtt()
 	uint8_t count=0;
 	__mqtt_start:
 	while(true){
-		count=0;
 		while(!network_is_ready()){
 			delay(5);
 		}
 		if(mqtt_start()){
 			mqtt_ready=true;
+			count=0;
 			break;
 		}
 		count++;
-		if(count==3){
+		if(count>=3){
 			mail_t mail={.type=MAIL_LTE_NETWORK_RESTART, .data=NULL, .len=0};
 			osMessageQueuePut(lteMailHandle, &mail, 0, 10);
 			count=0;

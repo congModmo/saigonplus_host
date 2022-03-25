@@ -284,16 +284,7 @@ void lte_task()
 		}
 		if(network_connect_init())
 		{
-			if(type==NETWORK_TYPE_2G && !lte_attempt)
-			{
-				lte_attempt=true;
-				try_to_register_lte();
-				goto __network_start;
-			}
-			else
-			{
-				break;
-			}
+			break;
 		}
 		__init_wait:
 		delay(60000);

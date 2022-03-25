@@ -82,7 +82,7 @@ void display_parser_cb(int header, Display_Proto_Unified_Arg_t *value)
 		break;
 	case DISP_PROTO_CMD_BATT:
 		display.battery_state= value->battery.state;
-		display.battery_temperature = value->battery.temperature;
+		display.battery_temperature = value->battery.temperature-2731;
 		display.battery_remain = value->battery.remainCapacity;
 		debug("-Batt state: %u, temp: %.1f, remain cap. %u%%\n", display.battery_state, (float)display.battery_temperature / 10, display.battery_remain);
 		break;

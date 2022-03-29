@@ -244,6 +244,7 @@ static void app_ble_handle_ui_string_cmd(char * result)
 	if(reset)
 	{
 		delay(500);
+		nina_b1_reset();
 		NVIC_SystemReset();
 	}
 }

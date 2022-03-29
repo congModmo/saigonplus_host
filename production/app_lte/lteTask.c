@@ -115,15 +115,25 @@ void set_network_mode(char *result)
     ASSERT_RET(gsm_send_at_command("AT+CFUN=16\r\n", "OK", 1000, 2, NULL), false, "AT+CFUN=16");
 }
 
+#define AT_COM_APN "data641003"
+#define OPTIGA_APN "move.dataxs.mobi"
+#define APN AT_COM_APN
 bool network_connect_init(void)
 {
+	char *response;
 	ASSERT_RET(gsm_send_at_command("AT+CMEE=2\r\n", "OK", 500, 2, NULL), false, "AT+CMEE=2");
 #ifdef JIGTEST
 	ASSERT_RET(gsm_send_at_command("AT+URAT=0\r\n", "OK", 500, 2, NULL), false, "AT+URAT=0");
 #else
 //	ASSERT_RET(gsm_send_at_command("AT+URAT=5,3\r\n", "OK", 500, 2, NULL), false, "AT+URAT=5,3");
 #endif
-	ASSERT_RET(gsm_send_at_command("AT+UPSD=0,1,\"move.dataxs.mobi\"\r\n", "OK", 500, 2, NULL), false, "AT+UPSD=0,1,\"TSIOT\"");
+//	ASSERT_RET(gsm_send_at_command("AT+UPSD=0,1,\"data641003\"\r\n", "OK", 500, 2, NULL), false, "AT+UPSD=0,1,\"TSIOT\"");
+	ASSERT_RET(gsm_send_at_command("AT+CGDCONT?\r\n", "OK", 500, 2, &response), false, "AT+CGDCONT?");
+	if(strstr(response, "+CGDCONT: 1,\"IP\",\""APN)==NULL)
+	{
+		ASSERT_RET(gsm_send_at_command("AT+CGDCONT=1,\"IP\",\""APN"\"\r\n", "OK", 500, 2, &response), false, "AT+CGDCONT?");
+	}
+	ASSERT_RET(gsm_send_at_command("AT+UPSD=0,100,1\r\n", "OK", 500, 5, NULL), false, "AT+UPSD=0,100,1");
 	ASSERT_RET(gsm_send_at_command("AT+UPSD=0,0,0\r\n", "OK", 500, 5, NULL), false, "AT+UPSD=0,0,0");
 	ASSERT_RET(gsm_send_at_command("AT+CREG=2\r\n", "OK", 500, 2, NULL), false, "AT+CREG=2");
 	ASSERT_RET(gsm_send_at_command("AT+CGREG=2\r\n", "OK", 500, 2, NULL), false, "AT+CGREG=2");
@@ -148,6 +158,7 @@ bool network_connect_init(void)
 	if(!connected){
 		return false;
 	}
+
 	ASSERT_RET(gsm_send_at_command("AT+UPSDA=0,3\r\n", "OK", 10000, 10, NULL), false, "AT+UPSDA=0,3");
 	ASSERT_RET(gsm_send_at_command("AT+UPSND=0,8\r\n", "OK", 500, 2, NULL), false, "AT+UPSND=0,8");
 	ASSERT_RET(gsm_send_at_command("AT+UDCONF=1,1\r\n", "OK", 500, 5, NULL), false, "AT+UDCONF=1,1");

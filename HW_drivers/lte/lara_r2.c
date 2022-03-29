@@ -1,5 +1,5 @@
 
-#define __DEBUG__ 3
+#define __DEBUG__ 4
 
 #include <lte/lara_r2.h>
 #include "bsp.h"
@@ -85,6 +85,7 @@ bool gsm_at_poll_msg(char **resp)
 	}
 	return false;
 }
+
 static bool wait_return(const char *resOk, int timeout){
 	int at_len=0;
 	uint32_t tick=millis();

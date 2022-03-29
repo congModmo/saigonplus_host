@@ -3,3 +3,5 @@
 **/*.launch
 **/*.out
 **/*.bin
+**/.vscode
+**/.settings

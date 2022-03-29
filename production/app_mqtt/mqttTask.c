@@ -568,7 +568,6 @@ void app_mqtt()
 	uint8_t count=0;
 	__mqtt_start:
 	while(true){
-		count=0;
 		while(!network_is_ready()){
 			delay(5);
 		}
@@ -577,7 +576,8 @@ void app_mqtt()
 			break;
 		}
 		count++;
-		if(count==3){
+		if(count>=3){
+			debug("Request to restart network\n");
 			mail_t mail={.type=MAIL_LTE_NETWORK_RESTART, .data=NULL, .len=0};
 			if(osMessageQueuePut(lteMailHandle, &mail, 0, 10)!=osOK){
 				error("mail put failed\n");

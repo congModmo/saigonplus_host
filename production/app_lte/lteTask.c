@@ -89,15 +89,41 @@ static bool try_to_register_lte()
     return true;
 }
 
+void set_network_mode(char *result)
+{
+	char *mode;
+	if(__check_cmd("4G_2G"))
+	{
+		mode="AT+URAT=5,3\r\n";
+	}
+	else if(__check_cmd("4G"))
+	{
+		mode="AT+URAT=3\r\n";
+	}
+	else if(__check_cmd("2G"))
+	{
+		mode="AT+URAT=0\r\n";
+	}
+	else{
+		error("Set invalid network mode\n");
+		return;
+	}
+    network_ready=false;
+    ASSERT_RET(gsm_send_at_command("AT+CFUN=0\r\n", "OK", 2000, 2, NULL), false, "AT+USECPRF=0");
+    ASSERT_RET(gsm_send_at_command(mode, "OK", 1000, 2, NULL), false, "URAT");
+    ASSERT_RET(gsm_send_at_command("AT+CFUN=1\r\n", "OK", 1000, 2, NULL), false, "AT+CFUN=1");
+    ASSERT_RET(gsm_send_at_command("AT+CFUN=16\r\n", "OK", 1000, 2, NULL), false, "AT+CFUN=16");
+}
+
 bool network_connect_init(void)
 {
 	ASSERT_RET(gsm_send_at_command("AT+CMEE=2\r\n", "OK", 500, 2, NULL), false, "AT+CMEE=2");
 #ifdef JIGTEST
 	ASSERT_RET(gsm_send_at_command("AT+URAT=0\r\n", "OK", 500, 2, NULL), false, "AT+URAT=0");
 #else
-	ASSERT_RET(gsm_send_at_command("AT+URAT=5,3\r\n", "OK", 500, 2, NULL), false, "AT+URAT=5,3");
+//	ASSERT_RET(gsm_send_at_command("AT+URAT=5,3\r\n", "OK", 500, 2, NULL), false, "AT+URAT=5,3");
 #endif
-	ASSERT_RET(gsm_send_at_command("AT+UPSD=0,1,\"TSIOT\"\r\n", "OK", 500, 2, NULL), false, "AT+UPSD=0,1,\"TSIOT\"");
+	ASSERT_RET(gsm_send_at_command("AT+UPSD=0,1,\"move.dataxs.mobi\"\r\n", "OK", 500, 2, NULL), false, "AT+UPSD=0,1,\"TSIOT\"");
 	ASSERT_RET(gsm_send_at_command("AT+UPSD=0,0,0\r\n", "OK", 500, 5, NULL), false, "AT+UPSD=0,0,0");
 	ASSERT_RET(gsm_send_at_command("AT+CREG=2\r\n", "OK", 500, 2, NULL), false, "AT+CREG=2");
 	ASSERT_RET(gsm_send_at_command("AT+CGREG=2\r\n", "OK", 500, 2, NULL), false, "AT+CGREG=2");
@@ -163,7 +189,22 @@ bool mail_status_reponse(uint8_t type, uint8_t status, osMessageQueueId_t mailBo
 	return true;
 }
 
-static bool lte_mail_process(){
+void lte_task_console_handle(char *result)
+{
+	if(__check_cmd("set mode "))
+	{
+		set_network_mode(__param_pos("set mode "));
+	}
+	else if (__check_cmd("AT"))
+	{
+		debug("Send command: %s\n", result);
+		gsm_send_string(result);
+		gsm_send_string("\r\n");
+	}
+}
+
+static bool lte_mail_process()
+{
 	static mail_t mail;
 	if(osMessageQueueGet(lteMailHandle, &mail, NULL, 0)!=osOK){
 		return false;
@@ -184,6 +225,10 @@ static bool lte_mail_process(){
 		if(!lara_r2_socket_check()){
 			network_ready=false;
 		}
+	}
+	else if(mail.type==MAIL_LTE_CONSOLE_CMD)
+	{
+		lte_task_console_handle((char *)mail.data);
 	}
 	__exit:
 	if(mail.data!=NULL){
@@ -284,16 +329,7 @@ void lte_task()
 		}
 		if(network_connect_init())
 		{
-			if(type==NETWORK_TYPE_2G && !lte_attempt)
-			{
-				lte_attempt=true;
-				try_to_register_lte();
-				goto __network_start;
-			}
-			else
-			{
-				break;
-			}
+			break;
 		}
 		__init_wait:
 		delay(60000);

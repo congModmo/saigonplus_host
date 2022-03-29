@@ -164,12 +164,23 @@ void console_message_handle(char *result)
     	{
     		app_ble_console_handle(__param_pos("ble "));
     	}
-    	else if(__check_cmd("at "))
+    	else if(__check_cmd("lte "))
     	{
 #ifdef LTE_ENABLE
-    		debug("Send command: %s\n", __param_pos("at "));
-    		gsm_send_string(__param_pos("at "));
-    		gsm_send_string("\r\n");
+    		char *message=__param_pos("lte ");
+    		uint8_t *data=malloc(strlen(message)+1);
+    		if(data==NULL)
+    		{
+    			error("malloc failed\n");
+    			return;
+    		}
+    		strcpy(data, message);
+    		mail_t mail ={.type=MAIL_LTE_CONSOLE_CMD, .len=strlen(message)+1, .data=data};
+    		if(osMessageQueuePut(lteMailHandle, &mail, 0, 10)!=osOK){
+    			error("Mail put failed");
+    			free(data);
+    		}
+
 #endif
     	}
 }

@@ -11,6 +11,12 @@
 #include "transport_interface.h"
 #include "lte/lara_r2_socket.h"
 
+typedef enum{
+	CELLULAR_MODE_4G_2G,
+	CELLULAR_MODE_2G,
+	CELLULAR_MODE_4G
+}cellular_mode_t;
+
 struct NetworkContext
 {
     lara_r2_socket_t *socket;
